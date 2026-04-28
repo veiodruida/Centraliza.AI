@@ -1,0 +1,4676 @@
+[
+  {
+    "name": "nomic-ai/nomic-embed-text-v1.5",
+    "provider": "Nomic",
+    "parameter_count": "137M",
+    "parameters_raw": 136731648,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 2048,
+    "use_case": "Text embeddings for RAG",
+    "capabilities": [],
+    "pipeline_tag": "sentence-similarity",
+    "architecture": "nomic_bert",
+    "hf_downloads": 13284225,
+    "hf_likes": 803,
+    "release_date": "2024-02-10",
+    "num_hidden_layers": 12,
+    "num_attention_heads": 12,
+    "num_key_value_heads": 12,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/nomic-embed-text-v1.5-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "BAAI/bge-large-en-v1.5",
+    "provider": "BAAI",
+    "parameter_count": "335M",
+    "parameters_raw": 335142400,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 512,
+    "use_case": "Text embeddings for RAG",
+    "capabilities": [],
+    "pipeline_tag": "feature-extraction",
+    "architecture": "bert",
+    "hf_downloads": 12209191,
+    "hf_likes": 653,
+    "release_date": "2023-09-12",
+    "num_hidden_layers": 24,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 16,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/bge-large-en-v1.5-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-ColBERT-350M",
+    "provider": "Liquid AI",
+    "parameter_count": "353M",
+    "parameters_raw": 353322752,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "sentence-similarity",
+    "architecture": "lfm2",
+    "hf_downloads": 74971,
+    "hf_likes": 129,
+    "release_date": "2025-10-28",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 64
+  },
+  {
+    "name": "LiquidAI/LFM2-350M",
+    "provider": "Liquid AI",
+    "parameter_count": "354M",
+    "parameters_raw": 354483968,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 27582,
+    "hf_likes": 249,
+    "release_date": "2025-07-10",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2-350M-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/LFM2-350M-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-350M-Extract",
+    "provider": "Liquid AI",
+    "parameter_count": "354M",
+    "parameters_raw": 354483968,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 1316,
+    "hf_likes": 78,
+    "release_date": "2025-09-03",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-350M-Extract-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-350M-Math",
+    "provider": "Liquid AI",
+    "parameter_count": "354M",
+    "parameters_raw": 354483968,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 812,
+    "hf_likes": 58,
+    "release_date": "2025-08-25",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-350M-Math-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-350M-ENJP-MT",
+    "provider": "Liquid AI",
+    "parameter_count": "354M",
+    "parameters_raw": 354483968,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "translation",
+    "architecture": "lfm2",
+    "hf_downloads": 1191,
+    "hf_likes": 88,
+    "release_date": "2025-09-03",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-350M-ENJP-MT-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-350M-PII-Extract-JP",
+    "provider": "Liquid AI",
+    "parameter_count": "354M",
+    "parameters_raw": 354483968,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 1093,
+    "hf_likes": 54,
+    "release_date": "2025-09-30",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-350M-PII-Extract-JP-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-VL-450M",
+    "provider": "Liquid AI",
+    "parameter_count": "451M",
+    "parameters_raw": 450822656,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "lfm2_vl",
+    "hf_downloads": 45472,
+    "hf_likes": 146,
+    "release_date": "2025-08-12",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "ggml-org/LFM2-VL-450M-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/LFM2-VL-450M-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-700M",
+    "provider": "Liquid AI",
+    "parameter_count": "742M",
+    "parameters_raw": 742489344,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 11159,
+    "hf_likes": 110,
+    "release_date": "2025-07-10",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 24,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2-700M-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3-0.6B",
+    "provider": "Alibaba",
+    "parameter_count": "752M",
+    "parameters_raw": 751632384,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 40960,
+    "use_case": "General purpose text generation",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3",
+    "hf_downloads": 17702036,
+    "hf_likes": 1207,
+    "release_date": "2025-04-27",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-0.6B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3-0.6B-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen3-0.6B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-0.8B",
+    "provider": "Alibaba",
+    "parameter_count": "873M",
+    "parameters_raw": 873438784,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 2923901,
+    "hf_likes": 511,
+    "release_date": "2026-02-28",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-0.8B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-0.8B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-0.8B-Base",
+    "provider": "Alibaba",
+    "parameter_count": "873M",
+    "parameters_raw": 873438784,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 143004,
+    "hf_likes": 70,
+    "release_date": "2026-02-28",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Qwen3.5-0.8B-Base-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-3-1b-it",
+    "provider": "Google",
+    "parameter_count": "1000M",
+    "parameters_raw": 999885952,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "gemma3_text",
+    "hf_downloads": 553687,
+    "hf_likes": 931,
+    "release_date": "2025-03-10",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-3-1b-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-3-1b-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-3-1b-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "provider": "Community",
+    "parameter_count": "1.1B",
+    "parameters_raw": 1100048384,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 2048,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 3106432,
+    "hf_likes": 1569,
+    "release_date": "2023-12-30",
+    "num_hidden_layers": 22,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 4,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/TinyLlama-1.1B-Chat-v1.0-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-1.2B",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 56201,
+    "hf_likes": 352,
+    "release_date": "2025-07-10",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2-1.2B-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2.5-1.2B-Base",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 21946,
+    "hf_likes": 124,
+    "release_date": "2026-01-05",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2.5-1.2B-Base-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2.5-1.2B-Instruct",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 413903,
+    "hf_likes": 571,
+    "release_date": "2026-01-06",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2.5-1.2B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/LFM2.5-1.2B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2.5-1.2B-Thinking",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 31277,
+    "hf_likes": 334,
+    "release_date": "2026-01-20",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2.5-1.2B-Thinking-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/LFM2.5-1.2B-Thinking-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2.5-1.2B-JP",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 2360,
+    "hf_likes": 144,
+    "release_date": "2026-01-04",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2.5-1.2B-JP-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-1.2B-Tool",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 618,
+    "hf_likes": 100,
+    "release_date": "2025-09-03",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-1.2B-Tool-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-1.2B-RAG",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 856,
+    "hf_likes": 118,
+    "release_date": "2025-09-03",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-1.2B-RAG-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-1.2B-Extract",
+    "provider": "Liquid AI",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1170340608,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 1404,
+    "hf_likes": 107,
+    "release_date": "2025-08-22",
+    "num_hidden_layers": 16,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-1.2B-Extract-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/Llama-3.2-1B",
+    "provider": "Meta",
+    "parameter_count": "1.2B",
+    "parameters_raw": 1235814400,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 1303541,
+    "hf_likes": 2372,
+    "release_date": "2024-09-18",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Llama-3.2-1B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+    "provider": "lgai-exaone",
+    "parameter_count": "1.3B",
+    "parameters_raw": 1279391488,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 1048576,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "exaone4",
+    "hf_downloads": 26882,
+    "hf_likes": 181,
+    "release_date": "2025-07-11",
+    "num_hidden_layers": 30,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/EXAONE-4.0-1.2B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-Audio-1.5B",
+    "provider": "Liquid AI",
+    "parameter_count": "1.5B",
+    "parameters_raw": 1470308496,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "audio-to-audio",
+    "architecture": "unknown",
+    "hf_downloads": 350,
+    "hf_likes": 346,
+    "release_date": "2025-08-28",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "ggml-org/LFM2-Audio-1.5B-GGUF",
+        "provider": "ggml-org"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2.5-Audio-1.5B",
+    "provider": "Liquid AI",
+    "parameter_count": "1.5B",
+    "parameters_raw": 1470308496,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "audio-to-audio",
+    "architecture": "unknown",
+    "hf_downloads": 887,
+    "hf_likes": 387,
+    "release_date": "2025-12-18",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "1.5B",
+    "parameters_raw": 1543714304,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 197266,
+    "hf_likes": 117,
+    "release_date": "2024-09-18",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 12,
+    "num_key_value_heads": 2,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen2.5-Coder-1.5B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-Coder-1.5B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-VL-1.6B",
+    "provider": "Liquid AI",
+    "parameter_count": "1.6B",
+    "parameters_raw": 1584804000,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "lfm2_vl",
+    "hf_downloads": 4159,
+    "hf_likes": 226,
+    "release_date": "2025-08-12",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-VL-1.6B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2.5-VL-1.6B",
+    "provider": "Liquid AI",
+    "parameter_count": "1.6B",
+    "parameters_raw": 1596625904,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "lfm2_vl",
+    "hf_downloads": 127705,
+    "hf_likes": 275,
+    "release_date": "2026-01-05",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2.5-VL-1.6B-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "stabilityai/stablelm-2-1_6b-chat",
+    "provider": "Stability AI",
+    "parameter_count": "1.6B",
+    "parameters_raw": 1644515328,
+    "min_ram_gb": 1.0,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 0.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "stablelm",
+    "hf_downloads": 2983,
+    "hf_likes": 35,
+    "release_date": "2024-04-08",
+    "num_hidden_layers": 24,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 32,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/stablelm-2-1_6b-chat-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3-1.7B",
+    "provider": "Alibaba",
+    "parameter_count": "2.0B",
+    "parameters_raw": 2031739904,
+    "min_ram_gb": 1.1,
+    "recommended_ram_gb": 2.0,
+    "min_vram_gb": 1.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 40960,
+    "use_case": "General purpose text generation",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3",
+    "hf_downloads": 6669421,
+    "hf_likes": 451,
+    "release_date": "2025-04-27",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-1.7B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3-1.7B-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen3-1.7B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-2B",
+    "provider": "Alibaba",
+    "parameter_count": "2.3B",
+    "parameters_raw": 2274069824,
+    "min_ram_gb": 1.3,
+    "recommended_ram_gb": 2.1,
+    "min_vram_gb": 1.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 1648058,
+    "hf_likes": 261,
+    "release_date": "2026-02-28",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-2B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-2B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-2B-Base",
+    "provider": "Alibaba",
+    "parameter_count": "2.3B",
+    "parameters_raw": 2274069824,
+    "min_ram_gb": 1.3,
+    "recommended_ram_gb": 2.1,
+    "min_vram_gb": 1.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 60932,
+    "hf_likes": 67,
+    "release_date": "2026-02-28",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "LiquidAI/LFM2-2.6B",
+    "provider": "Liquid AI",
+    "parameter_count": "2.6B",
+    "parameters_raw": 2569272320,
+    "min_ram_gb": 1.4,
+    "recommended_ram_gb": 2.4,
+    "min_vram_gb": 1.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 6316,
+    "hf_likes": 187,
+    "release_date": "2025-09-22",
+    "num_hidden_layers": 30,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-2.6B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-2.6B-Exp",
+    "provider": "Liquid AI",
+    "parameter_count": "2.6B",
+    "parameters_raw": 2569272320,
+    "min_ram_gb": 1.4,
+    "recommended_ram_gb": 2.4,
+    "min_vram_gb": 1.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 20049,
+    "hf_likes": 339,
+    "release_date": "2025-12-25",
+    "num_hidden_layers": 30,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2-2.6B-Exp-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/LFM2-2.6B-Exp-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-2.6B-Transcript",
+    "provider": "Liquid AI",
+    "parameter_count": "2.6B",
+    "parameters_raw": 2569272320,
+    "min_ram_gb": 1.4,
+    "recommended_ram_gb": 2.4,
+    "min_vram_gb": 1.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2",
+    "hf_downloads": 576,
+    "hf_likes": 163,
+    "release_date": "2026-01-05",
+    "num_hidden_layers": 30,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-2.6B-Transcript-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-2-2b-it",
+    "provider": "Google",
+    "parameter_count": "2.6B",
+    "parameters_raw": 2614341888,
+    "min_ram_gb": 1.5,
+    "recommended_ram_gb": 2.4,
+    "min_vram_gb": 1.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "gemma2",
+    "hf_downloads": 353348,
+    "hf_likes": 1341,
+    "release_date": "2024-07-16",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/gemma-2-2b-it-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/gemma-2-2b-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-VL-3B",
+    "provider": "Liquid AI",
+    "parameter_count": "3.0B",
+    "parameters_raw": 2998975216,
+    "min_ram_gb": 1.7,
+    "recommended_ram_gb": 2.8,
+    "min_vram_gb": 1.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "lfm2_vl",
+    "hf_downloads": 11866,
+    "hf_likes": 133,
+    "release_date": "2025-10-22",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "HuggingFaceTB/SmolLM3-3B",
+    "provider": "huggingfacetb",
+    "parameter_count": "3.1B",
+    "parameters_raw": 3075098624,
+    "min_ram_gb": 1.7,
+    "recommended_ram_gb": 2.9,
+    "min_vram_gb": 1.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 65536,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "smollm3",
+    "hf_downloads": 157458,
+    "hf_likes": 939,
+    "release_date": "2025-07-08",
+    "num_hidden_layers": 36,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/SmolLM3-3B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/SmolLM3-3B-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/SmolLM3-3B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "ibm-granite/granite-4.0-h-micro",
+    "provider": "ibm-granite",
+    "parameter_count": "3.2B",
+    "parameters_raw": 3191396096,
+    "min_ram_gb": 1.8,
+    "recommended_ram_gb": 3.0,
+    "min_vram_gb": 1.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "granitemoehybrid",
+    "hf_downloads": 41143,
+    "hf_likes": 142,
+    "release_date": "2025-09-16",
+    "num_hidden_layers": 40,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/granite-4.0-h-micro-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/granite-4.0-h-micro-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/Llama-3.2-3B",
+    "provider": "Meta",
+    "parameter_count": "3.2B",
+    "parameters_raw": 3212749824,
+    "min_ram_gb": 1.8,
+    "recommended_ram_gb": 3.0,
+    "min_vram_gb": 1.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 1074136,
+    "hf_likes": 758,
+    "release_date": "2024-09-18",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Llama-3.2-3B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-VL-3B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "3.8B",
+    "parameters_raw": 3754622976,
+    "min_ram_gb": 2.1,
+    "recommended_ram_gb": 3.5,
+    "min_vram_gb": 1.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen2_5_vl",
+    "hf_downloads": 4897210,
+    "hf_likes": 640,
+    "release_date": "2025-01-26",
+    "num_hidden_layers": 36,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 2,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen2.5-VL-3B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen2.5-VL-3B-Instruct-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-VL-3B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/Phi-4-mini-reasoning",
+    "provider": "Microsoft",
+    "parameter_count": "3.8B",
+    "parameters_raw": 3800000000,
+    "min_ram_gb": 2.1,
+    "recommended_ram_gb": 3.5,
+    "min_vram_gb": 1.9,
+    "quantization": "Q4_K_M",
+    "context_length": 16384,
+    "use_case": "Lightweight reasoning",
+    "pipeline_tag": "text-generation",
+    "architecture": "phi4",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": "2025-04-01",
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Phi-4-mini-reasoning-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Phi-4-mini-reasoning-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/phi-3-mini-4k-instruct",
+    "provider": "Microsoft",
+    "parameter_count": "3.8B",
+    "parameters_raw": 3821079552,
+    "min_ram_gb": 2.1,
+    "recommended_ram_gb": 3.6,
+    "min_vram_gb": 2.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "phi3",
+    "hf_downloads": 727140,
+    "hf_likes": 1415,
+    "release_date": "2024-04-22",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 32,
+    "head_dim": 96,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/phi-3-mini-4k-instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/phi-3-mini-4k-instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/Phi-3.5-mini-instruct",
+    "provider": "Microsoft",
+    "parameter_count": "3.8B",
+    "parameters_raw": 3821079552,
+    "min_ram_gb": 2.1,
+    "recommended_ram_gb": 3.6,
+    "min_vram_gb": 2.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "phi3",
+    "hf_downloads": 734939,
+    "hf_likes": 973,
+    "release_date": "2024-08-16",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 32,
+    "head_dim": 96,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Phi-3.5-mini-instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Phi-3.5-mini-instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-3n-E2B-it",
+    "provider": "Google",
+    "parameter_count": "4B",
+    "parameters_raw": 4000000000,
+    "min_ram_gb": 2.2,
+    "recommended_ram_gb": 3.7,
+    "min_vram_gb": 2.1,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Multimodal, on-device (effective 2B)",
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "gemma3n",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": "2025-06-25",
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-3n-E2B-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-3n-E2B-it-GGUF",
+        "provider": "ggml-org"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-4B",
+    "provider": "Alibaba",
+    "parameter_count": "4.7B",
+    "parameters_raw": 4659865088,
+    "min_ram_gb": 2.6,
+    "recommended_ram_gb": 4.3,
+    "min_vram_gb": 2.4,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 3538340,
+    "hf_likes": 488,
+    "release_date": "2026-02-27",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-4B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-4B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-4B-Base",
+    "provider": "Alibaba",
+    "parameter_count": "4.7B",
+    "parameters_raw": 4659865088,
+    "min_ram_gb": 2.6,
+    "recommended_ram_gb": 4.3,
+    "min_vram_gb": 2.4,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 120128,
+    "hf_likes": 62,
+    "release_date": "2026-02-27",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "google/gemma-4-E2B-it",
+    "provider": "Google",
+    "parameter_count": "5.1B",
+    "parameters_raw": 5123178051,
+    "min_ram_gb": 2.9,
+    "recommended_ram_gb": 4.8,
+    "min_vram_gb": 2.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "any-to-any",
+    "architecture": "gemma4",
+    "hf_downloads": 2345658,
+    "hf_likes": 520,
+    "release_date": "2026-03-02",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-4-E2B-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-4-E2B-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-4-E2B-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/Phi-4-multimodal-instruct",
+    "provider": "Microsoft",
+    "parameter_count": "5.6B",
+    "parameters_raw": 5574460384,
+    "min_ram_gb": 3.1,
+    "recommended_ram_gb": 5.2,
+    "min_vram_gb": 2.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "automatic-speech-recognition",
+    "architecture": "phi4mm",
+    "hf_downloads": 362403,
+    "hf_likes": 1592,
+    "release_date": "2025-02-24",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 24,
+    "num_key_value_heads": 8,
+    "head_dim": 128
+  },
+  {
+    "name": "01-ai/Yi-6B-Chat",
+    "provider": "01.ai",
+    "parameter_count": "6.1B",
+    "parameters_raw": 6061035520,
+    "min_ram_gb": 3.4,
+    "recommended_ram_gb": 5.6,
+    "min_vram_gb": 3.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 25257,
+    "hf_likes": 70,
+    "release_date": "2023-11-22",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Yi-6B-Chat-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "lmsys/vicuna-7b-v1.5",
+    "provider": "LMSYS",
+    "parameter_count": "7.0B",
+    "parameters_raw": 6738415616,
+    "min_ram_gb": 3.8,
+    "recommended_ram_gb": 6.3,
+    "min_vram_gb": 3.4,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/vicuna-7b-v1.5-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/vicuna-7b-v1.5-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/CodeLlama-7b-Instruct-hf",
+    "provider": "Meta",
+    "parameter_count": "6.7B",
+    "parameters_raw": 6738546688,
+    "min_ram_gb": 3.8,
+    "recommended_ram_gb": 6.3,
+    "min_vram_gb": 3.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Code generation and completion",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 2668,
+    "hf_likes": 59,
+    "release_date": "2024-03-13",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/CodeLlama-7b-Instruct-hf-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "ibm-granite/granite-4.0-h-tiny",
+    "provider": "ibm-granite",
+    "parameter_count": "6.9B",
+    "parameters_raw": 6939037248,
+    "min_ram_gb": 3.9,
+    "recommended_ram_gb": 6.5,
+    "min_vram_gb": 3.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "Lightweight, edge deployment",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "granitemoehybrid",
+    "hf_downloads": 90952,
+    "hf_likes": 200,
+    "release_date": "2025-09-16",
+    "num_hidden_layers": 40,
+    "num_attention_heads": 12,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 64,
+    "active_experts": 6,
+    "active_parameters": 964959866,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/granite-4.0-h-tiny-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/granite-4.0-h-tiny-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "openchat/openchat-3.5-0106",
+    "provider": "OpenChat",
+    "parameter_count": "7.0B",
+    "parameters_raw": 7000000000,
+    "min_ram_gb": 3.9,
+    "recommended_ram_gb": 6.5,
+    "min_vram_gb": 3.6,
+    "quantization": "Q4_K_M",
+    "context_length": 8192,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "mistral",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/openchat-3.5-0106-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/openchat-3.5-0106-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "XiaomiMiMo/MiMo-7B-RL",
+    "provider": "Xiaomi",
+    "parameter_count": "7.0B",
+    "parameters_raw": 7000000000,
+    "min_ram_gb": 3.9,
+    "recommended_ram_gb": 6.5,
+    "min_vram_gb": 3.6,
+    "quantization": "Q4_K_M",
+    "context_length": 32768,
+    "use_case": "Advanced reasoning, math and code",
+    "pipeline_tag": "text-generation",
+    "architecture": "mimo",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": "2025-05-01"
+  },
+  {
+    "name": "microsoft/Orca-2-7b",
+    "provider": "Microsoft",
+    "parameter_count": "7.0B",
+    "parameters_raw": 7016400896,
+    "min_ram_gb": 3.9,
+    "recommended_ram_gb": 6.5,
+    "min_vram_gb": 3.6,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Reasoning, step-by-step solutions",
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/Orca-2-7b-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/Orca-2-7b-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "bigcode/starcoder2-7b",
+    "provider": "BigCode",
+    "parameter_count": "7.2B",
+    "parameters_raw": 7173923840,
+    "min_ram_gb": 4.0,
+    "recommended_ram_gb": 6.7,
+    "min_vram_gb": 3.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 16384,
+    "use_case": "Code generation and completion",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "starcoder2",
+    "hf_downloads": 16911,
+    "hf_likes": 214,
+    "release_date": "2024-02-20",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 36,
+    "num_key_value_heads": 4,
+    "head_dim": 128
+  },
+  {
+    "name": "tiiuae/falcon-7b-instruct",
+    "provider": "TII",
+    "parameter_count": "7.2B",
+    "parameters_raw": 7217189760,
+    "min_ram_gb": 4.0,
+    "recommended_ram_gb": 6.7,
+    "min_vram_gb": 3.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "falcon",
+    "hf_downloads": 62940,
+    "hf_likes": 1032,
+    "release_date": "2023-04-25",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 71,
+    "num_key_value_heads": 71,
+    "head_dim": 64,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/falcon-7b-instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "HuggingFaceH4/zephyr-7b-beta",
+    "provider": "HuggingFace",
+    "parameter_count": "7.2B",
+    "parameters_raw": 7241732096,
+    "min_ram_gb": 4.0,
+    "recommended_ram_gb": 6.7,
+    "min_vram_gb": 3.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "mistral",
+    "hf_downloads": 118249,
+    "hf_likes": 1842,
+    "release_date": "2023-10-26",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/zephyr-7b-beta-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/zephyr-7b-beta-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "mistralai/Mistral-7B-Instruct-v0.3",
+    "provider": "Mistral AI",
+    "parameter_count": "7.2B",
+    "parameters_raw": 7248023552,
+    "min_ram_gb": 4.1,
+    "recommended_ram_gb": 6.8,
+    "min_vram_gb": 3.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "unknown",
+    "architecture": "mistral",
+    "hf_downloads": 2699857,
+    "hf_likes": 2537,
+    "release_date": "2024-05-22",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Mistral-7B-Instruct-v0.3-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Mistral-7B-Instruct-v0.3-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "tiiuae/Falcon3-7B-Instruct",
+    "provider": "TII",
+    "parameter_count": "7.5B",
+    "parameters_raw": 7455550464,
+    "min_ram_gb": 4.2,
+    "recommended_ram_gb": 6.9,
+    "min_vram_gb": 3.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 18945,
+    "hf_likes": 78,
+    "release_date": "2024-11-29",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 12,
+    "num_key_value_heads": 4,
+    "head_dim": 256,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Falcon3-7B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Falcon3-7B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-7B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "7.6B",
+    "parameters_raw": 7615616512,
+    "min_ram_gb": 4.3,
+    "recommended_ram_gb": 7.1,
+    "min_vram_gb": 3.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 11962459,
+    "hf_likes": 1233,
+    "release_date": "2024-09-16",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 28,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Qwen2.5-7B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-7B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-Coder-7B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "7.6B",
+    "parameters_raw": 7615616512,
+    "min_ram_gb": 4.3,
+    "recommended_ram_gb": 7.1,
+    "min_vram_gb": 3.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 1916602,
+    "hf_likes": 696,
+    "release_date": "2024-09-17",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 28,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen2.5-Coder-7B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-Coder-7B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+    "provider": "DeepSeek",
+    "parameter_count": "7.6B",
+    "parameters_raw": 7615616512,
+    "min_ram_gb": 4.3,
+    "recommended_ram_gb": 7.1,
+    "min_vram_gb": 3.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "Advanced reasoning, chain-of-thought",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 567856,
+    "hf_likes": 827,
+    "release_date": "2025-01-20",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 28,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/DeepSeek-R1-Distill-Qwen-7B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-4-E4B-it",
+    "provider": "Google",
+    "parameter_count": "8.0B",
+    "parameters_raw": 7996156490,
+    "min_ram_gb": 4.5,
+    "recommended_ram_gb": 7.4,
+    "min_vram_gb": 4.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "any-to-any",
+    "architecture": "gemma4",
+    "hf_downloads": 3244369,
+    "hf_likes": 813,
+    "release_date": "2026-03-02",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-4-E4B-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-4-E4B-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-4-E4B-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-3n-E4B-it",
+    "provider": "Google",
+    "parameter_count": "8B",
+    "parameters_raw": 8000000000,
+    "min_ram_gb": 4.5,
+    "recommended_ram_gb": 7.5,
+    "min_vram_gb": 4.1,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Multimodal, on-device (effective 4B)",
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "gemma3n",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": "2025-06-25",
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-3n-E4B-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-3n-E4B-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-3n-E4B-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/Llama-3.1-8B",
+    "provider": "Meta",
+    "parameter_count": "8.0B",
+    "parameters_raw": 8030261248,
+    "min_ram_gb": 4.5,
+    "recommended_ram_gb": 7.5,
+    "min_vram_gb": 4.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 1443251,
+    "hf_likes": 2169,
+    "release_date": "2024-07-14",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "meta-llama/Llama-3.1-8B-Instruct",
+    "provider": "Meta",
+    "parameter_count": "8.0B",
+    "parameters_raw": 8030261248,
+    "min_ram_gb": 4.5,
+    "recommended_ram_gb": 7.5,
+    "min_vram_gb": 4.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 9145891,
+    "hf_likes": 5752,
+    "release_date": "2024-07-18",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Llama-3.1-8B-Instruct-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "mistralai/Ministral-8B-Instruct-2410",
+    "provider": "Mistral AI",
+    "parameter_count": "8.0B",
+    "parameters_raw": 8030261248,
+    "min_ram_gb": 4.5,
+    "recommended_ram_gb": 7.5,
+    "min_vram_gb": 4.1,
+    "quantization": "Q4_K_M",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "mistral",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Ministral-8B-Instruct-2410-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Ministral-8B-Instruct-2410-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3-8B",
+    "provider": "Alibaba",
+    "parameter_count": "8.2B",
+    "parameters_raw": 8190735360,
+    "min_ram_gb": 4.6,
+    "recommended_ram_gb": 7.6,
+    "min_vram_gb": 4.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 40960,
+    "use_case": "General purpose text generation",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3",
+    "hf_downloads": 8849828,
+    "hf_likes": 1064,
+    "release_date": "2025-04-27",
+    "num_hidden_layers": 36,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-8B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3-8B-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen3-8B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-VL-7B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "8.3B",
+    "parameters_raw": 8292166656,
+    "min_ram_gb": 4.6,
+    "recommended_ram_gb": 7.7,
+    "min_vram_gb": 4.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen2_5_vl",
+    "hf_downloads": 8936117,
+    "hf_likes": 1509,
+    "release_date": "2025-01-26",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 28,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen2.5-VL-7B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen2.5-VL-7B-Instruct-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-VL-7B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-8B-A1B",
+    "provider": "Liquid AI",
+    "parameter_count": "8.3B",
+    "parameters_raw": 8339929856,
+    "min_ram_gb": 4.7,
+    "recommended_ram_gb": 7.8,
+    "min_vram_gb": 4.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2_moe",
+    "hf_downloads": 91027,
+    "hf_likes": 351,
+    "release_date": "2025-10-07",
+    "num_hidden_layers": 24,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "is_moe": true,
+    "num_experts": 32,
+    "active_experts": 4,
+    "active_parameters": 1500000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/LFM2-8B-A1B-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+    "provider": "nvidia",
+    "parameter_count": "8.9B",
+    "parameters_raw": 8888227328,
+    "min_ram_gb": 5.0,
+    "recommended_ram_gb": 8.3,
+    "min_vram_gb": 4.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "nemotron_h",
+    "hf_downloads": 513493,
+    "hf_likes": 489,
+    "release_date": "2025-08-12",
+    "num_hidden_layers": 56,
+    "num_attention_heads": 40,
+    "num_key_value_heads": 8,
+    "head_dim": 128
+  },
+  {
+    "name": "google/gemma-2-9b-it",
+    "provider": "Google",
+    "parameter_count": "9.2B",
+    "parameters_raw": 9241705984,
+    "min_ram_gb": 5.2,
+    "recommended_ram_gb": 8.6,
+    "min_vram_gb": 4.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "gemma2",
+    "hf_downloads": 384958,
+    "hf_likes": 793,
+    "release_date": "2024-06-24",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/gemma-2-9b-it-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/gemma-2-9b-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "THUDM/glm-4-9b-chat",
+    "provider": "thudm",
+    "parameter_count": "9.4B",
+    "parameters_raw": 9399951392,
+    "min_ram_gb": 5.3,
+    "recommended_ram_gb": 8.8,
+    "min_vram_gb": 4.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "unknown",
+    "architecture": "chatglm",
+    "hf_downloads": 427009,
+    "hf_likes": 706,
+    "release_date": "2024-06-04",
+    "num_hidden_layers": 40,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 32,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/glm-4-9b-chat-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/glm-4-9b-chat-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-9B",
+    "provider": "Alibaba",
+    "parameter_count": "9.7B",
+    "parameters_raw": 9653104368,
+    "min_ram_gb": 5.4,
+    "recommended_ram_gb": 9.0,
+    "min_vram_gb": 4.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 7049563,
+    "hf_likes": 1339,
+    "release_date": "2026-02-27",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-9B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-9B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-9B-Base",
+    "provider": "Alibaba",
+    "parameter_count": "9.7B",
+    "parameters_raw": 9653104368,
+    "min_ram_gb": 5.4,
+    "recommended_ram_gb": 9.0,
+    "min_vram_gb": 4.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 120495,
+    "hf_likes": 71,
+    "release_date": "2026-02-26",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "meta-llama/Llama-3.2-11B-Vision-Instruct",
+    "provider": "Meta",
+    "parameter_count": "10.7B",
+    "parameters_raw": 10670220835,
+    "min_ram_gb": 6.0,
+    "recommended_ram_gb": 9.9,
+    "min_vram_gb": 5.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "mllama",
+    "hf_downloads": 137264,
+    "hf_likes": 1586,
+    "release_date": "2024-09-18",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "upstage/SOLAR-10.7B-Instruct-v1.0",
+    "provider": "Upstage",
+    "parameter_count": "10.7B",
+    "parameters_raw": 10731524096,
+    "min_ram_gb": 6.0,
+    "recommended_ram_gb": 10.0,
+    "min_vram_gb": 5.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 63750,
+    "hf_likes": 651,
+    "release_date": "2023-12-12",
+    "num_hidden_layers": 48,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/SOLAR-10.7B-Instruct-v1.0-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/SOLAR-10.7B-Instruct-v1.0-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-3-12b-it",
+    "provider": "Google",
+    "parameter_count": "12B",
+    "parameters_raw": 12000000000,
+    "min_ram_gb": 6.7,
+    "recommended_ram_gb": 11.2,
+    "min_vram_gb": 6.1,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Multimodal, vision and text",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "gemma3",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-3-12b-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-3-12b-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-3-12b-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "mistralai/Mistral-Nemo-Instruct-2407",
+    "provider": "Mistral AI",
+    "parameter_count": "12.2B",
+    "parameters_raw": 12247076864,
+    "min_ram_gb": 6.8,
+    "recommended_ram_gb": 11.4,
+    "min_vram_gb": 6.3,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "mistral",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Mistral-Nemo-Instruct-2407-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Mistral-Nemo-Instruct-2407-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Mistral-Nemo-Instruct-2407-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/Orca-2-13b",
+    "provider": "Microsoft",
+    "parameter_count": "13.0B",
+    "parameters_raw": 13015864320,
+    "min_ram_gb": 7.3,
+    "recommended_ram_gb": 12.1,
+    "min_vram_gb": 6.7,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Reasoning, step-by-step solutions",
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/Orca-2-13b-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/Orca-2-13b-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "lmsys/vicuna-13b-v1.5",
+    "provider": "LMSYS",
+    "parameter_count": "13.0B",
+    "parameters_raw": 13015864320,
+    "min_ram_gb": 7.3,
+    "recommended_ram_gb": 12.1,
+    "min_vram_gb": 6.7,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/vicuna-13b-v1.5-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/vicuna-13b-v1.5-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "WizardLMTeam/WizardLM-13B-V1.2",
+    "provider": "WizardLM",
+    "parameter_count": "13.0B",
+    "parameters_raw": 13015864320,
+    "min_ram_gb": 7.3,
+    "recommended_ram_gb": 12.1,
+    "min_vram_gb": 6.7,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/WizardLM-13B-V1.2-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/WizardLM-13B-V1.2-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/CodeLlama-13b-Instruct-hf",
+    "provider": "Meta",
+    "parameter_count": "13.0B",
+    "parameters_raw": 13016028160,
+    "min_ram_gb": 7.3,
+    "recommended_ram_gb": 12.1,
+    "min_vram_gb": 6.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Code generation and completion",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 2644,
+    "hf_likes": 28,
+    "release_date": "2024-03-13",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/CodeLlama-13b-Instruct-hf-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/phi-4",
+    "provider": "Microsoft",
+    "parameter_count": "14B",
+    "parameters_raw": 14000000000,
+    "min_ram_gb": 7.8,
+    "recommended_ram_gb": 13.0,
+    "min_vram_gb": 7.2,
+    "quantization": "Q4_K_M",
+    "context_length": 16384,
+    "use_case": "Reasoning, STEM, code generation",
+    "pipeline_tag": "text-generation",
+    "architecture": "phi",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/phi-4-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/phi-4-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/phi-4-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "microsoft/Phi-3-medium-14b-instruct",
+    "provider": "Microsoft",
+    "parameter_count": "14B",
+    "parameters_raw": 14000000000,
+    "min_ram_gb": 7.8,
+    "recommended_ram_gb": 13.0,
+    "min_vram_gb": 7.2,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Balanced performance and size",
+    "pipeline_tag": "text-generation",
+    "architecture": "phi3",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null
+  },
+  {
+    "name": "microsoft/Phi-4-reasoning",
+    "provider": "Microsoft",
+    "parameter_count": "14B",
+    "parameters_raw": 14000000000,
+    "min_ram_gb": 7.8,
+    "recommended_ram_gb": 13.0,
+    "min_vram_gb": 7.2,
+    "quantization": "Q4_K_M",
+    "context_length": 32768,
+    "use_case": "Advanced reasoning, math and code",
+    "pipeline_tag": "text-generation",
+    "architecture": "phi4",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": "2025-04-01",
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Phi-4-reasoning-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Phi-4-reasoning-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-14B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "14.8B",
+    "parameters_raw": 14770000000,
+    "min_ram_gb": 8.2,
+    "recommended_ram_gb": 13.7,
+    "min_vram_gb": 7.6,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Qwen2.5-14B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-14B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3-14B",
+    "provider": "Alibaba",
+    "parameter_count": "14.8B",
+    "parameters_raw": 14770000000,
+    "min_ram_gb": 8.2,
+    "recommended_ram_gb": 13.7,
+    "min_vram_gb": 7.6,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "General purpose text generation",
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-14B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3-14B-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen3-14B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-Coder-14B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "14.8B",
+    "parameters_raw": 14770033664,
+    "min_ram_gb": 8.3,
+    "recommended_ram_gb": 13.8,
+    "min_vram_gb": 7.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 954126,
+    "hf_likes": 150,
+    "release_date": "2024-11-06",
+    "num_hidden_layers": 48,
+    "num_attention_heads": 40,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen2.5-Coder-14B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-Coder-14B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "WizardLMTeam/WizardCoder-15B-V1.0",
+    "provider": "WizardLM",
+    "parameter_count": "15.5B",
+    "parameters_raw": 15515334656,
+    "min_ram_gb": 8.7,
+    "recommended_ram_gb": 14.5,
+    "min_vram_gb": 7.9,
+    "quantization": "Q4_K_M",
+    "context_length": 8192,
+    "use_case": "Code generation and completion",
+    "pipeline_tag": "text-generation",
+    "architecture": "starcoder",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/WizardCoder-15B-V1.0-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "bigcode/starcoder2-15b",
+    "provider": "BigCode",
+    "parameter_count": "15.7B",
+    "parameters_raw": 15700000000,
+    "min_ram_gb": 8.8,
+    "recommended_ram_gb": 14.6,
+    "min_vram_gb": 8.0,
+    "quantization": "Q4_K_M",
+    "context_length": 16384,
+    "use_case": "Code generation and completion",
+    "pipeline_tag": "text-generation",
+    "architecture": "starcoder2",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/starcoder2-15b-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
+    "provider": "DeepSeek",
+    "parameter_count": "15.7B",
+    "parameters_raw": 15706484224,
+    "min_ram_gb": 8.8,
+    "recommended_ram_gb": 14.6,
+    "min_vram_gb": 8.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 6553600,
+    "use_case": "Code generation and completion",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v2",
+    "hf_downloads": 710732,
+    "hf_likes": 584,
+    "release_date": "2024-06-14",
+    "num_hidden_layers": 27,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 16,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 64,
+    "active_experts": 6,
+    "active_parameters": 2400000000,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/DeepSeek-Coder-V2-Lite-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "inclusionAI/Ling-lite",
+    "provider": "inclusionai",
+    "parameter_count": "16.8B",
+    "parameters_raw": 16801974272,
+    "min_ram_gb": 9.4,
+    "recommended_ram_gb": 15.6,
+    "min_vram_gb": 8.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "bailing_moe",
+    "hf_downloads": 490,
+    "hf_likes": 79,
+    "release_date": "2025-02-28",
+    "num_hidden_layers": 28,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 64,
+    "active_experts": 6,
+    "active_parameters": 2336524543,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Ling-lite-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LiquidAI/LFM2-24B-A2B",
+    "provider": "Liquid AI",
+    "parameter_count": "23.8B",
+    "parameters_raw": 23843661440,
+    "min_ram_gb": 13.3,
+    "recommended_ram_gb": 22.2,
+    "min_vram_gb": 12.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 128000,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "lfm2_moe",
+    "hf_downloads": 35518,
+    "hf_likes": 313,
+    "release_date": "2026-02-24",
+    "num_hidden_layers": 40,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 64,
+    "is_moe": true,
+    "num_experts": 64,
+    "active_experts": 4,
+    "active_parameters": 2300000000,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/LFM2-24B-A2B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "provider": "Mistral AI",
+    "parameter_count": "24B",
+    "parameters_raw": 24000000000,
+    "min_ram_gb": 13.4,
+    "recommended_ram_gb": 22.4,
+    "min_vram_gb": 12.3,
+    "quantization": "Q4_K_M",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "mistral",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Mistral-Small-24B-Instruct-2501-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Mistral-Small-24B-Instruct-2501-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Mistral-Small-24B-Instruct-2501-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-4-26B-A4B-it",
+    "provider": "Google",
+    "parameter_count": "26.5B",
+    "parameters_raw": 26544131376,
+    "min_ram_gb": 14.8,
+    "recommended_ram_gb": 24.7,
+    "min_vram_gb": 13.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "gemma4",
+    "hf_downloads": 3989417,
+    "hf_likes": 794,
+    "release_date": "2026-03-11",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 128,
+    "active_experts": 8,
+    "active_parameters": 4000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-4-26B-A4B-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-4-26B-A4B-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-4-26B-A4B-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-2-27b-it",
+    "provider": "Google",
+    "parameter_count": "27.2B",
+    "parameters_raw": 27227128320,
+    "min_ram_gb": 15.2,
+    "recommended_ram_gb": 25.4,
+    "min_vram_gb": 13.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "gemma2",
+    "hf_downloads": 42462,
+    "hf_likes": 565,
+    "release_date": "2024-06-24",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/gemma-2-27b-it-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/gemma-2-27b-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-3-27b-it",
+    "provider": "Google",
+    "parameter_count": "27.4B",
+    "parameters_raw": 27432406640,
+    "min_ram_gb": 15.3,
+    "recommended_ram_gb": 25.5,
+    "min_vram_gb": 14.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "gemma3",
+    "hf_downloads": 490587,
+    "hf_likes": 1956,
+    "release_date": "2025-03-01",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-3-27b-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-3-27b-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-3-27b-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-27B",
+    "provider": "Alibaba",
+    "parameter_count": "27.8B",
+    "parameters_raw": 27781427952,
+    "min_ram_gb": 15.5,
+    "recommended_ram_gb": 25.9,
+    "min_vram_gb": 14.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 3390896,
+    "hf_likes": 959,
+    "release_date": "2026-02-24",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-27B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-27B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.6-27B",
+    "provider": "Alibaba",
+    "parameter_count": "27.8B",
+    "parameters_raw": 27781427952,
+    "min_ram_gb": 15.5,
+    "recommended_ram_gb": 25.9,
+    "min_vram_gb": 14.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5",
+    "hf_downloads": 162349,
+    "hf_likes": 722,
+    "release_date": "2026-04-21",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.6-27B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3.6-27B-GGUF",
+        "provider": "ggml-org"
+      }
+    ]
+  },
+  {
+    "name": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+    "provider": "nvidia",
+    "parameter_count": "31.6B",
+    "parameters_raw": 31577937344,
+    "min_ram_gb": 17.6,
+    "recommended_ram_gb": 29.4,
+    "min_vram_gb": 16.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "nemotron_h",
+    "hf_downloads": 1386770,
+    "hf_likes": 719,
+    "release_date": "2025-12-04",
+    "num_hidden_layers": 52,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 2,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 128,
+    "active_experts": 6,
+    "active_parameters": 3000000000,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "LGAI-EXAONE/EXAONE-4.0-32B",
+    "provider": "lgai-exaone",
+    "parameter_count": "32.0B",
+    "parameters_raw": 32003216384,
+    "min_ram_gb": 17.9,
+    "recommended_ram_gb": 29.8,
+    "min_vram_gb": 16.4,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 2097152,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "exaone4",
+    "hf_downloads": 24979,
+    "hf_likes": 282,
+    "release_date": "2025-07-11",
+    "num_hidden_layers": 64,
+    "num_attention_heads": 40,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/EXAONE-4.0-32B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "allenai/OLMo-2-0325-32B-Instruct",
+    "provider": "allenai",
+    "parameter_count": "32.2B",
+    "parameters_raw": 32234279936,
+    "min_ram_gb": 18.0,
+    "recommended_ram_gb": 30.0,
+    "min_vram_gb": 16.5,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "olmo2",
+    "hf_downloads": 13653,
+    "hf_likes": 148,
+    "release_date": "2025-03-12",
+    "num_hidden_layers": 64,
+    "num_attention_heads": 40,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/OLMo-2-0325-32B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/OLMo-2-0325-32B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-32B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "32.5B",
+    "parameters_raw": 32510000000,
+    "min_ram_gb": 18.2,
+    "recommended_ram_gb": 30.3,
+    "min_vram_gb": 16.7,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Qwen2.5-32B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-32B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "google/gemma-4-31B-it",
+    "provider": "Google",
+    "parameter_count": "32.7B",
+    "parameters_raw": 32682372656,
+    "min_ram_gb": 18.3,
+    "recommended_ram_gb": 30.4,
+    "min_vram_gb": 16.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "gemma4",
+    "hf_downloads": 5457597,
+    "hf_likes": 2329,
+    "release_date": "2026-03-11",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-4-31B-it-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/gemma-4-31B-it-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/gemma-4-31B-it-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-Coder-32B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "32.8B",
+    "parameters_raw": 32763876352,
+    "min_ram_gb": 18.3,
+    "recommended_ram_gb": 30.5,
+    "min_vram_gb": 16.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 1320864,
+    "hf_likes": 2011,
+    "release_date": "2024-11-06",
+    "num_hidden_layers": 64,
+    "num_attention_heads": 40,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen2.5-Coder-32B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-Coder-32B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    "provider": "DeepSeek",
+    "parameter_count": "32.8B",
+    "parameters_raw": 32763876352,
+    "min_ram_gb": 18.3,
+    "recommended_ram_gb": 30.5,
+    "min_vram_gb": 16.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "Advanced reasoning, chain-of-thought",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 1079289,
+    "hf_likes": 1548,
+    "release_date": "2025-01-20",
+    "num_hidden_layers": 64,
+    "num_attention_heads": 40,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/DeepSeek-R1-Distill-Qwen-32B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/DeepSeek-R1-Distill-Qwen-32B-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/DeepSeek-R1-Distill-Qwen-32B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/CodeLlama-34b-Instruct-hf",
+    "provider": "Meta",
+    "parameter_count": "33.7B",
+    "parameters_raw": 33743970304,
+    "min_ram_gb": 18.9,
+    "recommended_ram_gb": 31.4,
+    "min_vram_gb": 17.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 785,
+    "hf_likes": 19,
+    "release_date": "2024-03-14",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/CodeLlama-34b-Instruct-hf-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "01-ai/Yi-34B-Chat",
+    "provider": "01.ai",
+    "parameter_count": "34.4B",
+    "parameters_raw": 34386780160,
+    "min_ram_gb": 19.2,
+    "recommended_ram_gb": 32.0,
+    "min_vram_gb": 17.6,
+    "quantization": "Q4_K_M",
+    "context_length": 4096,
+    "use_case": "Multilingual, Chinese/English chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "yi",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/Yi-34B-Chat-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/Yi-34B-Chat-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "CohereForAI/c4ai-command-r-v01",
+    "provider": "Cohere",
+    "parameter_count": "35B",
+    "parameters_raw": 35000000000,
+    "min_ram_gb": 19.5,
+    "recommended_ram_gb": 32.6,
+    "min_vram_gb": 17.9,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "RAG, tool use, agents",
+    "pipeline_tag": "text-generation",
+    "architecture": "cohere",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/c4ai-command-r-v01-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/c4ai-command-r-v01-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-35B-A3B",
+    "provider": "Alibaba",
+    "parameter_count": "36.0B",
+    "parameters_raw": 35951822704,
+    "min_ram_gb": 20.1,
+    "recommended_ram_gb": 33.5,
+    "min_vram_gb": 18.4,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5_moe",
+    "hf_downloads": 3865952,
+    "hf_likes": 1402,
+    "release_date": "2026-02-24",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 3000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-35B-A3B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3.5-35B-A3B-GGUF",
+        "provider": "ggml-org"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-35B-A3B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.6-35B-A3B",
+    "provider": "Alibaba",
+    "parameter_count": "36.0B",
+    "parameters_raw": 35951822704,
+    "min_ram_gb": 20.1,
+    "recommended_ram_gb": 33.5,
+    "min_vram_gb": 18.4,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5_moe",
+    "hf_downloads": 861178,
+    "hf_likes": 1371,
+    "release_date": "2026-04-15",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 3000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.6-35B-A3B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3.6-35B-A3B-GGUF",
+        "provider": "ggml-org"
+      }
+    ]
+  },
+  {
+    "name": "tiiuae/falcon-40b-instruct",
+    "provider": "TII",
+    "parameter_count": "40.0B",
+    "parameters_raw": 40000000000,
+    "min_ram_gb": 22.4,
+    "recommended_ram_gb": 37.3,
+    "min_vram_gb": 20.5,
+    "quantization": "Q4_K_M",
+    "context_length": 2048,
+    "use_case": "Instruction following, chat",
+    "pipeline_tag": "text-generation",
+    "architecture": "falcon",
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/falcon-40b-instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "provider": "Mistral AI",
+    "parameter_count": "46.7B",
+    "parameters_raw": 46702792704,
+    "min_ram_gb": 26.1,
+    "recommended_ram_gb": 43.5,
+    "min_vram_gb": 23.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "unknown",
+    "architecture": "mixtral",
+    "hf_downloads": 637157,
+    "hf_likes": 4671,
+    "release_date": "2023-12-10",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 8,
+    "active_experts": 2,
+    "active_parameters": 12900000000,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/Mixtral-8x7B-Instruct-v0.1-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
+    "provider": "NousResearch",
+    "parameter_count": "46.7B",
+    "parameters_raw": 46702809088,
+    "min_ram_gb": 26.1,
+    "recommended_ram_gb": 43.5,
+    "min_vram_gb": 23.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "General purpose text generation",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "mixtral",
+    "hf_downloads": 8718,
+    "hf_likes": 453,
+    "release_date": "2024-01-11",
+    "num_hidden_layers": 32,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 8,
+    "active_experts": 2,
+    "active_parameters": 12900000000,
+    "gguf_sources": [
+      {
+        "repo": "TheBloke/Nous-Hermes-2-Mixtral-8x7B-DPO-GGUF",
+        "provider": "TheBloke"
+      },
+      {
+        "repo": "mradermacher/Nous-Hermes-2-Mixtral-8x7B-DPO-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/Llama-3.1-70B-Instruct",
+    "provider": "Meta",
+    "parameter_count": "70.6B",
+    "parameters_raw": 70553706496,
+    "min_ram_gb": 39.4,
+    "recommended_ram_gb": 65.7,
+    "min_vram_gb": 36.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 676330,
+    "hf_likes": 909,
+    "release_date": "2024-07-16",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "meta-llama/Llama-3.3-70B-Instruct",
+    "provider": "Meta",
+    "parameter_count": "70.6B",
+    "parameters_raw": 70553706496,
+    "min_ram_gb": 39.4,
+    "recommended_ram_gb": 65.7,
+    "min_vram_gb": 36.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 589349,
+    "hf_likes": 2736,
+    "release_date": "2024-11-26",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Llama-3.3-70B-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/Llama-3.3-70B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Llama-3.3-70B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen2.5-72B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "72.7B",
+    "parameters_raw": 72706203648,
+    "min_ram_gb": 40.6,
+    "recommended_ram_gb": 67.7,
+    "min_vram_gb": 37.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen2",
+    "hf_downloads": 409357,
+    "hf_likes": 930,
+    "release_date": "2024-09-16",
+    "num_hidden_layers": 80,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Qwen2.5-72B-Instruct-GGUF",
+        "provider": "bartowski"
+      },
+      {
+        "repo": "mradermacher/Qwen2.5-72B-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3-Coder-Next",
+    "provider": "Alibaba",
+    "parameter_count": "79.7B",
+    "parameters_raw": 79674391296,
+    "min_ram_gb": 44.5,
+    "recommended_ram_gb": 74.2,
+    "min_vram_gb": 40.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3_next",
+    "hf_downloads": 634029,
+    "hf_likes": 1325,
+    "release_date": "2026-01-30",
+    "num_hidden_layers": 48,
+    "num_attention_heads": 16,
+    "num_key_value_heads": 2,
+    "head_dim": 256,
+    "is_moe": true,
+    "num_experts": 512,
+    "active_experts": 10,
+    "active_parameters": 3000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-Coder-Next-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3-Coder-Next-GGUF",
+        "provider": "ggml-org"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-122B-A10B",
+    "provider": "Alibaba",
+    "parameter_count": "125.1B",
+    "parameters_raw": 125086497008,
+    "min_ram_gb": 69.9,
+    "recommended_ram_gb": 116.5,
+    "min_vram_gb": 64.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5_moe",
+    "hf_downloads": 1086165,
+    "hf_likes": 527,
+    "release_date": "2026-02-24",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 10000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-122B-A10B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-122B-A10B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "mistralai/Mixtral-8x22B-Instruct-v0.1",
+    "provider": "Mistral AI",
+    "parameter_count": "140.6B",
+    "parameters_raw": 140630071296,
+    "min_ram_gb": 78.6,
+    "recommended_ram_gb": 131.0,
+    "min_vram_gb": 72.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 65536,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "unknown",
+    "architecture": "mixtral",
+    "hf_downloads": 28326,
+    "hf_likes": 749,
+    "release_date": "2024-04-16",
+    "num_hidden_layers": 56,
+    "num_attention_heads": 48,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 8,
+    "active_experts": 2,
+    "active_parameters": 39100000000
+  },
+  {
+    "name": "rednote-hilab/dots.llm1.inst",
+    "provider": "rednote-hilab",
+    "parameter_count": "142.8B",
+    "parameters_raw": 142774381696,
+    "min_ram_gb": 79.8,
+    "recommended_ram_gb": 133.0,
+    "min_vram_gb": 73.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 32768,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "dots1",
+    "hf_downloads": 11568,
+    "hf_likes": 176,
+    "release_date": "2025-05-14",
+    "num_hidden_layers": 62,
+    "num_attention_heads": 32,
+    "num_key_value_heads": 32,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 128,
+    "active_experts": 6,
+    "active_parameters": 13496640768,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/dots.llm1.inst-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V4-Flash",
+    "provider": "DeepSeek",
+    "parameter_count": "158.1B",
+    "parameters_raw": 158069433298,
+    "min_ram_gb": 88.3,
+    "recommended_ram_gb": 147.2,
+    "min_vram_gb": 81.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 16777216,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v4",
+    "hf_downloads": 23,
+    "hf_likes": 530,
+    "release_date": "2026-04-22",
+    "num_hidden_layers": 43,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 1,
+    "head_dim": 512,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 6,
+    "active_parameters": 13000000000
+  },
+  {
+    "name": "bigscience/bloom",
+    "provider": "bigscience",
+    "parameter_count": "176.2B",
+    "parameters_raw": 176247271424,
+    "min_ram_gb": 98.5,
+    "recommended_ram_gb": 164.1,
+    "min_vram_gb": 90.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "bloom",
+    "hf_downloads": 6630,
+    "hf_likes": 4998,
+    "release_date": "2022-05-19",
+    "num_hidden_layers": null,
+    "num_attention_heads": 112,
+    "num_key_value_heads": 112,
+    "head_dim": null
+  },
+  {
+    "name": "tiiuae/falcon-180B-chat",
+    "provider": "TII",
+    "parameter_count": "179.5B",
+    "parameters_raw": 179522565120,
+    "min_ram_gb": 100.3,
+    "recommended_ram_gb": 167.2,
+    "min_vram_gb": 92.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "falcon",
+    "hf_downloads": 636,
+    "hf_likes": 547,
+    "release_date": "2023-09-04",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "MiniMaxAI/MiniMax-M2.7",
+    "provider": "minimaxai",
+    "parameter_count": "228.7B",
+    "parameters_raw": 228703644928,
+    "min_ram_gb": 127.8,
+    "recommended_ram_gb": 213.0,
+    "min_vram_gb": 117.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 204800,
+    "use_case": "Lightweight, edge deployment",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "minimax_m2",
+    "hf_downloads": 469402,
+    "hf_likes": 1055,
+    "release_date": "2026-04-09",
+    "num_hidden_layers": 62,
+    "num_attention_heads": 48,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 10000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/MiniMax-M2.7-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/MiniMax-M2.7-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "MiniMaxAI/MiniMax-M2.5",
+    "provider": "minimaxai",
+    "parameter_count": "228.7B",
+    "parameters_raw": 228703644928,
+    "min_ram_gb": 127.8,
+    "recommended_ram_gb": 213.0,
+    "min_vram_gb": 117.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 196608,
+    "use_case": "Lightweight, edge deployment",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "minimax_m2",
+    "hf_downloads": 937821,
+    "hf_likes": 1464,
+    "release_date": "2026-02-12",
+    "num_hidden_layers": 62,
+    "num_attention_heads": 48,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 10000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/MiniMax-M2.5-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/MiniMax-M2.5-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3-235B-A22B",
+    "provider": "Alibaba",
+    "parameter_count": "235.1B",
+    "parameters_raw": 235093634560,
+    "min_ram_gb": 131.4,
+    "recommended_ram_gb": 218.9,
+    "min_vram_gb": 120.4,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 40960,
+    "use_case": "General purpose text generation",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3_moe",
+    "hf_downloads": 578615,
+    "hf_likes": 1091,
+    "release_date": "2025-04-27",
+    "num_hidden_layers": 94,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 4,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 128,
+    "active_experts": 8,
+    "active_parameters": 22000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-235B-A22B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "ggml-org/Qwen3-235B-A22B-GGUF",
+        "provider": "ggml-org"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V4-Flash-Base",
+    "provider": "DeepSeek",
+    "parameter_count": "292.0B",
+    "parameters_raw": 292021347282,
+    "min_ram_gb": 163.2,
+    "recommended_ram_gb": 272.0,
+    "min_vram_gb": 149.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 16777216,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "unknown",
+    "architecture": "deepseek_v4",
+    "hf_downloads": 3,
+    "hf_likes": 135,
+    "release_date": "2026-04-22",
+    "num_hidden_layers": 43,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 1,
+    "head_dim": 512,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 6,
+    "active_parameters": 13000000000
+  },
+  {
+    "name": "baidu/ERNIE-4.5-300B-A47B-Paddle",
+    "provider": "baidu",
+    "parameter_count": "300.5B",
+    "parameters_raw": 300474051776,
+    "min_ram_gb": 167.9,
+    "recommended_ram_gb": 279.8,
+    "min_vram_gb": 153.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 131072,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "ernie4_5_moe",
+    "hf_downloads": 365,
+    "hf_likes": 13,
+    "release_date": "2025-06-28",
+    "num_hidden_layers": 54,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 8,
+    "head_dim": 128
+  },
+  {
+    "name": "XiaomiMiMo/MiMo-V2-Flash",
+    "provider": "xiaomimimo",
+    "parameter_count": "309.8B",
+    "parameters_raw": 309785318400,
+    "min_ram_gb": 173.1,
+    "recommended_ram_gb": 288.5,
+    "min_vram_gb": 158.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "mimo_v2_flash",
+    "hf_downloads": 73040,
+    "hf_likes": 717,
+    "release_date": "2025-12-16",
+    "num_hidden_layers": 48,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 4,
+    "head_dim": 192,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 15000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/MiMo-V2-Flash-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/MiMo-V2-Flash-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    "provider": "Meta",
+    "parameter_count": "401.6B",
+    "parameters_raw": 401583781376,
+    "min_ram_gb": 224.4,
+    "recommended_ram_gb": 374.0,
+    "min_vram_gb": 205.7,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "vision"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "llama4",
+    "hf_downloads": 38884,
+    "hf_likes": 479,
+    "release_date": "2025-04-01",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 16,
+    "active_experts": 1,
+    "active_parameters": 17000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Llama-4-Maverick-17B-128E-Instruct-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Llama-4-Maverick-17B-128E-Instruct-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "Qwen/Qwen3.5-397B-A17B",
+    "provider": "Alibaba",
+    "parameter_count": "403.4B",
+    "parameters_raw": 403397928944,
+    "min_ram_gb": 225.4,
+    "recommended_ram_gb": 375.7,
+    "min_vram_gb": 206.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision",
+      "tool_use"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "qwen3_5_moe",
+    "hf_downloads": 572277,
+    "hf_likes": 1472,
+    "release_date": "2026-02-16",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 512,
+    "active_experts": 10,
+    "active_parameters": 17000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3.5-397B-A17B-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "mradermacher/Qwen3.5-397B-A17B-GGUF",
+        "provider": "mradermacher"
+      }
+    ]
+  },
+  {
+    "name": "meta-llama/Llama-3.1-405B-Instruct",
+    "provider": "Meta",
+    "parameter_count": "405.9B",
+    "parameters_raw": 405853388800,
+    "min_ram_gb": 226.8,
+    "recommended_ram_gb": 378.0,
+    "min_vram_gb": 207.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4096,
+    "use_case": "Instruction following, chat",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "llama",
+    "hf_downloads": 236588,
+    "hf_likes": 595,
+    "release_date": "2024-07-16",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null
+  },
+  {
+    "name": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+    "provider": "Alibaba",
+    "parameter_count": "480.2B",
+    "parameters_raw": 480154875392,
+    "min_ram_gb": 268.3,
+    "recommended_ram_gb": 447.2,
+    "min_vram_gb": 245.9,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 262144,
+    "use_case": "Code generation and completion",
+    "capabilities": [
+      "tool_use"
+    ],
+    "pipeline_tag": "text-generation",
+    "architecture": "qwen3_moe",
+    "hf_downloads": 48248,
+    "hf_likes": 1329,
+    "release_date": "2025-07-22",
+    "num_hidden_layers": 62,
+    "num_attention_heads": 96,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "is_moe": true,
+    "num_experts": 160,
+    "active_experts": 8,
+    "active_parameters": 35000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen3-Coder-480B-A35B-Instruct-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V3",
+    "provider": "DeepSeek",
+    "parameter_count": "684.5B",
+    "parameters_raw": 684531386000,
+    "min_ram_gb": 382.5,
+    "recommended_ram_gb": 637.5,
+    "min_vram_gb": 350.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 6553600,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v3",
+    "hf_downloads": 997301,
+    "hf_likes": 4062,
+    "release_date": "2024-12-25",
+    "num_hidden_layers": 61,
+    "num_attention_heads": 128,
+    "num_key_value_heads": 128,
+    "head_dim": 56,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 37000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/DeepSeek-V3-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-R1",
+    "provider": "DeepSeek",
+    "parameter_count": "684.5B",
+    "parameters_raw": 684531386000,
+    "min_ram_gb": 382.5,
+    "recommended_ram_gb": 637.5,
+    "min_vram_gb": 350.6,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 6553600,
+    "use_case": "Advanced reasoning, chain-of-thought",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v3",
+    "hf_downloads": 4011990,
+    "hf_likes": 13307,
+    "release_date": "2025-01-20",
+    "num_hidden_layers": 61,
+    "num_attention_heads": 128,
+    "num_key_value_heads": 128,
+    "head_dim": 56,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 37000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/DeepSeek-R1-GGUF",
+        "provider": "unsloth"
+      },
+      {
+        "repo": "bartowski/DeepSeek-R1-GGUF",
+        "provider": "bartowski"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V3.2-Speciale",
+    "provider": "DeepSeek",
+    "parameter_count": "685B",
+    "parameters_raw": 685000000000,
+    "min_ram_gb": 383.2,
+    "recommended_ram_gb": 638.7,
+    "min_vram_gb": 351.3,
+    "quantization": "Q4_K_M",
+    "context_length": 131072,
+    "use_case": "Advanced reasoning, chain-of-thought",
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v3",
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 37000000000,
+    "hf_downloads": 0,
+    "hf_likes": 0,
+    "release_date": "2025-12-01"
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V3.2",
+    "provider": "DeepSeek",
+    "parameter_count": "685.4B",
+    "parameters_raw": 685396921376,
+    "min_ram_gb": 383.0,
+    "recommended_ram_gb": 638.3,
+    "min_vram_gb": 351.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 6553600,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v32",
+    "hf_downloads": 10887895,
+    "hf_likes": 1421,
+    "release_date": "2025-12-01",
+    "num_hidden_layers": 61,
+    "num_attention_heads": 128,
+    "num_key_value_heads": 128,
+    "head_dim": 56,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 37000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/DeepSeek-V3.2-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "zai-org/GLM-5",
+    "provider": "zai-org",
+    "parameter_count": "753.9B",
+    "parameters_raw": 753864139008,
+    "min_ram_gb": 421.3,
+    "recommended_ram_gb": 702.1,
+    "min_vram_gb": 386.1,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 202752,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "glm_moe_dsa",
+    "hf_downloads": 459150,
+    "hf_likes": 2074,
+    "release_date": "2026-02-11",
+    "num_hidden_layers": 78,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 64,
+    "head_dim": 64,
+    "is_moe": true,
+    "num_experts": 256,
+    "active_experts": 8,
+    "active_parameters": 40000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/GLM-5-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V4-Pro",
+    "provider": "DeepSeek",
+    "parameter_count": "861.6B",
+    "parameters_raw": 861608274846,
+    "min_ram_gb": 481.5,
+    "recommended_ram_gb": 802.4,
+    "min_vram_gb": 441.3,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 16777216,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "deepseek_v4",
+    "hf_downloads": 30,
+    "hf_likes": 2180,
+    "release_date": "2026-04-22",
+    "num_hidden_layers": 61,
+    "num_attention_heads": 128,
+    "num_key_value_heads": 1,
+    "head_dim": 512,
+    "is_moe": true,
+    "num_experts": 384,
+    "active_experts": 6,
+    "active_parameters": 49000000000
+  },
+  {
+    "name": "moonshotai/Kimi-K2-Instruct",
+    "provider": "moonshotai",
+    "parameter_count": "1026.5B",
+    "parameters_raw": 1026470731056,
+    "min_ram_gb": 573.6,
+    "recommended_ram_gb": 956.0,
+    "min_vram_gb": 525.8,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 4194304,
+    "use_case": "Instruction following, chat",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "kimi_k2",
+    "hf_downloads": 337867,
+    "hf_likes": 2354,
+    "release_date": "2025-07-11",
+    "num_hidden_layers": 61,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 64,
+    "head_dim": 112,
+    "is_moe": true,
+    "num_experts": 384,
+    "active_experts": 8,
+    "active_parameters": 32000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Kimi-K2-Instruct-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "moonshotai/Kimi-K2.5",
+    "provider": "moonshotai",
+    "parameter_count": "1058.6B",
+    "parameters_raw": 1058589420528,
+    "min_ram_gb": 591.5,
+    "recommended_ram_gb": 985.9,
+    "min_vram_gb": 542.2,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 16777216,
+    "use_case": "General purpose",
+    "capabilities": [
+      "vision"
+    ],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "kimi_k25",
+    "hf_downloads": 4885618,
+    "hf_likes": 2763,
+    "release_date": "2026-01-01",
+    "num_hidden_layers": null,
+    "num_attention_heads": null,
+    "num_key_value_heads": null,
+    "head_dim": null,
+    "is_moe": true,
+    "num_experts": 384,
+    "active_experts": 8,
+    "active_parameters": 32000000000,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Kimi-K2.5-GGUF",
+        "provider": "unsloth"
+      }
+    ]
+  },
+  {
+    "name": "deepseek-ai/DeepSeek-V4-Pro-Base",
+    "provider": "DeepSeek",
+    "parameter_count": "1600.8B",
+    "parameters_raw": 1600790440862,
+    "min_ram_gb": 894.5,
+    "recommended_ram_gb": 1490.9,
+    "min_vram_gb": 820.0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 16777216,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "unknown",
+    "architecture": "deepseek_v4",
+    "hf_downloads": 3,
+    "hf_likes": 179,
+    "release_date": "2026-04-22",
+    "num_hidden_layers": 61,
+    "num_attention_heads": 128,
+    "num_key_value_heads": 1,
+    "head_dim": 512,
+    "is_moe": true,
+    "num_experts": 384,
+    "active_experts": 6,
+    "active_parameters": 49000000000
+  }
+]
