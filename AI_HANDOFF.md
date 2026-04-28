@@ -19,7 +19,9 @@ CentralizaIA is a local AI model orchestrator for Windows. It allows users to ce
 
 ## 📡 API Endpoints (server.js)
 - `GET /api/models`: Returns list of all detected models with metadata (source, path, size, isSymlink, repoId).
+- `GET /api/pick-folder`: Opens a native Windows Folder Selection dialog via PowerShell.
 - `POST /api/centralize`: Creates a link from a source path to the central repository.
+- `POST /api/auto-detect`: Scans for common AI app paths (including ComfyUI Home).
 - `GET /api/system-info`: Returns CPU, RAM, and GPU/VRAM telemetry.
 - `POST /api/launch`: Launches a specific engine (ollama, llama.cpp, comfyui, lm-studio).
 - `POST /api/chat`: Proxy to local inference endpoints (Ollama/Llama.cpp).
@@ -27,11 +29,13 @@ CentralizaIA is a local AI model orchestrator for Windows. It allows users to ce
 - `GET /api/registry`: Returns the local cache of popular HuggingFace models.
 
 ## 🚀 Current Roadmap / Next Steps
-1.  **ComfyUI Deep Integration**: The launch logic for ComfyUI currently executes `run_nvidia_gpu.bat` in the configured `comfyDir`. This should be expanded to support specific workflows or model loading via CLI arguments.
-2.  **Extensions SDK**: The `Extensions` page is currently a placeholder. The goal is to allow users to drop `.js` or `.py` adapters to support new AI engines.
-3.  **HuggingFace Download Manager**: Implement a real-time progress bar for model downloads using WebSockets (the current `/api/download` is fire-and-forget).
-4.  **Llama.cpp Configuration UI**: Add a "Launch Settings" modal to allow users to configure Context Window, Layers, and Quantization before launching the llama-server.
-5.  **Disk Analysis Graph**: Add a visual chart (Recharts) to show storage distribution per application source.
+1.  **Advanced Centralization UI**: The "And XX more" section now supports bulk selection and individual model management.
+2.  **ComfyUI Deep Integration**: Auto-detection now finds the root ComfyUI folder to enable the one-click launch via `run_nvidia_gpu.bat`.
+3.  **Native File Picking**: All configuration paths now have a folder icon that opens the Windows native picker.
+4.  **Extensions SDK**: The `Extensions` page is currently a placeholder. The goal is to allow users to drop `.js` or `.py` adapters to support new AI engines.
+5.  **HuggingFace Download Manager**: Implement a real-time progress bar for model downloads using WebSockets (the current `/api/download` is fire-and-forget).
+6.  **Llama.cpp Configuration UI**: Add a "Launch Settings" modal to allow users to configure Context Window, Layers, and Quantization before launching the llama-server.
+7.  **Disk Analysis Graph**: Add a visual chart (Recharts) to show storage distribution per application source.
 
 ## ⚠️ Known Constraints
 - **Path Escaping**: Windows paths with spaces are handled using double escaping in `exec`. Be careful when modifying shell commands in `server.js`.

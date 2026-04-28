@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Folder, Plus, Trash2, Save, RefreshCw, HardDrive, Shield, Box } from 'lucide-react';
+import { Settings as SettingsIcon, Folder, Plus, Trash2, Save, RefreshCw, HardDrive, Shield, Box, FolderOpen, Search } from 'lucide-react';
 
 export default function Settings() {
   const [config, setConfig] = useState<any>(null);
@@ -7,14 +7,17 @@ export default function Settings() {
   const [newPath, setNewPath] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  const fetchConfig = () => {
+    setLoading(true);
     fetch('/api/config')
       .then(res => res.json())
       .then(data => {
         setConfig(data);
         setLoading(false);
       });
-  }, []);
+  };
+
+  useEffect(() => { fetchConfig(); }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -24,7 +27,7 @@ export default function Settings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      alert('Configurações salvas com sucesso!');
+      alert('Configurações salvas!');
     } catch (e) {
       alert('Erro ao salvar.');
     } finally {
@@ -32,8 +35,21 @@ export default function Settings() {
     }
   };
 
+  const pickFolder = async (field: string) => {
+    try {
+      const res = await fetch('/api/pick-folder');
+      const data = await res.json();
+      if (data.path) {
+        if (field === 'centralDir') setConfig({ ...config, centralDir: data.path });
+        else if (field === 'comfyDir') setConfig({ ...config, comfyDir: data.path });
+        else if (field === 'scan') setNewPath(data.path);
+      }
+    } catch (e) { alert('Erro ao abrir seletor de pastas.'); }
+  };
+
   const addPath = () => {
     if (!newPath) return;
+    if (config.scanDirectories.includes(newPath)) return;
     setConfig({ ...config, scanDirectories: [...config.scanDirectories, newPath] });
     setNewPath('');
   };
@@ -42,119 +58,130 @@ export default function Settings() {
     setConfig({ ...config, scanDirectories: config.scanDirectories.filter((p: string) => p !== path) });
   };
 
-  if (loading) return <div className="p-20 text-center animate-pulse text-slate-500 font-black">LOADING CORE CONFIG...</div>;
-
   const handleAutoDetect = async () => {
     try {
       const res = await fetch('/api/auto-detect', { method: 'POST' });
       const data = await res.json();
       setConfig(data.config);
-      alert(`Detected and added ${data.added} new paths!`);
+      alert(`Auto-detect completo! Verifique as novas pastas.`);
     } catch (e) {
       alert('Detection failed.');
     }
   };
 
+  if (loading) return <div className="p-20 text-center animate-pulse text-slate-500 font-black">SYNCING CONFIG...</div>;
+
   return (
-    <div className="p-12 max-w-4xl mx-auto animate-in fade-in duration-700">
+    <div className="p-12 max-w-5xl mx-auto animate-in fade-in duration-700 pb-32">
       <header className="mb-12 flex justify-between items-end">
         <div>
           <h2 className="text-4xl font-black text-white mb-2">Settings & Core</h2>
-          <p className="text-slate-500">Manage your central storage and scan directories for the link engine.</p>
+          <p className="text-slate-500">Infrastructure configuration and link engine paths.</p>
         </div>
         <button 
           onClick={handleAutoDetect}
-          className="bg-slate-800 hover:bg-slate-700 text-white font-black text-xs uppercase tracking-widest px-8 py-3 rounded-2xl border border-slate-700 transition-all flex items-center gap-2"
+          className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl border border-slate-800 transition-all flex items-center gap-3 shadow-xl active:scale-95"
         >
-          <RefreshCw size={16} /> Auto-Detect
+          <Search size={16} className="text-blue-500" /> Auto-Detect Apps
         </button>
       </header>
 
       <div className="space-y-8">
         {/* Central Directory */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 shadow-xl">
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group">
            <div className="flex items-center gap-4 mb-6">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
-                 <HardDrive size={20} />
+              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-600/20">
+                 <HardDrive size={24} />
               </div>
               <h3 className="text-lg font-black text-white uppercase tracking-widest">Central Repository</h3>
            </div>
            
-           <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-              This is where all Hardlinks/Symlinks will be created. Programs like LM Studio should point here to see all your centralized models.
+           <p className="text-xs text-slate-500 mb-8 leading-relaxed max-w-xl">
+              Master storage for all links. This folder will grow with model shortcuts, but the disk space usage remains near zero.
            </p>
            
-           <div className="flex gap-4">
+           <div className="flex gap-3">
               <input 
                 type="text" 
                 value={config.centralDir || ''}
                 onChange={(e) => setConfig({ ...config, centralDir: e.target.value })}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-300"
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-300 font-mono"
               />
+              <button onClick={() => pickFolder('centralDir')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 rounded-2xl transition-all" title="Browse">
+                 <FolderOpen size={20} />
+              </button>
            </div>
         </div>
 
         {/* ComfyUI Directory */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 shadow-xl">
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl">
            <div className="flex items-center gap-4 mb-6">
-              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white">
-                 <Box size={20} />
+              <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-600/20">
+                 <Box size={24} />
               </div>
-              <h3 className="text-lg font-black text-white uppercase tracking-widest">ComfyUI Home</h3>
+              <h3 className="text-lg font-black text-white uppercase tracking-widest">ComfyUI Installation</h3>
            </div>
-           <p className="text-xs text-slate-500 mb-6">Path to your ComfyUI portable or main installation (used for Launching).</p>
-           <div className="flex gap-4">
+           <p className="text-xs text-slate-500 mb-8 max-w-xl">Root folder of your ComfyUI (used to find run_nvidia_gpu.bat).</p>
+           <div className="flex gap-3">
               <input 
                 type="text" 
                 value={config.comfyDir || ''}
                 onChange={(e) => setConfig({ ...config, comfyDir: e.target.value })}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 text-slate-300"
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 text-slate-300 font-mono"
               />
+              <button onClick={() => pickFolder('comfyDir')} className="bg-slate-800 hover:bg-slate-700 text-white px-5 rounded-2xl transition-all" title="Browse">
+                 <FolderOpen size={20} />
+              </button>
            </div>
         </div>
 
         {/* Scan Directories */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 shadow-xl">
-           <div className="flex items-center gap-4 mb-6">
-              <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white">
-                 <Folder size={20} />
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 shadow-2xl">
+           <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-purple-600/20">
+                 <Folder size={24} />
               </div>
-              <h3 className="text-lg font-black text-white uppercase tracking-widest">Scan Locations</h3>
+              <h3 className="text-lg font-black text-white uppercase tracking-widest">Intelligence Sources</h3>
            </div>
            
-           <div className="space-y-3 mb-8">
+           <div className="space-y-3 mb-10">
               {config.scanDirectories.map((path: string) => (
-                <div key={path} className="flex items-center justify-between bg-slate-950/50 border border-slate-800/50 rounded-xl p-4 group">
-                   <span className="text-xs font-mono text-slate-400 truncate">{path}</span>
-                   <button onClick={() => removePath(path)} className="text-slate-600 hover:text-red-500 transition-colors">
-                      <Trash2 size={16} />
+                <div key={path} className="flex items-center justify-between bg-slate-950/50 border border-slate-800/50 rounded-2xl p-5 group hover:border-slate-700 transition-colors">
+                   <span className="text-[11px] font-mono text-slate-500 truncate">{path}</span>
+                   <button onClick={() => removePath(path)} className="text-slate-700 hover:text-red-500 transition-colors p-2">
+                      <Trash2 size={18} />
                    </button>
                 </div>
               ))}
            </div>
 
-           <div className="flex gap-4">
-              <input 
-                type="text" 
-                value={newPath}
-                onChange={(e) => setNewPath(e.target.value)}
-                placeholder="Add new directory path..."
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-6 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-300"
-              />
-              <button onClick={addPath} className="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-2xl transition-all">
-                 <Plus size={20} />
+           <div className="flex gap-3">
+              <div className="relative flex-1">
+                 <input 
+                  type="text" 
+                  value={newPath}
+                  onChange={(e) => setNewPath(e.target.value)}
+                  placeholder="Paste or browse new directory path..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 pl-6 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 text-slate-300 font-mono"
+                 />
+                 <button onClick={() => pickFolder('scan')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-2">
+                    <FolderOpen size={18} />
+                 </button>
+              </div>
+              <button onClick={addPath} className="bg-purple-600 hover:bg-purple-500 text-white px-8 rounded-2xl transition-all font-black text-xs uppercase tracking-widest shadow-xl shadow-purple-600/20">
+                 Add Path
               </button>
            </div>
         </div>
 
-        <div className="flex justify-end pt-4">
+        <div className="fixed bottom-10 right-10 z-50">
            <button 
              onClick={handleSave}
              disabled={saving}
-             className="bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest px-12 py-4 rounded-[1.5rem] transition-all shadow-2xl shadow-blue-600/30 flex items-center gap-3 active:scale-95 disabled:opacity-50"
+             className="bg-white text-black hover:bg-blue-600 hover:text-white font-black text-xs uppercase tracking-[0.2em] px-16 py-5 rounded-[2rem] transition-all shadow-2xl shadow-white/20 flex items-center gap-4 active:scale-95 disabled:opacity-50"
            >
-              {saving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-              Save Configuration
+              {saving ? <RefreshCw size={20} className="animate-spin" /> : <Save size={20} />}
+              Save All Changes
            </button>
         </div>
       </div>
