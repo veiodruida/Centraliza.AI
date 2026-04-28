@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, RefreshCw, Trash2, Link, FileText, CheckCircle, AlertCircle, HardDrive, ExternalLink, ArrowUpDown, FolderOpen, ArrowLeft, Info, FileCode, ShieldCheck, ChevronRight, ChevronDown, Play, Zap, Terminal, Box } from 'lucide-react';
+import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap } from 'lucide-react';
 
 interface Model {
   name: string;
@@ -17,11 +17,9 @@ interface Model {
 export default function MyModels() {
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
   const [description, setDescription] = useState('Carregando descrição...');
-  const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
 
   const fetchModels = async () => {
     setLoading(true);
@@ -29,9 +27,7 @@ export default function MyModels() {
       const res = await fetch('/api/models');
       const data = await res.json();
       setModels(data);
-      const sources = new Set(data.map((m: any) => m.source));
-      setExpandedSources(sources);
-    } catch (err) { setError('Backend unreachable.'); }
+    } catch (err) { console.error('Backend unreachable.'); }
     finally { setLoading(false); }
   };
 

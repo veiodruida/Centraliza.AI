@@ -176,21 +176,24 @@ app.post('/api/auto-detect', (req, res) => {
 
 app.get('/api/pick-folder', (req, res) => {
     const platform = os.platform();
+    const initialPath = req.query.initialPath || '';
     let command = '';
 
     if (platform === 'win32') {
         const psFile = path.join(__dirname, 'picker.ps1');
-        command = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}"`;
+        command = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}" -initialPath "${initialPath}"`;
     } else if (platform === 'darwin') {
-        command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "Select a folder for CentralizaIA"' -e 'POSIX path of theFolder'`;
+        const startPath = initialPath ? `default location "${initialPath.replace(/\\/g, '/')}"` : '';
+        command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "Select a folder for CentralizaIA" ${startPath}' -e 'POSIX path of theFolder'`;
     } else {
-        command = `zenity --file-selection --directory --title="Select a folder for CentralizaIA"`;
+        const startPath = initialPath ? `--filename="${initialPath}/"` : '';
+        command = `zenity --file-selection --directory --title="Select a folder for CentralizaIA" ${startPath}`;
     }
     
     exec(command, (err, stdout) => {
         if (err) {
-            console.error('Picker Error:', err);
-            return res.status(500).json({ error: 'Picker failed or cancelled' });
+            // If user cancels, zenity/osascript might return error code. We return null path.
+            return res.json({ path: null });
         }
         const pickedPath = stdout.trim().split('\n').pop()?.trim();
         res.json({ path: pickedPath || null });
@@ -317,4 +320,18 @@ app.post('/api/open-folder', (req, res) => {
     res.json({ success: true });
 });
 
-app.listen(4000, () => console.log('CentralizaIA on 4000'));
+// Serve Frontend Static Files
+const distPath = path.join(__dirname, 'frontend', 'dist');
+if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+    // SPA Fallback: Redirect all non-API routes to index.html
+    app.use((req, res, next) => {
+        if (!req.path.startsWith('/api')) {
+            res.sendFile(path.join(distPath, 'index.html'));
+        } else {
+            next();
+        }
+    });
+}
+
+app.listen(4000, () => console.log('CentralizaIA on http://localhost:4000'));

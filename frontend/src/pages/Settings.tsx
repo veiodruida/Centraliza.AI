@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Folder, Plus, Trash2, Save, RefreshCw, HardDrive, Shield, Box, FolderOpen, Search } from 'lucide-react';
+import { Folder, Trash2, Save, RefreshCw, HardDrive, Box, FolderOpen, Search } from 'lucide-react';
 
 export default function Settings() {
   const [config, setConfig] = useState<any>(null);
@@ -36,8 +36,13 @@ export default function Settings() {
   };
 
   const pickFolder = async (field: string) => {
+    let currentVal = '';
+    if (field === 'centralDir') currentVal = config.centralDir;
+    else if (field === 'comfyDir') currentVal = config.comfyDir;
+    else if (field === 'scan') currentVal = newPath;
+
     try {
-      const res = await fetch('/api/pick-folder');
+      const res = await fetch(`/api/pick-folder?initialPath=${encodeURIComponent(currentVal)}`);
       const data = await res.json();
       if (data.path) {
         if (field === 'centralDir') setConfig({ ...config, centralDir: data.path });

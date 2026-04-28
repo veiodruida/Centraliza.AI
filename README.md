@@ -1,66 +1,54 @@
 # 🚀 CentralizaIA - Local AI Orchestrator & Dashboard
 
-CentralizaIA é um dashboard premium para gestão de modelos de Inteligência Artificial local. Ele permite centralizar, organizar e lançar modelos (Ollama, ComfyUI, Llama.cpp, LM Studio) de forma inteligente, economizando espaço em disco através de Hardlinks.
+CentralizaIA is a premium dashboard for managing local Artificial Intelligence models. It allows you to centralize, organize, and launch models (Ollama, ComfyUI, Llama.cpp, LM Studio) intelligently, saving disk space through system Hardlinks.
 
 ---
 
-## ⚡ Instalação Rápida (Quick Start)
+## ⚡ Quick Start (Installation & Usage)
 
-### 1. Pré-requisitos
-- **Node.js** (v18 ou superior)
-- **Ollama** (opcional, para modelos Ollama)
-- **NVIDIA GPU** (recomendado para melhor performance)
+CentralizaIA is now unified into a single service for a seamless "Zero Configuration" experience.
 
-### 2. Configuração Automática
-Abra o terminal na pasta do projeto e execute:
+### 1. Initial Setup & Auto-Start
+Open a terminal in the project folder and run:
 ```bash
 setup.bat
 ```
-*Este comando instalará todas as dependências do servidor e da interface.*
+*This command will install dependencies, compile the interface (build), and automatically open the dashboard in your browser.*
 
-### 3. Como Rodar
-Para iniciar a aplicação completa (Backend + Frontend), basta executar:
+### 2. Daily Usage
+After the first setup, you can start the app simply by clicking:
 ```bash
 start_app.bat
 ```
-- **Interface Dashboard**: [http://localhost:5173](http://localhost:5173)
-- **Backend API**: [http://localhost:4000](http://localhost:4000)
+- **Dashboard URL**: [http://localhost:4000](http://localhost:4000)
 
 ---
 
-## ✨ Funcionalidades Principais
+## ✨ Key Features
 
-### 📂 Centralização Inteligente (Link Engine)
-- **Zero Disk Waste**: Use Hardlinks/Symlinks para centralizar modelos de diferentes pastas (ComfyUI, LM Studio, Ollama) sem ocupar espaço extra.
-- **Gestão em Massa**: Na aba **Centralization**, selecione múltiplos modelos standalone e vincule-os ao repositório mestre com um clique.
+### 📂 Intelligent Centralization (Link Engine)
+- **Zero Disk Waste**: Use Hardlinks to centralize models from various folders (ComfyUI, LM Studio, Ollama) without using extra disk space.
+- **Bulk Management**: In the **Centralization** tab, select multiple standalone models and link them to the master repository with one click.
+- **Native Picker**: Use the folder icon in Settings to choose directories using the native Windows selector (always stays in front of the browser).
 
-### 🚀 Launch Engine (Orquestrador)
-- **Lançamento Adaptativo**: O sistema detecta o motor ideal para cada modelo.
-- **One-Click Server**: Inicie servidores **Ollama** ou **Llama.cpp** (na porta 8080) diretamente pela interface em terminais dedicados.
-- **ComfyUI Integration**: Lance o ComfyUI com suporte a GPU NVIDIA automaticamente.
+### 🚀 Launch Engine (Orchestrator)
+- **Adaptive Launching**: The system automatically detects the ideal engine for each model (e.g., Ollama vs. Llama.cpp).
+- **One-Click Server**: Launch **Ollama** or **Llama.cpp** (port 8080) servers directly from the interface in dedicated terminals.
+- **ComfyUI Integration**: Launch ComfyUI with NVIDIA GPU support automatically.
 
 ### 🖥️ Hardware Lab & Telemetry
-- **Monitoramento Real**: Detecção de VRAM via `nvidia-smi` e WMI.
-- **Compatibility Check**: O sistema analisa sua memória RAM/VRAM e indica quais modelos do **AI Model Hub** (HuggingFace) rodam perfeitamente na sua máquina.
+- **Real-Time Monitoring**: VRAM detection via `nvidia-smi` and WMI.
+- **Compatibility Check**: The system analyzes your VRAM/RAM and indicates which models from the **AI Model Hub** run perfectly on your machine.
 
 ### 💬 Test & Chat
-- **Interface Integrada**: Converse com seus modelos locais diretamente no dashboard.
-- **Multi-Engine**: Troque entre Ollama, Llama.cpp ou endpoints customizados em tempo real.
+- **Integrated Interface**: Chat with your local models directly within the dashboard.
+- **Multi-Engine Support**: Switch between Ollama, Llama.cpp, or custom endpoints in real-time.
 
 ---
 
-## 🛠️ Estrutura do Projeto
-
-- `server.js`: Servidor Backend (Express) - Orquestração de processos e sistema de arquivos.
-- `frontend/`: Dashboard React + Vite + Tailwind CSS.
-- `picker.ps1`: Script auxiliar para seleção de pastas nativa e cross-platform.
-- `config.json`: Armazena suas pastas de scan e configurações de diretório central.
+## 🛠️ Technical Structure
+- **Unified Port**: The frontend is pre-compiled (`npm run build`) and served directly by Node.js on port 4000.
+- **Cross-Platform Picker**: Folder selection compatible with Windows, Mac, and Linux.
 
 ---
-
-## 🌍 Compatibilidade
-- **Sistemas**: Windows (Foco principal), macOS e Linux.
-- **Formatos**: GGUF, Safetensors, Checkpoints, Ollama Blobs.
-
----
-**Desenvolvido para oferecer controle total sobre sua infraestrutura de IA local.**
+**Centralize your intelligence. Optimize your space.**

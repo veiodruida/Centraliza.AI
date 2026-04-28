@@ -6,8 +6,9 @@ This document is intended for the next AI developer to continue the evolution of
 CentralizaIA is a local AI model orchestrator for Windows. It allows users to centralize models from multiple sources (Ollama, ComfyUI, LM Studio, etc.) into a single repository using Hardlinks/Symlinks to save disk space while keeping original apps functional. It also provides a management interface for launching inference servers and benchmarking hardware.
 
 ## 🛠️ Tech Stack
-- **Backend**: Node.js + Express (Port 4000).
-- **Frontend**: React + Vite + Tailwind CSS + Lucide-React (Port 5173).
+- **Backend**: Node.js + Express (Port 4000). Also serves the frontend static build.
+- **Frontend**: React + Vite (Compiles to `dist/`).
+- **Unified Entry**: The app is served entirely from `http://localhost:4000`. No separate dev server is needed for users.
 - **OS**: Windows, Linux, macOS (Cross-platform folder picking implemented).
 - **Storage**: `config.json` for persistence; `data/hf_models.json` for HuggingFace registry.
 
