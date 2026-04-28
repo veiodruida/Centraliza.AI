@@ -8,7 +8,7 @@ CentralizaIA is a local AI model orchestrator for Windows. It allows users to ce
 ## 🛠️ Tech Stack
 - **Backend**: Node.js + Express (Port 4000).
 - **Frontend**: React + Vite + Tailwind CSS + Lucide-React (Port 5173).
-- **OS**: Windows (Deeply integrated with PowerShell and WMI for hardware/FS ops).
+- **OS**: Windows, Linux, macOS (Cross-platform folder picking implemented).
 - **Storage**: `config.json` for persistence; `data/hf_models.json` for HuggingFace registry.
 
 ## 🏗️ Core Architecture
