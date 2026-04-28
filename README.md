@@ -1,4 +1,4 @@
-# 🚀 Centraliza.ai v2.1.0 - Local AI Orchestrator & Dashboard
+# 🚀 Centraliza.ai v2.1.1 - Local AI Orchestrator & Dashboard
 
 Centraliza.ai is a premium dashboard for managing local Artificial Intelligence models. It allows you to centralize, organize, and launch models (Ollama, ComfyUI, Llama.cpp, LM Studio) intelligently, saving disk space through system Hardlinks.
 
@@ -21,6 +21,13 @@ After the first setup, you can start the app simply by clicking:
 start_app.bat
 ```
 - **Dashboard URL**: [http://localhost:4000](http://localhost:4000)
+
+### 3. Shortcut Command (Global)
+You can now start Centraliza.ai from any terminal window by simply typing:
+```bash
+central
+```
+*Note: This shortcut is automatically configured when you run `setup.bat`. If it's your first time, remember to restart your terminal after the setup for the change to take effect.*
 
 ---
 
