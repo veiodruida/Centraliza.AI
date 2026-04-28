@@ -13,7 +13,7 @@ Add-Type @"
 "@
 
 $f = New-Object System.Windows.Forms.FolderBrowserDialog
-$f.Description = "Select a folder for CentralizaIA"
+$f.Description = "Select a folder for Centraliza.ai"
 $f.ShowNewFolderButton = $true
 
 if ($initialPath -and (Test-Path $initialPath)) {

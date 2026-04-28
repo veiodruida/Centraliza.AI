@@ -127,7 +127,7 @@ export default function HardwareLab() {
       
       <div className="mt-12 text-center">
          <p className="text-slate-700 text-[10px] font-black uppercase tracking-[0.6em]">
-            CentralizaIA Silicon Analytics
+            Centraliza.ai Silicon Analytics
          </p>
       </div>
     </div>
