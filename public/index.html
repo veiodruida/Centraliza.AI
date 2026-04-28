@@ -54,9 +54,34 @@
             <button id="saveConfigBtn" class="btn btn-primary">Save Configuration</button>
         </section>
 
+        <section class="explore-section glass-panel">
+            <div class="section-header">
+                <h2>Explore & Download</h2>
+                <div class="explore-links">
+                    <a href="https://huggingface.co/models?pipeline_tag=text-generation&sort=downloads" target="_blank" class="btn btn-secondary">Hugging Face</a>
+                    <a href="https://ollama.com/library" target="_blank" class="btn btn-secondary">Ollama Library</a>
+                    <a href="https://civitai.com/" target="_blank" class="btn btn-secondary">Civitai (Images)</a>
+                </div>
+            </div>
+            <div class="download-box">
+                <div class="form-group">
+                    <label for="downloadName">Quick Pull (Ollama)</label>
+                    <div class="add-dir-input">
+                        <input type="text" id="downloadName" placeholder="e.g. llama3, phi3:mini, deepseek-r1:14b">
+                        <button id="downloadBtn" class="btn btn-accent">Pull Model</button>
+                    </div>
+                    <p class="help-text">Type an Ollama model name to download it directly to your PC.</p>
+                </div>
+                <div id="downloadStatus" class="hidden status-badge" style="margin-top: 1rem; width: 100%; text-align: center;"></div>
+            </div>
+        </section>
+
         <section class="models-section glass-panel">
             <div class="section-header">
                 <h2>Found Models</h2>
+                <div id="system-stats" class="system-stats">
+                    <!-- Loaded via JS -->
+                </div>
                 <div class="actions-group">
                     <button id="selectAllBtn" class="btn btn-secondary">Select All</button>
                     <button id="deselectAllBtn" class="btn btn-secondary">Deselect All</button>
@@ -69,22 +94,26 @@
             <div id="loading" class="hidden">Scanning directories... This might take a moment.</div>
             <div id="errorBox" class="hidden error-box"></div>
             
-            <div class="table-wrapper">
-                <table id="modelsTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;"></th>
-                            <th>Model Name</th>
-                            <th>Status</th>
-                            <th>Size</th>
-                            <th>Original Path</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modelsBody">
-                        <!-- Rows injected via JS -->
-                    </tbody>
-                </table>
+            <div id="models-container">
+                <!-- Grouped tables injected here -->
+                <div class="table-wrapper">
+                    <table id="modelsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>Model Name</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th>Size</th>
+                                <th>Original Path</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modelsBody">
+                            <tr><td colspan="7" style="text-align:center">Click "Scan Now" to find models.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>

@@ -95,6 +95,41 @@ h2 {
     font-weight: 600;
 }
 
+.system-stats {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.system-stats span strong {
+    color: var(--accent-color);
+}
+
+.explore-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.explore-links .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.download-box {
+    background: rgba(15, 23, 42, 0.3);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -249,6 +284,80 @@ th {
     font-size: 0.85rem;
     letter-spacing: 0.05em;
 }
+
+.path-cell {
+    font-family: 'Cascadia Code', 'Courier New', Courier, monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.path-cell:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+.source-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.source-ollama { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+.source-comfyui { background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2); }
+.source-lm-studio { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+.source-hugging-face { background: rgba(236, 72, 153, 0.1); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.2); }
+.source-local { background: rgba(107, 114, 128, 0.1); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.2); }
+
+.external-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-left: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.external-link:hover {
+    opacity: 1;
+}
+
+.group-header {
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.group-header h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    color: var(--text-color);
+}
+
+.vram-badge {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.vram-good { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+.vram-warning { background: rgba(234, 179, 8, 0.1); color: #facc15; }
+.vram-bad { background: rgba(239, 68, 68, 0.1); color: #f87171; }
 
 tr:hover {
     background: rgba(255, 255, 255, 0.02);

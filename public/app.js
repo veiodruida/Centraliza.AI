@@ -12,16 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
     const scanBtn = document.getElementById('scanBtn');
     const loadingDiv = document.getElementById('loading');
-    const modelsBody = document.getElementById('modelsBody');
+    const modelsContainer = document.getElementById('models-container');
+    const systemStatsDiv = document.getElementById('system-stats');
     const errorBox = document.getElementById('errorBox');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadNameInput = document.getElementById('downloadName');
+    const downloadStatus = document.getElementById('downloadStatus');
 
     let currentConfig = {
         centralDir: '',
         scanDirectories: []
     };
 
+    let sysInfo = null;
+
     // Initialize
     fetchConfig();
+    loadSystemInfo();
 
     // Event Listeners
     addDirBtn.addEventListener('click', () => {
@@ -77,6 +84,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     scanBtn.addEventListener('click', scanModels);
+
+    downloadBtn.addEventListener('click', async () => {
+        const modelName = downloadNameInput.value.trim();
+        if (!modelName) return;
+
+        downloadBtn.disabled = true;
+        downloadStatus.innerText = `Starting download of ${modelName}...`;
+        downloadStatus.className = 'status-badge status-unmanaged'; // Red/Warning style
+        downloadStatus.classList.remove('hidden');
+
+        try {
+            const res = await fetch('/api/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ modelName })
+            });
+            const data = await res.json();
+            
+            downloadStatus.innerText = data.message;
+            downloadStatus.className = 'status-badge status-centralized';
+            downloadNameInput.value = '';
+            
+            // Wait a bit and refresh scan
+            setTimeout(scanModels, 5000);
+        } catch (err) {
+            downloadStatus.innerText = 'Error: ' + err.message;
+            downloadStatus.className = 'status-badge status-unmanaged';
+        } finally {
+            downloadBtn.disabled = false;
+        }
+    });
 
     selectAllBtn.addEventListener('click', () => {
         document.querySelectorAll('.model-checkbox').forEach(cb => {
@@ -192,6 +230,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadSystemInfo() {
+        try {
+            const res = await fetch('/api/system-info');
+            sysInfo = await res.json();
+            const ramGB = (sysInfo.totalRam / (1024 ** 3)).toFixed(1);
+            const vramGB = (sysInfo.vram / (1024 ** 3)).toFixed(1); // wmic AdapterRAM is in bytes on newer windows
+            
+            systemStatsDiv.innerHTML = `
+                <span>RAM: <strong>${ramGB} GB</strong></span>
+                <span>VRAM: <strong>${vramGB} GB</strong></span>
+            `;
+        } catch (e) {
+            console.error('Failed to load system info', e);
+        }
+    }
+
     function renderScanDirs() {
         scanDirsList.innerHTML = '';
         currentConfig.scanDirectories.forEach((dir, index) => {
@@ -216,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function scanModels() {
         hideError();
         loadingDiv.classList.remove('hidden');
-        modelsBody.innerHTML = '';
+        modelsContainer.innerHTML = '';
         scanBtn.disabled = true;
 
         try {
@@ -242,45 +296,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderModels(models) {
         if (models.length === 0) {
-            modelsBody.innerHTML = '<tr><td colspan="6" style="text-align:center">No models found. Try adding more directories.</td></tr>';
+            modelsContainer.innerHTML = '<div style="text-align:center; padding: 2rem;">No models found. Try adding more directories.</div>';
             return;
         }
 
+        // Group models by source
+        const groups = {};
         models.forEach(model => {
-            const tr = document.createElement('tr');
+            const source = model.source || 'Local';
+            if (!groups[source]) groups[source] = [];
+            groups[source].push(model);
+        });
+
+        Object.keys(groups).sort().forEach(source => {
+            const groupModels = groups[source];
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'model-group';
             
-            const isCentralized = model.isSymlink;
-            const statusBadge = isCentralized 
-                ? '<span class="status-badge status-centralized">Centralized</span>'
-                : '<span class="status-badge status-unmanaged">Unmanaged</span>';
+            const sourceClass = source.toLowerCase().replace(/ /g, '-');
+            
+            groupDiv.innerHTML = `
+                <div class="group-header">
+                    <span class="source-badge source-${sourceClass}">${source}</span>
+                    <h3>${source} Models (${groupModels.length})</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>Model Name</th>
+                                <th>Status</th>
+                                <th>Size</th>
+                                <th>Original Path</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${groupModels.map(model => renderModelRow(model)).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            modelsContainer.appendChild(groupDiv);
+        });
 
-            const actionBtn = isCentralized
-                ? `<button class="action-btn" disabled>Already Linked</button>`
-                : `<button class="action-btn centralize-btn" data-path="${model.path.replace(/\\/g, '\\\\')}" data-name="${model.name}" data-finalname="${model.finalModelName}">Centralize</button>`;
+        attachRowListeners();
+    }
 
-            // Checkbox should be enabled for deletion even if centralized!
-            const checkboxHtml = `<input type="checkbox" class="model-checkbox" data-path="${model.path.replace(/\\/g, '\\\\')}" data-name="${model.name}" data-finalname="${model.finalModelName}">`;
+    function renderModelRow(model) {
+        const isCentralized = model.isSymlink;
+        const statusBadge = isCentralized 
+            ? '<span class="status-badge status-centralized">Centralized</span>'
+            : '<span class="status-badge status-unmanaged">Local Only</span>';
 
-            tr.innerHTML = `
+        const actionBtn = isCentralized
+            ? `<button class="action-btn" disabled>Already Linked</button>`
+            : `<button class="action-btn centralize-btn" data-path="${model.path.replace(/\\/g, '\\\\')}" data-name="${model.name}" data-finalname="${model.finalModelName}">Centralize</button>`;
+
+        const checkboxHtml = `<input type="checkbox" class="model-checkbox" data-path="${model.path.replace(/\\/g, '\\\\')}" data-name="${model.name}" data-finalname="${model.finalModelName}">`;
+
+        // VRAM Check
+        let vramBadge = '';
+        if (sysInfo && sysInfo.vram > 0) {
+            const modelBytes = model.size;
+            const availableVram = sysInfo.vram;
+            if (modelBytes < availableVram * 0.8) vramBadge = '<span class="vram-badge vram-good" title="GPU Ready">GPU Ready</span>';
+            else if (modelBytes < availableVram * 1.2) vramBadge = '<span class="vram-badge vram-warning" title="GPU Tight">GPU Tight</span>';
+            else vramBadge = '<span class="vram-badge vram-bad" title="System RAM">System RAM</span>';
+        }
+
+        const externalLinkHtml = model.externalLink 
+            ? `<a href="${model.externalLink}" target="_blank" class="external-link" title="Explore Source">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+               </a>` 
+            : '';
+
+        return `
+            <tr>
                 <td>${checkboxHtml}</td>
-                <td><strong>${model.name}</strong></td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px">
+                        <strong>${model.name}</strong>
+                        ${vramBadge}
+                        ${externalLinkHtml}
+                    </div>
+                </td>
                 <td>${statusBadge}</td>
                 <td>${formatBytes(model.size)}</td>
-                <td title="${model.path}">${model.path.length > 40 ? '...' + model.path.substring(model.path.length - 37) : model.path}</td>
+                <td class="path-cell" data-path="${model.path.replace(/\\/g, '\\\\')}" title="Click to open in Explorer">
+                    ${model.path.length > 40 ? '...' + model.path.substring(model.path.length - 37) : model.path}
+                </td>
                 <td>${actionBtn}</td>
-            `;
-            modelsBody.appendChild(tr);
-        });
+            </tr>
+        `;
+    }
 
-        // Add checkbox listeners
-        document.querySelectorAll('.model-checkbox').forEach(cb => {
-            cb.addEventListener('change', updateCentralizeBtnState);
-        });
-        updateCentralizeBtnState();
-        
-        // Add centralize listeners
+    function attachRowListeners() {
         document.querySelectorAll('.centralize-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.onclick = async (e) => {
                 const modelPath = e.target.dataset.path;
                 const modelName = e.target.dataset.name;
                 const finalModelName = e.target.dataset.finalname;
@@ -300,14 +414,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (data.error) throw new Error(data.error);
                     
-                    alert('Success: ' + data.message);
-                    scanModels(); // Refresh list
+                    e.target.innerText = 'Success!';
+                    scanModels();
                 } catch (err) {
                     showError(err.message);
                     e.target.innerText = originalText;
                     e.target.disabled = false;
                 }
-            });
+            };
+        });
+
+        document.querySelectorAll('.path-cell').forEach(cell => {
+            cell.onclick = (e) => {
+                const folderPath = e.currentTarget.dataset.path;
+                fetch('/api/open-folder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath })
+                });
+            };
+        });
+
+        document.querySelectorAll('.model-checkbox').forEach(cb => {
+            cb.onchange = updateCentralizeBtnState;
         });
     }
 
