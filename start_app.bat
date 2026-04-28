@@ -1,6 +1,6 @@
 @echo off
 echo ===================================================
-echo   Centraliza.ai V2.1.0 - Iniciar Aplicacao
+echo   Centraliza.ai V2.1.1 - Iniciar Aplicacao
 echo ===================================================
 
 echo [1/2] Iniciando Servidor Centralizado...
