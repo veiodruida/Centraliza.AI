@@ -44,6 +44,7 @@ CentralizaIA is a local AI model orchestrator for Windows. It allows users to ce
 
 ## 📂 Key Files
 - `server.js`: The heart of the system.
+- `picker.ps1`: Helper script for native Windows folder selection (requires -sta).
 - `frontend/src/App.tsx`: Navigation and Global Dashboard.
 - `frontend/src/pages/MyModels.tsx`: Model management logic.
 - `frontend/src/pages/Centralization.tsx`: Storage health engine.

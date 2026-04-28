@@ -143,13 +143,31 @@ app.post('/api/auto-detect', (req, res) => {
         path.join(os.homedir(), '.cache', 'lm-studio', 'models'),
         path.join(os.homedir(), 'ComfyUI', 'models'),
         path.join(os.homedir(), '.ollama', 'models', 'blobs'),
-        'C:\\ComfyUI_windows_portable'
     ];
+    
+    // Add common portable roots
+    ['C', 'D', 'E', 'F'].forEach(drive => {
+        const p = `${drive}:\\ComfyUI_windows_portable`;
+        if (fs.existsSync(p)) common.push(p);
+    });
+
     let added = 0;
     common.forEach(p => { 
         if (fs.existsSync(p)) {
-            if (p.includes('ComfyUI_windows_portable')) config.comfyDir = p;
-            if (!config.scanDirectories.includes(p)) { config.scanDirectories.push(p); added++; } 
+            // Search for ComfyUI root by climbing up
+            let current = p;
+            for (let i = 0; i < 4; i++) {
+                if (fs.existsSync(path.join(current, 'run_nvidia_gpu.bat')) || fs.existsSync(path.join(current, 'main.py'))) {
+                    config.comfyDir = current;
+                    break;
+                }
+                current = path.dirname(current);
+            }
+
+            if (!config.scanDirectories.includes(p)) { 
+                config.scanDirectories.push(p); 
+                added++; 
+            } 
         }
     });
     if (added > 0) saveConfig();
@@ -157,14 +175,16 @@ app.post('/api/auto-detect', (req, res) => {
 });
 
 app.get('/api/pick-folder', (req, res) => {
-    const script = `
-    Add-Type -AssemblyName System.Windows.Forms
-    $f = New-Object System.Windows.Forms.FolderBrowserDialog
-    if ($f.ShowDialog() -eq "OK") { $f.SelectedPath }
-    `;
-    exec(`powershell -command "${script}"`, (err, stdout) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ path: stdout.trim() });
+    const psFile = path.join(__dirname, 'picker.ps1');
+    const psCommand = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}"`;
+    
+    exec(psCommand, (err, stdout) => {
+        if (err) {
+            console.error('Picker Error:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        const pickedPath = stdout.trim().split('\n').pop()?.trim();
+        res.json({ path: pickedPath || null });
     });
 });
 
