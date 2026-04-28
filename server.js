@@ -175,13 +175,22 @@ app.post('/api/auto-detect', (req, res) => {
 });
 
 app.get('/api/pick-folder', (req, res) => {
-    const psFile = path.join(__dirname, 'picker.ps1');
-    const psCommand = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}"`;
+    const platform = os.platform();
+    let command = '';
+
+    if (platform === 'win32') {
+        const psFile = path.join(__dirname, 'picker.ps1');
+        command = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}"`;
+    } else if (platform === 'darwin') {
+        command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "Select a folder for CentralizaIA"' -e 'POSIX path of theFolder'`;
+    } else {
+        command = `zenity --file-selection --directory --title="Select a folder for CentralizaIA"`;
+    }
     
-    exec(psCommand, (err, stdout) => {
+    exec(command, (err, stdout) => {
         if (err) {
             console.error('Picker Error:', err);
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ error: 'Picker failed or cancelled' });
         }
         const pickedPath = stdout.trim().split('\n').pop()?.trim();
         res.json({ path: pickedPath || null });
