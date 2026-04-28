@@ -105,6 +105,15 @@ const MODEL_EXTENSIONS = ['.gguf', '.safetensors', '.ckpt', '.bin', '.pt', '.pth
 async function scanDirectory(dir, modelsList, ollamaMap) {
     if (!fs.existsSync(dir)) return;
 
+    // Detect source based on directory path
+    let source = 'Local';
+    const lowerDir = dir.toLowerCase();
+    if (lowerDir.includes('.ollama')) source = 'Ollama';
+    else if (lowerDir.includes('comfyui')) source = 'ComfyUI';
+    else if (lowerDir.includes('lm-studio') || lowerDir.includes('.lmstudio')) source = 'LM Studio';
+    else if (lowerDir.includes('huggingface')) source = 'Hugging Face';
+    else if (lowerDir.includes('stabilitymatrix')) source = 'Stability Matrix';
+
     try {
         const entries = await promisify(fs.readdir)(dir, { withFileTypes: true });
 
@@ -123,14 +132,29 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                         // Determine the expected name in the central directory
                         let finalModelName = entry.name;
                         let displayModelName = entry.name;
+                        let externalLink = null;
                         
                         if (isOllamaBlob) {
                             const humanName = ollamaMap[entry.name];
                             if (humanName) {
                                 finalModelName = humanName + '.gguf';
-                                displayModelName = humanName + ' (Ollama)';
+                                displayModelName = humanName;
+                                externalLink = `https://ollama.com/library/${humanName.split('-')[0]}`;
                             } else {
                                 finalModelName = entry.name + '.gguf';
+                            }
+                        }
+
+                        // Try to extract Hugging Face link if in HF cache
+                        if (source === 'Hugging Face' && fullPath.includes('models--')) {
+                            const parts = fullPath.split('models--');
+                            if (parts.length > 1) {
+                                const repoParts = parts[1].split(path.sep)[0].split('--');
+                                if (repoParts.length >= 2) {
+                                    const author = repoParts[0];
+                                    const repo = repoParts.slice(1).join('-');
+                                    externalLink = `https://huggingface.co/${author}/${repo}`;
+                                }
                             }
                         }
                         
@@ -143,7 +167,7 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                         
                         let targetPath = null;
                         if (isCentralized) {
-                            targetPath = "Centralized in " + expectedDestPath;
+                            targetPath = expectedDestPath;
                         }
 
                         // Get file size
@@ -157,7 +181,9 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                                 size: actualStat.size,
                                 isSymlink: isCentralized,
                                 targetPath,
-                                finalModelName: finalModelName
+                                finalModelName: finalModelName,
+                                source: source,
+                                externalLink: externalLink
                             });
                         }
                     } catch (err) {
@@ -338,6 +364,63 @@ app.delete('/api/models', async (req, res) => {
     } catch (e) {
         res.status(500).json({ error: 'Failed to delete: ' + e.message });
     }
+});
+
+app.get('/api/system-info', async (req, res) => {
+    const { exec } = require('child_process');
+    const getVram = () => new Promise((resolve) => {
+        exec('wmic path win32_VideoController get AdapterRAM', (err, stdout) => {
+            if (err) return resolve(0);
+            const lines = stdout.trim().split('\n');
+            const ram = parseInt(lines[1]);
+            resolve(isNaN(ram) ? 0 : ram);
+        });
+    });
+
+    const vram = await getVram();
+    res.json({
+        totalRam: os.totalmem(),
+        freeRam: os.freemem(),
+        vram: vram,
+        platform: os.platform(),
+        arch: os.arch()
+    });
+});
+
+app.post('/api/open-folder', (req, res) => {
+    const { folderPath } = req.body;
+    const { exec } = require('child_process');
+    const dir = path.dirname(folderPath);
+    
+    let command = '';
+    if (os.platform() === 'win32') command = `explorer /select,"${folderPath}"`;
+    else if (os.platform() === 'darwin') command = `open -R "${folderPath}"`;
+    else command = `xdg-open "${dir}"`;
+
+    exec(command);
+    res.json({ success: true });
+});
+
+app.post('/api/download', (req, res) => {
+    const { modelName } = req.body;
+    const { spawn } = require('child_process');
+    
+    // For now, we only support ollama pull as a quick downloader
+    const child = spawn('ollama', ['pull', modelName]);
+
+    child.stdout.on('data', (data) => {
+        console.log(`ollama pull: ${data}`);
+    });
+
+    child.stderr.on('data', (data) => {
+        console.error(`ollama pull error: ${data}`);
+    });
+
+    child.on('close', (code) => {
+        console.log(`ollama pull finished with code ${code}`);
+    });
+
+    res.json({ success: true, message: 'Download started in background. Check your Ollama app or wait for scan.' });
 });
 
 const PORT = 4000;
