@@ -107,8 +107,20 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                             }
                         }
                         const modelBaseName = path.parse(finalModelName).name;
-                        const expectedDestPath = path.join(config.centralDir, 'Centraliza.ai', modelBaseName, finalModelName);
-                        const isCentralized = fs.existsSync(expectedDestPath);
+                        const expectedDestPath = path.resolve(config.centralDir, 'Centraliza.ai', modelBaseName, finalModelName);
+                        let isCentralized = false;
+                        
+                        try {
+                            if (fs.existsSync(expectedDestPath)) {
+                                const actualStat = await promisify(fs.stat)(fullPath);
+                                const destStat = await promisify(fs.stat)(expectedDestPath);
+                                // If they have the same inode (hardlink) or same size/mtime (best guess)
+                                if (actualStat.ino === destStat.ino || (actualStat.size === destStat.size && Math.abs(actualStat.mtime - destStat.mtime) < 1000)) {
+                                    isCentralized = true;
+                                }
+                            }
+                        } catch (e) {}
+
                         const actualStat = await promisify(fs.stat)(fullPath);
                         if (actualStat.size > 1024 * 1024) {
                             modelsList.push({
@@ -264,8 +276,8 @@ app.get('/api/models', async (req, res) => {
 app.post('/api/centralize', async (req, res) => {
     const { modelPath, finalModelName } = req.body;
     const modelBaseName = path.parse(finalModelName).name;
-    const modelDir = path.join(config.centralDir, 'Centraliza.ai', modelBaseName);
-    const destPath = path.join(modelDir, finalModelName);
+    const modelDir = path.resolve(config.centralDir, 'Centraliza.ai', modelBaseName);
+    const destPath = path.resolve(modelDir, finalModelName);
     if (!fs.existsSync(modelDir)) fs.mkdirSync(modelDir, { recursive: true });
     try { await promisify(fs.link)(modelPath, destPath); res.json({ success: true }); }
     catch (e) { try { await promisify(fs.symlink)(modelPath, destPath, 'file'); res.json({ success: true }); }

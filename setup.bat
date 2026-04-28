@@ -1,6 +1,6 @@
 @echo off
 echo ===================================================
-echo   Centraliza.ai V2 - Setup de Instalacao
+echo   Centraliza.ai V2.1.0 - Setup de Instalacao
 echo ===================================================
 
 echo [1/3] Instalando dependencias do Root...

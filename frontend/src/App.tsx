@@ -26,7 +26,7 @@ function Sidebar() {
     <div className="w-72 h-screen bg-slate-950 border-r border-slate-900 flex flex-col shrink-0">
       <div className="p-10">
         <h1 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-2">
-          Centraliza.ai <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/20">V2</span>
+          Centraliza.ai <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/20">V2.1.0</span>
         </h1>
       </div>
       <nav className="flex-1 px-6 space-y-2 overflow-y-auto custom-scrollbar">
