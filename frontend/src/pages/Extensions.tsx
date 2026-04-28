@@ -1,4 +1,4 @@
-import { Puzzle, Plus, ExternalLink, ShieldAlert, Cpu, MessageSquare, HardDrive } from 'lucide-react';
+import { Puzzle, ShieldAlert, Cpu, MessageSquare, HardDrive } from 'lucide-react';
 
 export default function Extensions() {
   const extensionPoints = [

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Cpu, Zap, Activity, HardDrive, ShieldCheck, Gauge, AlertCircle, Info, Monitor } from 'lucide-react';
+import { Cpu, Zap, ShieldCheck, Gauge, AlertCircle, Info, Monitor } from 'lucide-react';
 
 export default function HardwareLab() {
   const [sysInfo, setSysInfo] = useState<any>(null);

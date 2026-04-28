@@ -1,3 +1,5 @@
+param([string]$initialPath)
+
 $ErrorActionPreference = 'SilentlyContinue'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type @"
@@ -13,6 +15,10 @@ Add-Type @"
 $f = New-Object System.Windows.Forms.FolderBrowserDialog
 $f.Description = "Select a folder for CentralizaIA"
 $f.ShowNewFolderButton = $true
+
+if ($initialPath -and (Test-Path $initialPath)) {
+    $f.SelectedPath = $initialPath
+}
 
 # Create a hidden form to act as parent and bring it to front
 $form = New-Object System.Windows.Forms.Form

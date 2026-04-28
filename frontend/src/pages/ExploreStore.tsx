@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Download, Star, Filter, ArrowRight, Zap, Info, CheckCircle, AlertTriangle, XCircle, Terminal, Image as ImageIcon, MessageSquare, Brain, Clock, TrendingUp, Monitor } from 'lucide-react';
+import { Search, Download, Star, Zap, CheckCircle, AlertTriangle, XCircle, Image as ImageIcon, MessageSquare, Brain, Clock, TrendingUp, Monitor } from 'lucide-react';
 
 interface RegistryModel {
   name: string;
@@ -105,7 +105,7 @@ export default function ExploreStore() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ modelName: model.name.split('/').pop() })
       });
-      const data = await res.json();
+      await res.json();
       setDownloadStatus('Ollama Pulling...');
       setTimeout(() => setDownloadingModel(null), 5000);
     } catch (e) {

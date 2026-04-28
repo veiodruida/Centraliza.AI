@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, MessageSquare, User, Bot, Trash2, Settings, Zap, AlertCircle, Loader2, Globe, Server, Terminal } from 'lucide-react';
+import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
