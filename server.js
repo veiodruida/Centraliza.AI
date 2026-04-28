@@ -143,12 +143,29 @@ app.post('/api/auto-detect', (req, res) => {
         path.join(os.homedir(), '.cache', 'lm-studio', 'models'),
         path.join(os.homedir(), 'ComfyUI', 'models'),
         path.join(os.homedir(), '.ollama', 'models', 'blobs'),
-        'C:\\ComfyUI_windows_portable\\ComfyUI\\models\\checkpoints'
+        'C:\\ComfyUI_windows_portable'
     ];
     let added = 0;
-    common.forEach(p => { if (fs.existsSync(p) && !config.scanDirectories.includes(p)) { config.scanDirectories.push(p); added++; } });
+    common.forEach(p => { 
+        if (fs.existsSync(p)) {
+            if (p.includes('ComfyUI_windows_portable')) config.comfyDir = p;
+            if (!config.scanDirectories.includes(p)) { config.scanDirectories.push(p); added++; } 
+        }
+    });
     if (added > 0) saveConfig();
     res.json({ success: true, added, config });
+});
+
+app.get('/api/pick-folder', (req, res) => {
+    const script = `
+    Add-Type -AssemblyName System.Windows.Forms
+    $f = New-Object System.Windows.Forms.FolderBrowserDialog
+    if ($f.ShowDialog() -eq "OK") { $f.SelectedPath }
+    `;
+    exec(`powershell -command "${script}"`, (err, stdout) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ path: stdout.trim() });
+    });
 });
 
 app.get('/api/registry', (req, res) => {
