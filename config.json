@@ -1,0 +1,15 @@
+{
+  "centralDir": "C:\\AI_Models",
+  "scanDirectories": [
+    "C:\\Users\\veio_\\.cache\\lm-studio\\models",
+    "C:\\Users\\veio_\\AppData\\Roaming\\StabilityMatrix\\Models",
+    "C:\\Users\\veio_\\.ollama\\models\\blobs",
+    "C:\\Users\\veio_\\ComfyUI\\models\\checkpoints",
+    "C:\\Users\\veio_\\llama.cpp\\models",
+    "C:\\Users\\veio_\\.lmstudio\\models",
+    "C:\\Users\\veio_\\.lmstudio\\.internal\\bundled-models",
+    "C:\\Users\\veio_\\.cache\\huggingface\\hub",
+    "C:\\Users\\veio_\\Documents\\ComfyUI\\models",
+    "C:\\Users\\veio_\\Documents\\ComfyUI\\custom_nodes"
+  ]
+}
