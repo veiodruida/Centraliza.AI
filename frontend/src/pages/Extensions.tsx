@@ -11,7 +11,7 @@ export default function Extensions() {
     <div className="p-12 max-w-5xl mx-auto animate-in fade-in duration-700">
       <header className="mb-12">
         <h2 className="text-4xl font-black text-white mb-2">Extensions</h2>
-        <p className="text-slate-500">Expand CentralizaIA capabilities with community or custom plugins.</p>
+        <p className="text-slate-500">Expand Centraliza.ai capabilities with community or custom plugins.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
@@ -45,7 +45,7 @@ export default function Extensions() {
       
       <div className="mt-12 text-center">
          <p className="text-slate-700 text-[10px] font-black uppercase tracking-[0.4em]">
-            Modular Framework • CentralizaIA SDK
+            Modular Framework • Centraliza.ai SDK
          </p>
       </div>
     </div>

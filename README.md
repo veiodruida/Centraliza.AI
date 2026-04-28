@@ -1,12 +1,12 @@
-# 🚀 CentralizaIA - Local AI Orchestrator & Dashboard
+# 🚀 Centraliza.ai - Local AI Orchestrator & Dashboard
 
-CentralizaIA is a premium dashboard for managing local Artificial Intelligence models. It allows you to centralize, organize, and launch models (Ollama, ComfyUI, Llama.cpp, LM Studio) intelligently, saving disk space through system Hardlinks.
+Centraliza.ai is a premium dashboard for managing local Artificial Intelligence models. It allows you to centralize, organize, and launch models (Ollama, ComfyUI, Llama.cpp, LM Studio) intelligently, saving disk space through system Hardlinks.
 
 ---
 
 ## ⚡ Quick Start (Installation & Usage)
 
-CentralizaIA is now unified into a single service for a seamless "Zero Configuration" experience.
+Centraliza.ai is now unified into a single service for a seamless "Zero Configuration" experience.
 
 ### 1. Initial Setup & Auto-Start
 Open a terminal in the project folder and run:

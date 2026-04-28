@@ -107,7 +107,7 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                             }
                         }
                         const modelBaseName = path.parse(finalModelName).name;
-                        const expectedDestPath = path.join(config.centralDir, 'CentralizaIA', modelBaseName, finalModelName);
+                        const expectedDestPath = path.join(config.centralDir, 'Centraliza.ai', modelBaseName, finalModelName);
                         const isCentralized = fs.existsSync(expectedDestPath);
                         const actualStat = await promisify(fs.stat)(fullPath);
                         if (actualStat.size > 1024 * 1024) {
@@ -184,10 +184,10 @@ app.get('/api/pick-folder', (req, res) => {
         command = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}" -initialPath "${initialPath}"`;
     } else if (platform === 'darwin') {
         const startPath = initialPath ? `default location "${initialPath.replace(/\\/g, '/')}"` : '';
-        command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "Select a folder for CentralizaIA" ${startPath}' -e 'POSIX path of theFolder'`;
+        command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "Select a folder for Centraliza.ai" ${startPath}' -e 'POSIX path of theFolder'`;
     } else {
         const startPath = initialPath ? `--filename="${initialPath}/"` : '';
-        command = `zenity --file-selection --directory --title="Select a folder for CentralizaIA" ${startPath}`;
+        command = `zenity --file-selection --directory --title="Select a folder for Centraliza.ai" ${startPath}`;
     }
     
     exec(command, (err, stdout) => {
@@ -264,7 +264,7 @@ app.get('/api/models', async (req, res) => {
 app.post('/api/centralize', async (req, res) => {
     const { modelPath, finalModelName } = req.body;
     const modelBaseName = path.parse(finalModelName).name;
-    const modelDir = path.join(config.centralDir, 'CentralizaIA', modelBaseName);
+    const modelDir = path.join(config.centralDir, 'Centraliza.ai', modelBaseName);
     const destPath = path.join(modelDir, finalModelName);
     if (!fs.existsSync(modelDir)) fs.mkdirSync(modelDir, { recursive: true });
     try { await promisify(fs.link)(modelPath, destPath); res.json({ success: true }); }
@@ -334,4 +334,4 @@ if (fs.existsSync(distPath)) {
     });
 }
 
-app.listen(4000, () => console.log('CentralizaIA on http://localhost:4000'));
+app.listen(4000, () => console.log('Centraliza.ai on http://localhost:4000'));
