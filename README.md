@@ -1,19 +1,66 @@
-# CentralizaIA
+# 🚀 CentralizaIA - Local AI Orchestrator & Dashboard
 
-Centralizador de Modelos de Inteligência Artificial para Windows.
+CentralizaIA é um dashboard premium para gestão de modelos de Inteligência Artificial local. Ele permite centralizar, organizar e lançar modelos (Ollama, ComfyUI, Llama.cpp, LM Studio) de forma inteligente, economizando espaço em disco através de Hardlinks.
 
-## 🌟 Versão 2.0 (Nova)
-O projeto foi totalmente migrado para uma arquitetura de Dashboard moderno. 
+---
 
-### Principais Funcionalidades:
-- **Gestão de Modelos**: Centralize modelos do Ollama, ComfyUI, LM Studio e Llama.cpp em um único local usando Hardlinks (zero espaço extra).
-- **Lançamento Inteligente**: Inicie servidores Ollama ou Llama.cpp diretamente da interface em um novo terminal.
-- **Hardware Telemetry**: Detecção real de VRAM (NVIDIA-SMI) e análise de compatibilidade.
-- **AI Model Hub**: Explore e baixe modelos do HuggingFace com indicadores de performance para sua máquina.
-- **Test & Chat**: Teste seus modelos locais em uma interface de chat integrada com suporte a múltiplos motores.
+## ⚡ Instalação Rápida (Quick Start)
 
-### Como rodar:
-1. `node server.js` (Raiz)
-2. `npm run dev` (Pasta frontend)
+### 1. Pré-requisitos
+- **Node.js** (v18 ou superior)
+- **Ollama** (opcional, para modelos Ollama)
+- **NVIDIA GPU** (recomendado para melhor performance)
 
-Consulte o [README_V2.md](./README_V2.md) para mais detalhes técnicos.
+### 2. Configuração Automática
+Abra o terminal na pasta do projeto e execute:
+```bash
+setup.bat
+```
+*Este comando instalará todas as dependências do servidor e da interface.*
+
+### 3. Como Rodar
+Para iniciar a aplicação completa (Backend + Frontend), basta executar:
+```bash
+start_app.bat
+```
+- **Interface Dashboard**: [http://localhost:5173](http://localhost:5173)
+- **Backend API**: [http://localhost:4000](http://localhost:4000)
+
+---
+
+## ✨ Funcionalidades Principais
+
+### 📂 Centralização Inteligente (Link Engine)
+- **Zero Disk Waste**: Use Hardlinks/Symlinks para centralizar modelos de diferentes pastas (ComfyUI, LM Studio, Ollama) sem ocupar espaço extra.
+- **Gestão em Massa**: Na aba **Centralization**, selecione múltiplos modelos standalone e vincule-os ao repositório mestre com um clique.
+
+### 🚀 Launch Engine (Orquestrador)
+- **Lançamento Adaptativo**: O sistema detecta o motor ideal para cada modelo.
+- **One-Click Server**: Inicie servidores **Ollama** ou **Llama.cpp** (na porta 8080) diretamente pela interface em terminais dedicados.
+- **ComfyUI Integration**: Lance o ComfyUI com suporte a GPU NVIDIA automaticamente.
+
+### 🖥️ Hardware Lab & Telemetry
+- **Monitoramento Real**: Detecção de VRAM via `nvidia-smi` e WMI.
+- **Compatibility Check**: O sistema analisa sua memória RAM/VRAM e indica quais modelos do **AI Model Hub** (HuggingFace) rodam perfeitamente na sua máquina.
+
+### 💬 Test & Chat
+- **Interface Integrada**: Converse com seus modelos locais diretamente no dashboard.
+- **Multi-Engine**: Troque entre Ollama, Llama.cpp ou endpoints customizados em tempo real.
+
+---
+
+## 🛠️ Estrutura do Projeto
+
+- `server.js`: Servidor Backend (Express) - Orquestração de processos e sistema de arquivos.
+- `frontend/`: Dashboard React + Vite + Tailwind CSS.
+- `picker.ps1`: Script auxiliar para seleção de pastas nativa e cross-platform.
+- `config.json`: Armazena suas pastas de scan e configurações de diretório central.
+
+---
+
+## 🌍 Compatibilidade
+- **Sistemas**: Windows (Foco principal), macOS e Linux.
+- **Formatos**: GGUF, Safetensors, Checkpoints, Ollama Blobs.
+
+---
+**Desenvolvido para oferecer controle total sobre sua infraestrutura de IA local.**
