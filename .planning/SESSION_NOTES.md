@@ -23,3 +23,26 @@
 
 ## ⏭️ Next Step
 - **Phase 2**: UX Core & Help System (Auto-detect Settings, Global Help Components).
+
+---
+
+# Session Notes: Phase 2 — UX Core & Help System
+
+**Date**: 2026-04-29
+**Status**: COMPLETED
+
+## 🚀 Work Summary
+- **Auto-Detection**: `Settings.tsx` now triggers a "quiet" auto-scan on mount. No more manual clicking required for initial setup.
+- **Contextual Help System**:
+  - Created `HelpTooltip.tsx` with a premium glassmorphism design.
+  - Injected tooltips into **Settings**, **My Models**, and **Centralization Engine** pages.
+  - Explanations are localized in Portuguese as requested (layman-friendly).
+- **Bug Fix**: Restored accidentally deleted functions in `Settings.tsx` during refactoring.
+
+## ✅ Verification Results
+- **Auto-Scan**: Verified network request triggers on page load.
+- **UI/UX**: Help icons are visible and tooltips appear on hover.
+- **Git State**: Committed and pushed to `master` ([27b779c]).
+
+## ⏭️ Next Step
+- **Phase 3**: Gestão de Modelos (CRUD & UI) — This will be the largest phase, implementing rename/move/delete and UI sections.

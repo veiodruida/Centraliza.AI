@@ -10,7 +10,7 @@
 ## Phases
 
 - [x] **Phase 1: Infraestrutura & Core Backend** — Bumps version to 0.3.0, sets up automated testing, and implements WebSocket server for real-time downloads.
-- [ ] **Phase 2: UX Core & Help System** — Implements auto-detect on Settings load and creates the global Help/Onboarding components.
+- [x] **Phase 2: UX Core & Help System** — Implements auto-detect on Settings load and creates the global Help/Onboarding components.
 - [ ] **Phase 3: Gestão de Modelos (CRUD & UI)** — Overhauls "My Models" with collapsable/sortable sections, persistent layout, and full CRUD (rename, move, delete, open folder) with Toasts and sanity checks.
 - [ ] **Phase 4: Premium Features** — Adds Disk Analysis Graph (Recharts) and Llama.cpp Advanced Launch Config Modal.
 - [ ] **Phase 5: Release & Documentação** — Updates documentation, runs tests, creates release briefing, and packages the v0.3.0 zip.
