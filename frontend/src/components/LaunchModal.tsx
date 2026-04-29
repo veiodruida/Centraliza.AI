@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Play, Cpu, Zap, Activity } from 'lucide-react';
+import { useState } from 'react';
+import { X, Play, Cpu } from 'lucide-react';
 
 interface LaunchModalProps {
   isOpen: boolean;

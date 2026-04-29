@@ -47,7 +47,7 @@ export default function DiskUsageGraph() {
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: number) => formatGB(value)}
+            formatter={(value: any) => formatGB(Number(value))}
             contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '1rem', color: '#fff', fontSize: '10px', fontWeight: '900' }}
           />
           <Legend 
