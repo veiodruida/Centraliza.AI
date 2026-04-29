@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const http = require('http');
+const { Server } = require('socket.io');
 const { promisify } = require('util');
 const { exec, spawn } = require('child_process');
 
@@ -321,8 +323,30 @@ app.post('/api/launch', (req, res) => {
 });
 
 app.post('/api/download', (req, res) => {
-    spawn('ollama', ['pull', req.body.modelName], { detached: true, stdio: 'ignore' }).unref();
-    res.json({ success: true });
+    const { modelName } = req.body;
+    const proc = spawn('ollama', ['pull', modelName]);
+    
+    proc.stdout.on('data', (data) => {
+        const text = data.toString();
+        const match = text.match(/(\d+)%/);
+        if (match) {
+            io.emit('download-progress', { model: modelName, progress: parseInt(match[1]) });
+        }
+    });
+
+    proc.stderr.on('data', (data) => {
+        const text = data.toString();
+        const match = text.match(/(\d+)%/);
+        if (match) {
+            io.emit('download-progress', { model: modelName, progress: parseInt(match[1]) });
+        }
+    });
+
+    proc.on('close', (code) => {
+        io.emit('download-complete', { model: modelName, success: code === 0 });
+    });
+
+    res.json({ success: true, message: 'Download started' });
 });
 
 app.post('/api/open-folder', (req, res) => {
@@ -346,4 +370,17 @@ if (fs.existsSync(distPath)) {
     });
 }
 
-app.listen(4000, () => console.log('Centraliza.ai on http://localhost:4000'));
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: { origin: "*" }
+});
+
+io.on('connection', (socket) => {
+    console.log('Client connected via WebSocket');
+});
+
+if (require.main === module) {
+    server.listen(4000, () => console.log('Centraliza.ai on http://localhost:4000'));
+}
+
+module.exports = { app, server };
