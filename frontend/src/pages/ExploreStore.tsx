@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Download, Star, Zap, CheckCircle, AlertTriangle, XCircle, Image as ImageIcon, MessageSquare, Brain, Clock, TrendingUp, Monitor } from 'lucide-react';
+import { io } from 'socket.io-client';
+
+const socket = io();
 
 interface RegistryModel {
   name: string;
@@ -28,6 +31,7 @@ export default function ExploreStore() {
   const [activeSort, setActiveSort] = useState<SortOption>('Best Fit');
   const [downloadingModel, setDownloadingModel] = useState<string | null>(null);
   const [downloadStatus, setDownloadStatus] = useState<string>('');
+  const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetch('/api/registry')
@@ -97,22 +101,77 @@ export default function ExploreStore() {
   }, [registry, search, activeFilter, activeSort, sysInfo]);
 
   const handleInstall = async (model: RegistryModel) => {
-    setDownloadingModel(model.name);
+    let modelNameForOllama = model.name.split('/').pop() || model.name;
+    if (model.gguf_sources && model.gguf_sources.length > 0) {
+      modelNameForOllama = `hf.co/${model.gguf_sources[0].repo}`;
+    }
+    
+    setDownloadingModel(modelNameForOllama);
     setDownloadStatus('Requesting...');
     try {
       const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modelName: model.name.split('/').pop() })
+        body: JSON.stringify({ modelName: modelNameForOllama })
       });
-      await res.json();
-      setDownloadStatus('Ollama Pulling...');
-      setTimeout(() => setDownloadingModel(null), 5000);
+      const data = await res.json();
+      if (data.error) {
+        setDownloadStatus(data.error);
+        setTimeout(() => setDownloadingModel(null), 3000);
+      }
+      setDownloadStatus('Download started...');
+      // Progress will be handled by socket
     } catch (e) {
       setDownloadStatus('Download error');
       setTimeout(() => setDownloadingModel(null), 3000);
     }
   };
+
+  // Socket listeners for real-time download progress
+  useEffect(() => {
+    const onProgress = (data: any) => {
+      if (data.model === downloadingModel) {
+        if (data.progress === -1) {
+          setDownloadStatus('Downloading...');
+        } else if (data.progress >= 0 && data.progress < 100) {
+          setDownloadStatus(`Downloading ${data.progress}%`);
+          setDownloadProgress(prev => ({ ...prev, [data.model]: data.progress }));
+        } else if (data.progress >= 100) {
+          setDownloadStatus('Complete!');
+          setDownloadProgress(prev => ({ ...prev, [data.model]: 100 }));
+        }
+      }
+    };
+    
+    const onComplete = (data: any) => {
+      if (data.model === downloadingModel) {
+        if (data.success) {
+          setDownloadStatus('Installed!');
+        } else if (data.cancelled) {
+          setDownloadStatus('Cancelled');
+        } else {
+          setDownloadStatus('Failed');
+        }
+        setTimeout(() => {
+          setDownloadingModel(null);
+          setDownloadStatus('');
+          setDownloadProgress(prev => {
+            const next = { ...prev };
+            delete next[data.model];
+            return next;
+          });
+        }, 3000);
+      }
+    };
+
+    socket.on('download-progress', onProgress);
+    socket.on('download-complete', onComplete);
+
+    return () => {
+      socket.off('download-progress', onProgress);
+      socket.off('download-complete', onComplete);
+    };
+  }, [downloadingModel]);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-slate-500 font-black">SYNCING WITH MODEL HUB...</div>;
 
@@ -243,11 +302,21 @@ export default function ExploreStore() {
                   <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Weight</span>
                   <span className="text-lg font-black text-slate-100">{model.min_vram_gb} <span className="text-xs text-slate-500">GB</span></span>
                 </div>
-                {isDownloading ? (
-                   <div className="bg-blue-600/10 text-blue-400 px-6 py-3 rounded-2xl text-[10px] font-black uppercase animate-pulse border border-blue-500/20">
-                      {downloadStatus}
+{isDownloading ? (
+                   <div className="flex flex-col gap-2 min-w-[120px]">
+                     <div className="text-[10px] font-black text-blue-400 uppercase bg-blue-500/10 px-3 py-1.5 rounded-lg text-center border border-blue-500/20">
+                       {downloadStatus}
+                     </div>
+                     {downloadProgress[model.name] > 0 && downloadProgress[model.name] < 100 && (
+                       <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                         <div 
+                           className="h-full bg-blue-500 transition-all duration-300" 
+                           style={{ width: `${downloadProgress[model.name]}%` }}
+                         />
+                       </div>
+                     )}
                    </div>
-                ) : (
+                 ) : (
                   <button 
                     onClick={() => handleInstall(model)}
                     disabled={score === 1}

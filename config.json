@@ -11,5 +11,13 @@
     "C:\\Users\\veio_\\.cache\\huggingface\\hub",
     "C:\\Users\\veio_\\Documents\\ComfyUI\\models",
     "C:\\Users\\veio_\\Documents\\ComfyUI\\custom_nodes"
+  ],
+  "comfyDir": "C:\\ComfyUI_windows_portable",
+  "sectionOrder": [
+    "Ollama",
+    "ComfyUI",
+    "LM Studio",
+    "Hugging Face",
+    "Standalone"
   ]
 }

@@ -20,9 +20,11 @@ function buildOllamaManifestMap() {
                 const fullPath = path.join(currentDir, entry.name);
                 if (entry.isDirectory()) scanManifestDir(fullPath, [...repoParts, entry.name]);
                 else if (entry.isFile()) {
-                    let nameParts = repoParts.slice(1);
+                    let nameParts = [...repoParts];
+                    if (nameParts[0] === 'registry.ollama.ai') nameParts = nameParts.slice(1);
                     if (nameParts[0] === 'library') nameParts = nameParts.slice(1);
-                    const modelName = [...nameParts, entry.name].join(':');
+                    // Join domain/user/repo with / and append :tag
+                    const modelName = nameParts.join('/') + ':' + entry.name;
                     try {
                         const content = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
                         if (content.layers) {
@@ -57,7 +59,8 @@ let config = {
         path.join(os.homedir(), 'llama.cpp', 'models'),
         path.join(os.homedir(), '.cache', 'huggingface', 'hub'),
     ],
-    comfyDir: 'C:\\ComfyUI_windows_portable'
+    comfyDir: 'C:\\ComfyUI_windows_portable',
+    sectionOrder: ['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']
 };
 if (fs.existsSync(CONFIG_FILE)) {
     try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) {}
@@ -337,44 +340,103 @@ app.post('/api/download', (req, res) => {
         return res.status(400).json({ error: 'Download already in progress.' });
     }
 
-    const proc = spawn('ollama', ['pull', modelName]);
+    // Use shell to properly handle ollama command on Windows
+    const isWindows = os.platform() === 'win32';
+    const shellCmd = isWindows ? 'cmd.exe' : '/bin/sh';
+    const shellArgs = isWindows ? ['/c', `ollama pull ${modelName}`] : ['-c', `ollama pull ${modelName}`];
+    
+    const proc = spawn(shellCmd, shellArgs, {
+        shell: false,
+        windowsHide: true,
+        env: { ...process.env }
+    });
     activeDownloads.set(modelName, proc);
+    console.log(`[Download] Started process for ${modelName} (PID: ${proc.pid})`);
     
     let completed = false;
+    let progressData = '';
+    
     const finish = (success) => {
         if (completed) return;
         completed = true;
         activeDownloads.delete(modelName);
+        console.log(`[Download] Cleaning up ${modelName}. Success: ${success}`);
         io.emit('download-complete', { model: modelName, success });
     };
 
     const onData = (data) => {
-        const text = data.toString().toLowerCase();
-        // Match progress percentage like "45%" or "45.2%"
-        const match = text.match(/(\d+(?:\.\d+)?)%/);
+        const text = data.toString();
+        // Log to server console for debugging
+        process.stdout.write(text);
+        progressData += text;
+        
+        // Strip ANSI escape codes more aggressively
+        const cleanText = text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '').replace(/[^\x20-\x7E\r\n]/g, '');
+        
+        // Match progress percentage
+        const match = cleanText.match(/(\d+(?:\.\d+)?)%/);
         if (match) {
-            io.emit('download-progress', { model: modelName, progress: Math.floor(parseFloat(match[1])) });
+            const p = Math.round(parseFloat(match[1]));
+            console.log(`[Download Progress] ${modelName}: ${p}%`);
+            io.emit('download-progress', { model: modelName, progress: p });
+            if (p >= 100) {
+                finish(true);
+            }
         }
-        if (text.includes('success') || text.includes('manifest')) {
+        // Detect pull progress keywords (don't finish yet)
+        const lower = cleanText.toLowerCase();
+        if (lower.includes('downloading') || lower.includes('verifying') || lower.includes('pulling')) {
+            // Only update progress to indeterminate if we don't have a percentage yet
+            if (!match) io.emit('download-progress', { model: modelName, progress: -1 });
+        }
+        // Check for REAL completion keywords
+        if (lower.includes('success') || (lower.includes('complete') && !lower.includes('pulling'))) {
             io.emit('download-progress', { model: modelName, progress: 100 });
+            finish(true);
         }
     };
 
     proc.stdout.on('data', onData);
-    proc.stderr.on('data', onData);
+    proc.stderr.on('data', (data) => {
+        console.error(`[Download stderr] ${data.toString()}`);
+        onData(data);
+    });
 
-    proc.on('close', (code) => finish(code === 0));
-    proc.on('exit', (code) => finish(code === 0));
-    proc.on('error', () => finish(false));
+    proc.on('close', (code) => {
+        console.log(`[Download] ${modelName} closed with code ${code}`);
+        if (code === 0) {
+            io.emit('download-progress', { model: modelName, progress: 100 });
+        }
+        finish(code === 0);
+    });
+    proc.on('exit', (code) => {
+        console.log(`[Download] ${modelName} exited with code ${code}`);
+        if (!completed) finish(code === 0);
+    });
+    proc.on('error', (err) => {
+        console.error(`[Download Error] ${modelName} failed to start: ${err.message}`);
+        finish(false);
+    });
 
     res.json({ success: true, message: 'Download started' });
+    
+    setTimeout(() => {
+        if (!completed) {
+            io.emit('download-progress', { model: modelName, progress: 0 });
+        }
+    }, 500);
 });
 
 app.post('/api/download/cancel', (req, res) => {
     const { modelName } = req.body;
     const proc = activeDownloads.get(modelName);
     if (proc) {
-        proc.kill();
+        if (os.platform() === 'win32') {
+            // Force kill the entire process tree on Windows
+            exec(`taskkill /F /T /PID ${proc.pid}`);
+        } else {
+            proc.kill('SIGKILL');
+        }
         activeDownloads.delete(modelName);
         io.emit('download-complete', { model: modelName, success: false, cancelled: true });
         res.json({ success: true, message: 'Download cancelled' });
@@ -411,8 +473,20 @@ app.post('/api/models/move', async (req, res) => {
 });
 
 app.delete('/api/models', async (req, res) => {
-    const { modelPath } = req.body;
+    const { modelPath, ollamaTag } = req.body;
     try {
+        if (ollamaTag) {
+            console.log(`[Ollama] Removing model: ${ollamaTag}`);
+            try {
+                const { stdout, stderr } = await promisify(exec)(`ollama rm ${ollamaTag}`);
+                console.log(`[Ollama] rm stdout: ${stdout}`);
+                if (stderr) console.error(`[Ollama] rm stderr: ${stderr}`);
+                return res.json({ success: true, ollama: true });
+            } catch (err) {
+                console.error(`[Ollama] rm error: ${err.message}`);
+                return res.status(500).json({ error: err.message });
+            }
+        }
         await promisify(fs.unlink)(modelPath);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -469,8 +543,21 @@ app.get('/api/system/disk', async (req, res) => {
 
 app.post('/api/open-folder', (req, res) => {
     const { folderPath } = req.body;
-    if (os.platform() === 'win32') exec(`start "" explorer.exe /select,"${folderPath}"`);
-    else exec(`open -R "${folderPath}"`);
+    if (os.platform() === 'win32') {
+        const cleanPath = folderPath.replace(/\//g, '\\');
+        // Open explorer and select file
+        exec(`explorer.exe /select,"${cleanPath}"`);
+        
+        // Advanced focus script: find the window by path and bring to front
+        const parentDir = path.dirname(cleanPath);
+        const psFocus = `powershell.exe -Command "$path = '${parentDir}'; $wshell = New-Object -ComObject WScript.Shell; $explorer = New-Object -ComObject Shell.Application; $window = $explorer.Windows() | Where-Object { try { $_.Document.Folder.Self.Path.ToLower() -eq $path.ToLower() } catch { $false } } | Select-Object -First 1; if ($window) { $wshell.AppActivate($window.HWND) } else { $wshell.AppActivate('Explorador de Arquivos'); $wshell.AppActivate('File Explorer') }"`;
+        
+        setTimeout(() => {
+            exec(psFocus);
+        }, 1000);
+    } else {
+        exec(`open -R "${folderPath}"`);
+    }
     res.json({ success: true });
 });
 
