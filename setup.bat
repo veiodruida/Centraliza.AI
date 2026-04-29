@@ -3,6 +3,9 @@ echo ===================================================
 echo   Centraliza.ai V0.3.0 - Setup de Instalacao
 echo ===================================================
 
+echo [0/4] Liberando porta 4000...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :4000') do taskkill /f /pid %%a >nul 2>&1
+
 echo [1/3] Instalando dependencias do Root...
 call npm install
 

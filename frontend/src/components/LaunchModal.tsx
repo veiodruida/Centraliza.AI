@@ -12,7 +12,8 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
   const [params, setParams] = useState({
     threads: 4,
     n_gpu_layers: 0,
-    ctx_size: 2048
+    ctx_size: 2048,
+    prompt: "You are a helpful AI assistant."
   });
 
   if (!isOpen) return null;
@@ -72,6 +73,17 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
                  <option value={8192}>8192 tokens</option>
                  <option value={16384}>16384 tokens</option>
               </select>
+           </div>
+
+           <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 block">System Prompt</label>
+              <textarea 
+                value={params.prompt} 
+                onChange={(e) => setParams({...params, prompt: e.target.value})}
+                rows={3}
+                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-medium text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"
+                placeholder="Ex: Você é um assistente prestativo em Português..."
+              />
            </div>
         </div>
 

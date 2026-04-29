@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Trash2, FolderOpen } from 'lucide-react';
+import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Trash2, FolderOpen } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
 import LaunchModal from '../components/LaunchModal';
@@ -15,11 +15,12 @@ interface Model {
   ollamaTag?: string;
   repoId?: string;
   extension?: string;
+  description?: string;
 }
 
 export default function MyModels() {
   const [models, setModels] = useState<Model[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
   const [description, setDescription] = useState('Carregando descrição...');
@@ -29,7 +30,9 @@ export default function MyModels() {
     'LM Studio': true,
     'Hugging Face': true
   });
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']);
   const [launchModalData, setLaunchModalData] = useState<{ isOpen: boolean; model: Model | null }>({ isOpen: false, model: null });
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const { showToast } = useToast();
 
   const fetchModels = async () => {
@@ -78,6 +81,10 @@ export default function MyModels() {
     } catch (e) { showToast('Launch failed.', 'error'); }
   };
 
+  const handleOpenFolder = (path: string) => {
+    fetch('/api/open-folder', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({folderPath: path})});
+  };
+
   const handleCentralize = async (model: Model) => {
     try {
       const res = await fetch('/api/centralize', {
@@ -93,6 +100,11 @@ export default function MyModels() {
   };
 
   const handleRename = async (model: Model) => {
+    // Cannot rename Ollama blobs safely
+    if (model.path.includes('.ollama\\models\\blobs') || model.path.includes('.ollama/models/blobs')) {
+        showToast('Não é possível renomear arquivos internos do Ollama.', 'error');
+        return;
+    }
     const newName = prompt('Novo nome para o modelo (sem extensão):', model.name.split('.')[0]);
     if (!newName) return;
     try {
@@ -102,15 +114,27 @@ export default function MyModels() {
         body: JSON.stringify({ oldPath: model.path, newName })
       });
       if (res.ok) {
-        showToast('Modelo renomeado!', 'success');
+        showToast('Modelo renomeado com sucesso!', 'success');
         fetchModels();
         if (viewingModel?.path === model.path) setViewingModel(null);
+      } else {
+        const data = await res.json();
+        showToast('Erro ao renomear: ' + (data.error || 'Desconhecido'), 'error');
       }
-    } catch (e) { showToast('Erro ao renomear.', 'error'); }
+    } catch (e) { showToast('Erro de conexão ao renomear.', 'error'); }
   };
 
   const handleDelete = async (model: Model) => {
-    if (!confirm(`TEM CERTEZA que deseja excluir permanentemente o arquivo:\n${model.path}`)) return;
+    if (model.path.includes('.ollama\\models\\blobs') || model.path.includes('.ollama/models/blobs')) {
+        showToast('Para remover modelos do Ollama, use o CLI do Ollama.', 'error');
+        return;
+    }
+    const isSymlink = model.isSymlink;
+    const msg = isSymlink 
+      ? `Deseja remover a centralização (atalho) do modelo?\nO arquivo original em seu respectivo provedor não será apagado.`
+      : `TEM CERTEZA que deseja excluir permanentemente o arquivo:\n${model.path}`;
+      
+    if (!confirm(msg)) return;
     try {
       const res = await fetch('/api/models', {
         method: 'DELETE',
@@ -120,13 +144,120 @@ export default function MyModels() {
       if (res.ok) {
         showToast('Modelo excluído permanentemente.', 'success');
         fetchModels();
-        setViewingModel(null);
+        if (viewingModel?.path === model.path) setViewingModel(null);
+      } else {
+        const data = await res.json();
+        showToast('Erro ao excluir: ' + (data.error || 'Desconhecido'), 'error');
       }
-    } catch (e) { showToast('Erro ao excluir.', 'error'); }
+    } catch (e) { showToast('Erro de conexão ao excluir.', 'error'); }
   };
+
+  const handleBatchDelete = async () => {
+    const toDelete = models.filter(m => selectedModels.has(m.path));
+    if (toDelete.length === 0) return;
+    
+    // Check if any Ollama
+    const hasOllama = toDelete.some(m => m.path.includes('.ollama\\models\\blobs') || m.path.includes('.ollama/models/blobs'));
+    if (hasOllama) {
+        showToast('Seleção contém modelos do Ollama. Eles não podem ser removidos em lote por aqui.', 'error');
+        return;
+    }
+
+    if (!confirm(`TEM CERTEZA que deseja excluir ${toDelete.length} modelos selecionados?`)) return;
+    
+    let successCount = 0;
+    for (const model of toDelete) {
+      try {
+        const res = await fetch('/api/models', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ modelPath: model.path })
+        });
+        if (res.ok) successCount++;
+      } catch (e) {}
+    }
+    
+    showToast(`${successCount} modelos excluídos permanentemente.`, 'success');
+    setSelectedModels(new Set());
+    fetchModels();
+  };
+
+  const handleBatchCentralize = async () => {
+    const toCentralize = models.filter(m => selectedModels.has(m.path) && !m.isSymlink);
+    if (toCentralize.length === 0) {
+        showToast('Nenhum modelo standalone selecionado para centralizar.', 'info');
+        return;
+    }
+
+    let successCount = 0;
+    for (const model of toCentralize) {
+      try {
+        const res = await fetch('/api/centralize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ modelPath: model.path, finalModelName: model.finalModelName })
+        });
+        if (res.ok) successCount++;
+      } catch (e) {}
+    }
+
+    showToast(`${successCount} modelos centralizados.`, 'success');
+    setSelectedModels(new Set());
+    fetchModels();
+  };
+
+  const toggleModelSelection = (path: string) => {
+    setSelectedModels(prev => {
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  };
+
+  const toggleSectionSelection = (items: Model[], select: boolean) => {
+    setSelectedModels(prev => {
+      const next = new Set(prev);
+      items.forEach(m => {
+        if (select) next.add(m.path);
+        else next.delete(m.path);
+      });
+      return next;
+    });
+  };
+
+
 
   const toggleSection = (source: string) => {
     setExpandedSections(prev => ({ ...prev, [source]: !prev[source] }));
+  };
+
+  const handleDragStart = (e: React.DragEvent, source: string) => {
+    e.dataTransfer.setData("text/plain", source);
+    e.currentTarget.classList.add("opacity-50");
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove("opacity-50");
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Necessary to allow dropping
+  };
+
+  const handleDrop = (e: React.DragEvent, targetSource: string) => {
+    e.preventDefault();
+    const source = e.dataTransfer.getData("text/plain");
+    if (!source || source === targetSource) return;
+    
+    const oldIdx = sectionOrder.indexOf(source);
+    const newIdx = sectionOrder.indexOf(targetSource);
+    if (oldIdx === -1 || newIdx === -1) return;
+
+    const newOrder = [...sectionOrder];
+    newOrder.splice(oldIdx, 1);
+    newOrder.splice(newIdx, 0, source);
+    setSectionOrder(newOrder);
   };
 
   const groupedModels = useMemo(() => {
@@ -141,7 +272,6 @@ export default function MyModels() {
 
   const formatSize = (bytes: number) => (bytes / (1024 ** 3)).toFixed(2) + ' GB';
 
-  // Logic to show ONLY relevant launch options
   const getLaunchOptions = (model: Model) => {
     const options = [];
     if (model.source === 'Ollama') {
@@ -152,7 +282,6 @@ export default function MyModels() {
         options.push({ type: 'lm-studio', icon: Play, label: 'LAUNCH LM STUDIO' });
     }
     
-    // GGUF models can run via Llama.cpp ONLY if they are NOT from Ollama
     if (model.source !== 'Ollama' && (model.name.toLowerCase().endsWith('.gguf'))) {
         options.push({ type: 'llama.cpp', icon: Terminal, label: 'LAUNCH LLAMA.CPP' });
     }
@@ -227,7 +356,7 @@ export default function MyModels() {
                 <div className="bg-slate-800/20 p-8 rounded-[2.5rem] border border-slate-800/50">
                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Location</h4>
                    <p className="text-[10px] text-slate-600 break-all font-mono mb-4">{viewingModel.path}</p>
-                   <button onClick={() => fetch('/api/open-folder', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({folderPath: viewingModel.path})})} className="text-blue-500 font-bold text-[10px] uppercase hover:underline flex items-center gap-2">
+                   <button onClick={() => handleOpenFolder(viewingModel.path)} className="text-blue-500 font-bold text-[10px] uppercase hover:underline flex items-center gap-2">
                       <FolderOpen size={14} /> Reveal in Explorer
                    </button>
                 </div>
@@ -260,53 +389,89 @@ export default function MyModels() {
       </div>
 
       <div className="space-y-8">
-        {Object.entries(groupedModels).map(([source, items]) => {
+        {sectionOrder.map(source => {
+          const items = groupedModels[source] || [];
+          if (items.length === 0 && source === 'Standalone' && search) return null;
           const isExpanded = expandedSections[source] !== false;
           return (
-            <div key={source} className="bg-slate-900/50 border border-slate-800 rounded-[3rem] overflow-hidden backdrop-blur-xl group transition-all duration-500">
-              <div 
-                className="flex items-center justify-between p-8 cursor-pointer hover:bg-slate-800/30 transition-colors"
-                onClick={() => toggleSection(source)}
-              >
+            <div 
+              key={source} 
+              className="bg-slate-900/50 border border-slate-800 rounded-[3rem] overflow-hidden backdrop-blur-xl group transition-all duration-500"
+              draggable
+              onDragStart={(e) => handleDragStart(e, source)}
+              onDragEnd={handleDragEnd}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, source)}
+            >
+              <div className="flex items-center justify-between p-8 cursor-grab active:cursor-grabbing">
                  <div className="flex items-center gap-5">
+                    <input 
+                       type="checkbox" 
+                       className="w-5 h-5 rounded border-slate-700 bg-slate-900/50 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
+                       checked={items.length > 0 && items.every(m => selectedModels.has(m.path))}
+                       onChange={(e) => toggleSectionSelection(items, e.target.checked)}
+                       onClick={e => e.stopPropagation()}
+                    />
                     <div className={`w-14 h-14 rounded-3xl flex items-center justify-center text-white shadow-2xl transition-transform duration-500 ${isExpanded ? 'scale-110' : 'scale-90'} ${
                       source === 'Ollama' ? 'bg-blue-600 shadow-blue-600/20' : source === 'ComfyUI' ? 'bg-purple-600 shadow-purple-600/20' : 'bg-slate-800 shadow-black/50'
-                    }`}>
+                    }`} onClick={() => toggleSection(source)}>
                       <Box size={28} />
                     </div>
-                    <div className="text-left">
+                    <div className="text-left cursor-pointer" onClick={() => toggleSection(source)}>
                        <h3 className="text-xl font-black text-white uppercase tracking-wider">{source}</h3>
                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{items.length} Local Intelligence Files</p>
                     </div>
                  </div>
-                 <div className="text-slate-500">
-                    {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                 
+                 <div className="flex items-center gap-4">
+                    <div className="text-slate-500 cursor-pointer p-2 hover:bg-slate-800 rounded-full transition-colors" onClick={() => toggleSection(source)}>
+                       {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </div>
                  </div>
               </div>
 
               {isExpanded && (
                 <div className="border-t border-slate-800/50 animate-in fade-in slide-in-from-top-2 duration-500">
-                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                  <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950/50 text-slate-600 font-black uppercase tracking-[0.2em] sticky top-0 z-10 backdrop-blur-md">
                         <tr>
+                          <th className="p-8 w-16"></th>
                           <th className="p-8">Model & Intelligence</th>
                           <th className="p-8 text-center">Status</th>
-                          <th className="p-8 text-right flex items-center justify-end">
-                            Adaptive Launch
-                            <HelpTooltip text="O Centraliza.ai escolhe o melhor 'launcher' (Ollama, ComfyUI, Llama.cpp) baseado no tipo de arquivo e origem do modelo." />
-                          </th>
+                          <th className="p-8 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/30">
                         {items.map(m => {
                           const lOptions = getLaunchOptions(m);
                           return (
-                            <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row">
+                            <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row relative">
+                              <td className="p-8 w-16">
+                                <input 
+                                   type="checkbox" 
+                                   className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
+                                   checked={selectedModels.has(m.path)}
+                                   onChange={() => toggleModelSelection(m.path)}
+                                />
+                              </td>
                               <td className="p-8">
-                                 <div className="flex flex-col">
-                                    <span onClick={() => setViewingModel(m)} className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1">{m.name}</span>
-                                    <span className="text-[10px] text-slate-600 font-mono truncate max-w-sm">{m.path}</span>
+                                 <div className="flex flex-col relative">
+                                    <span 
+                                      onClick={() => setViewingModel(m)} 
+                                      className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1 flex items-center gap-2 group/name"
+                                    >
+                                       {m.name}
+                                       <div className="invisible group-hover/name:visible absolute left-0 -top-12 z-[10000] bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-2xl w-72 pointer-events-none text-xs text-slate-400 font-medium leading-relaxed backdrop-blur-xl animate-in fade-in zoom-in duration-200">
+                                          {m.description || "IA Model file optimized for local orchestration. Source: " + source}
+                                       </div>
+                                    </span>
+                                    <span 
+                                      className="text-[10px] text-slate-600 font-mono truncate max-w-sm hover:text-blue-400 hover:underline cursor-pointer"
+                                      onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }}
+                                    >
+                                      {m.path}
+                                    </span>
                                  </div>
                               </td>
                               <td className="p-8 text-center">
@@ -314,14 +479,20 @@ export default function MyModels() {
                                  : <span className="text-[9px] font-black text-slate-600 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 uppercase tracking-widest">STANDALONE</span>}
                               </td>
                               <td className="p-8 text-right">
-                                <div className="flex justify-end gap-3">
+                                <div className="flex justify-end gap-2">
                                   {lOptions.map(opt => (
-                                     <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-slate-800 hover:bg-blue-600 hover:text-white rounded-2xl text-slate-500 transition-all shadow-lg" title={opt.label}>
-                                        <opt.icon size={18} />
+                                     <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-blue-500/10 text-blue-500 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-lg active:scale-90" title={opt.label}>
+                                        <opt.icon size={16} />
                                      </button>
                                   ))}
-                                  <button onClick={() => setViewingModel(m)} className="p-3 text-slate-700 hover:text-white transition-colors">
-                                     <ChevronRight size={24} />
+                                  <button onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Open Folder">
+                                     <FolderOpen size={16} />
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleRename(m); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Edit/Rename">
+                                     <Edit3 size={16} />
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(m); }} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all active:scale-90" title={m.isSymlink ? "Remover Centralização" : "Delete Permanent"}>
+                                     <Trash2 size={16} />
                                   </button>
                                 </div>
                               </td>
@@ -343,6 +514,23 @@ export default function MyModels() {
       onClose={() => setLaunchModalData({ isOpen: false, model: null })}
       onLaunch={(params) => launchModalData.model && handleLaunch(launchModalData.model, 'llama.cpp', params)}
     />
+
+      {/* Batch Action Bar */}
+      {selectedModels.size > 0 && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 p-4 rounded-full shadow-2xl flex items-center gap-6 z-[9999] animate-in slide-in-from-bottom-10 backdrop-blur-xl">
+          <span className="text-white font-black text-sm px-4">
+            {selectedModels.size} selecionados
+          </span>
+          <div className="flex items-center gap-2 border-l border-slate-700 pl-6">
+             <button onClick={handleBatchCentralize} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">
+               <Zap size={14} /> Centralizar
+             </button>
+             <button onClick={handleBatchDelete} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-red-500/20">
+               <Trash2 size={14} /> Excluir
+             </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
