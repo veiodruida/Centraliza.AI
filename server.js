@@ -349,6 +349,59 @@ app.post('/api/download', (req, res) => {
     res.json({ success: true, message: 'Download started' });
 });
 
+app.post('/api/models/rename', async (req, res) => {
+    const { oldPath, newName } = req.body;
+    const oldDir = path.dirname(oldPath);
+    const ext = path.extname(oldPath);
+    const newPath = path.join(oldDir, newName + ext);
+    try {
+        await promisify(fs.rename)(oldPath, newPath);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/models/move', async (req, res) => {
+    const { oldPath, newDir } = req.body;
+    const fileName = path.basename(oldPath);
+    const newPath = path.join(newDir, fileName);
+    try {
+        await promisify(fs.rename)(oldPath, newPath);
+        res.json({ success: true });
+    } catch (e) {
+        // Fallback for cross-device move
+        try {
+            await promisify(fs.copyFile)(oldPath, newPath);
+            await promisify(fs.unlink)(oldPath);
+            res.json({ success: true, fallback: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    }
+});
+
+app.delete('/api/models', async (req, res) => {
+    const { modelPath } = req.body;
+    try {
+        await promisify(fs.unlink)(modelPath);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/models/sanity-check', async (req, res) => {
+    const linkDir = path.join(config.centralDir, 'Centraliza.ai');
+    if (!fs.existsSync(linkDir)) return res.json({ cleaned: 0 });
+    let cleaned = 0;
+    const clean = (d) => {
+        fs.readdirSync(d, {withFileTypes:true}).forEach(e => {
+            const p = path.join(d, e.name);
+            if (e.isDirectory()) clean(p);
+            else {
+                try { fs.statSync(p); } catch(err) { fs.unlinkSync(p); cleaned++; }
+            }
+        });
+    };
+    try { clean(linkDir); } catch(e) {}
+    res.json({ success: true, cleaned });
+});
+
 app.post('/api/open-folder', (req, res) => {
     const { folderPath } = req.body;
     if (os.platform() === 'win32') exec(`explorer /select,"${folderPath}"`);

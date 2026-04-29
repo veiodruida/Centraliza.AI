@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap } from 'lucide-react';
+import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Move, Trash2, FolderOpen } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
+import { useToast } from '../components/Toast';
 
 interface Model {
   name: string;
@@ -21,6 +22,13 @@ export default function MyModels() {
   const [search, setSearch] = useState('');
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
   const [description, setDescription] = useState('Carregando descrição...');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'Ollama': true,
+    'ComfyUI': true,
+    'LM Studio': true,
+    'Hugging Face': true
+  });
+  const { showToast } = useToast();
 
   const fetchModels = async () => {
     setLoading(true);
@@ -58,13 +66,53 @@ export default function MyModels() {
 
   const handleCentralize = async (model: Model) => {
     try {
-      await fetch('/api/centralize', {
+      const res = await fetch('/api/centralize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ modelPath: model.path, finalModelName: model.finalModelName })
       });
-      fetchModels();
-    } catch (err) {}
+      if (res.ok) {
+        showToast('Modelo centralizado com sucesso!', 'success');
+        fetchModels();
+      }
+    } catch (err) { showToast('Erro ao centralizar.', 'error'); }
+  };
+
+  const handleRename = async (model: Model) => {
+    const newName = prompt('Novo nome para o modelo (sem extensão):', model.name.split('.')[0]);
+    if (!newName) return;
+    try {
+      const res = await fetch('/api/models/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldPath: model.path, newName })
+      });
+      if (res.ok) {
+        showToast('Modelo renomeado!', 'success');
+        fetchModels();
+        if (viewingModel?.path === model.path) setViewingModel(null);
+      }
+    } catch (e) { showToast('Erro ao renomear.', 'error'); }
+  };
+
+  const handleDelete = async (model: Model) => {
+    if (!confirm(`TEM CERTEZA que deseja excluir permanentemente o arquivo:\n${model.path}`)) return;
+    try {
+      const res = await fetch('/api/models', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modelPath: model.path })
+      });
+      if (res.ok) {
+        showToast('Modelo excluído permanentemente.', 'success');
+        fetchModels();
+        setViewingModel(null);
+      }
+    } catch (e) { showToast('Erro ao excluir.', 'error'); }
+  };
+
+  const toggleSection = (source: string) => {
+    setExpandedSections(prev => ({ ...prev, [source]: !prev[source] }));
   };
 
   const groupedModels = useMemo(() => {
@@ -152,10 +200,21 @@ export default function MyModels() {
                    )}
                 </div>
                 <div className="bg-slate-800/20 p-8 rounded-[2.5rem] border border-slate-800/50">
+                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Management</h4>
+                   <div className="flex flex-col gap-3">
+                      <button onClick={() => handleRename(viewingModel)} className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
+                         <Edit3 size={16} /> Rename
+                      </button>
+                      <button onClick={() => handleDelete(viewingModel)} className="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-red-500/20">
+                         <Trash2 size={16} /> Delete
+                      </button>
+                   </div>
+                </div>
+                <div className="bg-slate-800/20 p-8 rounded-[2.5rem] border border-slate-800/50">
                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Location</h4>
                    <p className="text-[10px] text-slate-600 break-all font-mono mb-4">{viewingModel.path}</p>
-                   <button onClick={() => fetch('/api/open-folder', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({folderPath: viewingModel.path})})} className="text-blue-500 font-bold text-[10px] uppercase hover:underline">
-                      Reveal in Explorer
+                   <button onClick={() => fetch('/api/open-folder', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({folderPath: viewingModel.path})})} className="text-blue-500 font-bold text-[10px] uppercase hover:underline flex items-center gap-2">
+                      <FolderOpen size={14} /> Reveal in Explorer
                    </button>
                 </div>
              </div>
@@ -187,69 +246,82 @@ export default function MyModels() {
       </div>
 
       <div className="space-y-8">
-        {Object.entries(groupedModels).map(([source, items]) => (
-          <div key={source} className="bg-slate-900/50 border border-slate-800 rounded-[3rem] overflow-hidden backdrop-blur-xl group">
-            <div className="flex items-center justify-between p-8">
-               <div className="flex items-center gap-5">
-                  <div className={`w-14 h-14 rounded-3xl flex items-center justify-center text-white shadow-2xl ${
-                    source === 'Ollama' ? 'bg-blue-600 shadow-blue-600/20' : source === 'ComfyUI' ? 'bg-purple-600 shadow-purple-600/20' : 'bg-slate-800 shadow-black/50'
-                  }`}>
-                    <Box size={28} />
-                  </div>
-                  <div className="text-left">
-                     <h3 className="text-xl font-black text-white uppercase tracking-wider">{source}</h3>
-                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{items.length} Local Intelligence Files</p>
-                  </div>
-               </div>
-            </div>
+        {Object.entries(groupedModels).map(([source, items]) => {
+          const isExpanded = expandedSections[source] !== false;
+          return (
+            <div key={source} className="bg-slate-900/50 border border-slate-800 rounded-[3rem] overflow-hidden backdrop-blur-xl group transition-all duration-500">
+              <div 
+                className="flex items-center justify-between p-8 cursor-pointer hover:bg-slate-800/30 transition-colors"
+                onClick={() => toggleSection(source)}
+              >
+                 <div className="flex items-center gap-5">
+                    <div className={`w-14 h-14 rounded-3xl flex items-center justify-center text-white shadow-2xl transition-transform duration-500 ${isExpanded ? 'scale-110' : 'scale-90'} ${
+                      source === 'Ollama' ? 'bg-blue-600 shadow-blue-600/20' : source === 'ComfyUI' ? 'bg-purple-600 shadow-purple-600/20' : 'bg-slate-800 shadow-black/50'
+                    }`}>
+                      <Box size={28} />
+                    </div>
+                    <div className="text-left">
+                       <h3 className="text-xl font-black text-white uppercase tracking-wider">{source}</h3>
+                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{items.length} Local Intelligence Files</p>
+                    </div>
+                 </div>
+                 <div className="text-slate-500">
+                    {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                 </div>
+              </div>
 
-            <div className="border-t border-slate-800/50">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/50 text-slate-600 font-black uppercase tracking-[0.2em]">
-                  <tr>
-                    <th className="p-8">Model & Intelligence</th>
-                    <th className="p-8 text-center">Status</th>
-                    <th className="p-8 text-right flex items-center justify-end">
-                      Adaptive Launch
-                      <HelpTooltip text="O Centraliza.ai escolhe o melhor 'launcher' (Ollama, ComfyUI, Llama.cpp) baseado no tipo de arquivo e origem do modelo." />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/30">
-                  {items.map(m => {
-                    const lOptions = getLaunchOptions(m);
-                    return (
-                      <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row">
-                        <td className="p-8">
-                           <div className="flex flex-col">
-                              <span onClick={() => setViewingModel(m)} className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1">{m.name}</span>
-                              <span className="text-[10px] text-slate-600 font-mono truncate max-w-sm">{m.path}</span>
-                           </div>
-                        </td>
-                        <td className="p-8 text-center">
-                           {m.isSymlink ? <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-4 py-2 rounded-full border border-emerald-400/10 uppercase tracking-widest">CENTRALIZED</span> 
-                           : <span className="text-[9px] font-black text-slate-600 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 uppercase tracking-widest">STANDALONE</span>}
-                        </td>
-                        <td className="p-8 text-right">
-                          <div className="flex justify-end gap-3">
-                            {lOptions.map(opt => (
-                               <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-slate-800 hover:bg-blue-600 hover:text-white rounded-2xl text-slate-500 transition-all shadow-lg" title={opt.label}>
-                                  <opt.icon size={18} />
-                               </button>
-                            ))}
-                            <button onClick={() => setViewingModel(m)} className="p-3 text-slate-700 hover:text-white transition-colors">
-                               <ChevronRight size={24} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              {isExpanded && (
+                <div className="border-t border-slate-800/50 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950/50 text-slate-600 font-black uppercase tracking-[0.2em] sticky top-0 z-10 backdrop-blur-md">
+                        <tr>
+                          <th className="p-8">Model & Intelligence</th>
+                          <th className="p-8 text-center">Status</th>
+                          <th className="p-8 text-right flex items-center justify-end">
+                            Adaptive Launch
+                            <HelpTooltip text="O Centraliza.ai escolhe o melhor 'launcher' (Ollama, ComfyUI, Llama.cpp) baseado no tipo de arquivo e origem do modelo." />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/30">
+                        {items.map(m => {
+                          const lOptions = getLaunchOptions(m);
+                          return (
+                            <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row">
+                              <td className="p-8">
+                                 <div className="flex flex-col">
+                                    <span onClick={() => setViewingModel(m)} className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1">{m.name}</span>
+                                    <span className="text-[10px] text-slate-600 font-mono truncate max-w-sm">{m.path}</span>
+                                 </div>
+                              </td>
+                              <td className="p-8 text-center">
+                                 {m.isSymlink ? <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-4 py-2 rounded-full border border-emerald-400/10 uppercase tracking-widest">CENTRALIZED</span> 
+                                 : <span className="text-[9px] font-black text-slate-600 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 uppercase tracking-widest">STANDALONE</span>}
+                              </td>
+                              <td className="p-8 text-right">
+                                <div className="flex justify-end gap-3">
+                                  {lOptions.map(opt => (
+                                     <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-slate-800 hover:bg-blue-600 hover:text-white rounded-2xl text-slate-500 transition-all shadow-lg" title={opt.label}>
+                                        <opt.icon size={18} />
+                                     </button>
+                                  ))}
+                                  <button onClick={() => setViewingModel(m)} className="p-3 text-slate-700 hover:text-white transition-colors">
+                                     <ChevronRight size={24} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

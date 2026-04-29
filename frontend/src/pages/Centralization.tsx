@@ -67,9 +67,22 @@ export default function Centralization() {
            </h2>
            <p className="text-slate-500">Manage link integrity and storage optimization.</p>
         </div>
-        <button onClick={fetchModels} className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-slate-500 hover:text-white transition-colors">
-           <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-        </button>
+        <div className="flex gap-4">
+          <button 
+            onClick={async () => {
+              const res = await fetch('/api/models/sanity-check', { method: 'POST' });
+              const data = await res.json();
+              alert(`Limpeza concluída! ${data.cleaned} links órfãos removidos.`);
+              fetchModels();
+            }}
+            className="bg-slate-900 px-6 py-3 rounded-2xl border border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all flex items-center gap-3 shadow-xl"
+          >
+            <Shield size={16} className="text-emerald-500" /> Run Sanity Check
+          </button>
+          <button onClick={fetchModels} className="bg-slate-900 p-3 rounded-2xl border border-slate-800 text-slate-500 hover:text-white transition-colors">
+             <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
