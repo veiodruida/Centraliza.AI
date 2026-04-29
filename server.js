@@ -6,6 +6,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { promisify } = require('util');
 const { exec, spawn } = require('child_process');
+const checkDiskSpace = require('check-disk-space').default;
 
 function buildOllamaManifestMap() {
     const blobToName = {};
@@ -301,21 +302,25 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.post('/api/launch', (req, res) => {
-    const { type, modelPath, modelName, ollamaTag } = req.body;
-    let command = '';
-    if (type === 'ollama') command = `start cmd /k "ollama run ${ollamaTag || modelName}"`;
-    else if (type === 'llama.cpp') command = `start cmd /k "llama-server.exe -m \\"${modelPath}\\" --port 8080"`;
-    else if (type === 'comfyui') {
-        const runBat = path.join(config.comfyDir, 'run_nvidia_gpu.bat');
-        if (fs.existsSync(runBat)) command = `start cmd /k "cd /d \\"${config.comfyDir}\\" && run_nvidia_gpu.bat"`;
-        else command = `start cmd /k "echo ComfyUI Home path incorrect. Update in Settings. && pause"`;
+    const { type, modelPath, ollamaTag, params } = req.body;
+    let cmd = '';
+    
+    if (type === 'ollama') {
+        cmd = `ollama run ${ollamaTag}`;
+    } else if (type === 'comfyui') {
+        if (!config.comfyDir) return res.status(400).json({ error: 'ComfyUI path not set.' });
+        cmd = `cd /d "${config.comfyDir}" && python main.py`;
     } else if (type === 'lm-studio') {
-        const lmPath = path.join(os.homedir(), 'AppData', 'Local', 'Programs', 'lm-studio', 'LM Studio.exe');
-        if (fs.existsSync(lmPath)) command = `start "" "${lmPath}"`;
-        else command = `start lm-studio://model/${modelName}`;
+        cmd = `start lms.exe`;
+    } else if (type === 'llama.cpp') {
+        const threads = params?.threads || 4;
+        const gpuLayers = params?.n_gpu_layers || 0;
+        const ctx = params?.ctx_size || 2048;
+        cmd = `llama-cli -m "${modelPath}" -t ${threads} -ngl ${gpuLayers} -c ${ctx} -p "You are a helpful AI assistant."`;
     }
-    if (command) {
-        exec(command, (err) => {
+
+    if (cmd) {
+        exec(`start cmd /k "${cmd}"`, (err) => {
             if (err) return res.status(500).json({ error: 'Failed to launch: ' + err.message });
             res.json({ success: true, message: `Launching ${type}...` });
         });
@@ -400,6 +405,38 @@ app.post('/api/models/sanity-check', async (req, res) => {
     };
     try { clean(linkDir); } catch(e) {}
     res.json({ success: true, cleaned });
+});
+
+app.get('/api/system/disk', async (req, res) => {
+    try {
+        const diskPath = path.parse(process.cwd()).root;
+        const disk = await checkDiskSpace(diskPath);
+        
+        // Calculate space used by Centraliza.ai links
+        let centralSize = 0;
+        const linkDir = path.join(config.centralDir, 'Centraliza.ai');
+        const getDirSize = (d) => {
+            if (!fs.existsSync(d)) return 0;
+            let total = 0;
+            fs.readdirSync(d, {withFileTypes:true}).forEach(e => {
+                const p = path.join(d, e.name);
+                if (e.isDirectory()) total += getDirSize(p);
+                else {
+                    try { total += fs.statSync(p).size; } catch(err) {}
+                }
+            });
+            return total;
+        };
+        centralSize = getDirSize(linkDir);
+
+        res.json({
+            total: disk.size,
+            free: disk.free,
+            used: disk.size - disk.free,
+            centraliza: centralSize,
+            others: (disk.size - disk.free) - centralSize
+        });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/open-folder', (req, res) => {
