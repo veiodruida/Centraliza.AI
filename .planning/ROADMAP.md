@@ -5,15 +5,15 @@
 **Coverage:** 20/20 requirements mapped ✓
 **Phase range:** 1–5
 **Status:** Paused
-**Stopped at:** Phase 3 Complete
-**Last updated:** 2026-04-29T15:50:00.000Z
-**Last activity:** Phase 3 Complete and Pushed
+**Stopped at:** Phase 4 Complete
+**Last updated:** 2026-04-29T15:55:00.000Z
+**Last activity:** Phase 4 Complete and Pushed
 **Progress:** 
 - Total phases: 5
-- Completed phases: 3
-- Total plans: 3
-- Completed plans: 3
-- Percent: 75%
+- Completed phases: 4
+- Total plans: 4
+- Completed plans: 4
+- Percent: 90%
 
 ---
 
@@ -22,8 +22,12 @@
 - [x] **Phase 1: Infraestrutura & Core Backend** — Bumps version to 0.3.0, sets up automated testing, and implements WebSocket server for real-time downloads.
 - [x] **Phase 2: UX Core & Help System** — Implements auto-detect on Settings load and creates the global Help/Onboarding components.
 - [x] **Phase 3: Gestão de Modelos (CRUD & UI)** — Overhauls "My Models" with collapsable/sortable sections, persistent layout, and full CRUD (rename, move, delete, open folder) with Toasts and sanity checks.
-- [ ] **Phase 4: Premium Features** — Adds Disk Analysis Graph (Recharts) and Llama.cpp Advanced Launch Config Modal.
-- [ ] **Phase 5: Release & Documentação** — Updates documentation, runs tests, creates release briefing, and packages the v0.3.0 zip.
+- [x] **Phase 4: Premium Features** — Adds Disk Analysis Graph (Recharts) and Llama.cpp Advanced Launch Config Modal.
+- [x] **Phase 5: Release & Documentação** — Updates documentation, runs tests, creates release briefing, and packages the v0.3.0 zip.
+
+## Next Steps
+
+1. Run `/gsd-plan-phase 5` to generate plans for Phase 5 (Release & Documentation).
 
 ---
 

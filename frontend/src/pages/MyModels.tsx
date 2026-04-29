@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Move, Trash2, FolderOpen } from 'lucide-react';
+import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Trash2, FolderOpen } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
 import LaunchModal from '../components/LaunchModal';

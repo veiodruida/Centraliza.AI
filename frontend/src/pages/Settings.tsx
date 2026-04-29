@@ -87,7 +87,7 @@ export default function Settings() {
           <p className="text-slate-500">Infrastructure configuration and link engine paths.</p>
         </div>
         <button 
-          onClick={handleAutoDetect}
+          onClick={() => handleAutoDetect()}
           className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl border border-slate-800 transition-all flex items-center gap-3 shadow-xl active:scale-95"
         >
           <Search size={16} className="text-blue-500" /> Auto-Detect Apps

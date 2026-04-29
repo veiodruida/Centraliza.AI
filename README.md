@@ -1,6 +1,28 @@
-# 🚀 Centraliza.ai v0.3.0 - Local AI Orchestrator & Dashboard
+# 🚀 Centraliza.ai v0.3.0 - Gestão Absoluta
 
 Centraliza.ai is a premium dashboard for managing local Artificial Intelligence models. It allows you to centralize, organize, and launch models (Ollama, ComfyUI, Llama.cpp, LM Studio) intelligently, saving disk space through system Hardlinks.
+
+---
+
+## ✨ New in v0.3.0 "Gestão Absoluta"
+
+### 📂 Complete Model Management (CRUD)
+- **Rename & Move**: Manage your models physically on disk. Rename or move files across drives directly from the UI.
+- **Collapsable Sections**: Grouped view by provider (Ollama, ComfyUI, LM Studio) with expand/collapse logic and persistent state.
+- **Sanity Check**: Automated tool to clean up orphan links and maintain repository integrity.
+
+### 📊 Disk Usage Analytics
+- **Visual Breakdown**: New interactive pie chart on the Dashboard showing exactly how much space Centraliza.ai is saving you compared to other files.
+- **Real-time Stats**: Track total, used, and free disk space with precision.
+
+### 🚀 Advanced Launch Engine
+- **Llama.cpp Modal**: Configure Threads, GPU Layers (n_gpu_layers), and Context Size via a premium modal before launching GGUF models.
+- **Real-time Download Tracking**: Monitor `ollama pull` progress with live percentages via WebSockets.
+- **Auto-Detection**: The system now automatically detects your apps and paths on first run for a "Zero Configuration" experience.
+
+### 💡 Global Help System
+- **Contextual Tooltips**: Premium glassmorphism tooltips throughout the interface to explain technical concepts to non-technical users.
+- **Global Toast Notifications**: Instant feedback for every operation (rename, move, delete, launch).
 
 ---
 
@@ -31,31 +53,11 @@ central
 
 ---
 
-## ✨ Key Features
-
-### 📂 Intelligent Centralization (Link Engine)
-- **Zero Disk Waste**: Use Hardlinks to centralize models from various folders (ComfyUI, LM Studio, Ollama) without using extra disk space.
-- **Bulk Management**: In the **Centralization** tab, select multiple standalone models and link them to the master repository with one click.
-- **Native Picker**: Use the folder icon in Settings to choose directories using the native Windows selector (always stays in front of the browser).
-
-### 🚀 Launch Engine (Orchestrator)
-- **Adaptive Launching**: The system automatically detects the ideal engine for each model (e.g., Ollama vs. Llama.cpp).
-- **One-Click Server**: Launch **Ollama** or **Llama.cpp** (port 8080) servers directly from the interface in dedicated terminals.
-- **ComfyUI Integration**: Launch ComfyUI with NVIDIA GPU support automatically.
-
-### 🖥️ Hardware Lab & Telemetry
-- **Real-Time Monitoring**: VRAM detection via `nvidia-smi` and WMI.
-- **Compatibility Check**: The system analyzes your VRAM/RAM and indicates which models from the **AI Model Hub** run perfectly on your machine.
-
-### 💬 Test & Chat
-- **Integrated Interface**: Chat with your local models directly within the dashboard.
-- **Multi-Engine Support**: Switch between Ollama, Llama.cpp, or custom endpoints in real-time.
-
----
-
 ## 🛠️ Technical Structure
-- **Unified Port**: The frontend is pre-compiled (`npm run build`) and served directly by Node.js on port 4000.
-- **Cross-Platform Picker**: Folder selection compatible with Windows, Mac, and Linux.
+- **Core**: Node.js + Express (Backend), React + Vite (Frontend).
+- **Communication**: WebSockets (Socket.io) for real-time progress.
+- **Styling**: Tailwind CSS + Lucide Icons + Recharts.
+- **Space Saving**: Windows NTFS Hardlinks.
 
 ---
 **Centralize your intelligence. Optimize your space.**
