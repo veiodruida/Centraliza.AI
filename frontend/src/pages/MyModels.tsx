@@ -3,6 +3,7 @@ import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, Chevr
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
 import LaunchModal from '../components/LaunchModal';
+import DeleteModal, { type ModelItem } from '../components/DeleteModal';
 
 interface Model {
   name: string;
@@ -33,6 +34,7 @@ export default function MyModels() {
   const [sectionOrder, setSectionOrder] = useState<string[]>(['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']);
   const [launchModalData, setLaunchModalData] = useState<{ isOpen: boolean; model: Model | null }>({ isOpen: false, model: null });
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
+  const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[] }>({ isOpen: false, models: [] });
   const { showToast } = useToast();
 
   const fetchModels = async () => {
@@ -45,7 +47,15 @@ export default function MyModels() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchModels(); }, []);
+  useEffect(() => { 
+    fetchModels(); 
+    // Fetch config to get saved section order
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => {
+        if (data.sectionOrder) setSectionOrder(data.sectionOrder);
+      });
+  }, []);
 
   useEffect(() => {
     if (viewingModel) {
@@ -124,84 +134,66 @@ export default function MyModels() {
     } catch (e) { showToast('Erro de conexão ao renomear.', 'error'); }
   };
 
-  const handleDelete = async (model: Model) => {
-    if (model.path.includes('.ollama\\models\\blobs') || model.path.includes('.ollama/models/blobs')) {
-        showToast('Para remover modelos do Ollama, use o CLI do Ollama.', 'error');
-        return;
-    }
-    const isSymlink = model.isSymlink;
-    const msg = isSymlink 
-      ? `Deseja remover a centralização (atalho) do modelo?\nO arquivo original em seu respectivo provedor não será apagado.`
-      : `TEM CERTEZA que deseja excluir permanentemente o arquivo:\n${model.path}`;
-      
-    if (!confirm(msg)) return;
-    try {
-      const res = await fetch('/api/models', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modelPath: model.path })
-      });
-      if (res.ok) {
-        showToast('Modelo excluído permanentemente.', 'success');
-        fetchModels();
-        if (viewingModel?.path === model.path) setViewingModel(null);
-      } else {
-        const data = await res.json();
-        showToast('Erro ao excluir: ' + (data.error || 'Desconhecido'), 'error');
-      }
-    } catch (e) { showToast('Erro de conexão ao excluir.', 'error'); }
+const handleDelete = async (model: Model) => {
+    // Open unified delete modal
+    setDeleteModalData({ isOpen: true, models: [model] });
   };
 
   const handleBatchDelete = async () => {
     const toDelete = models.filter(m => selectedModels.has(m.path));
     if (toDelete.length === 0) return;
     
-    // Check if any Ollama
-    const hasOllama = toDelete.some(m => m.path.includes('.ollama\\models\\blobs') || m.path.includes('.ollama/models/blobs'));
-    if (hasOllama) {
-        showToast('Seleção contém modelos do Ollama. Eles não podem ser removidos em lote por aqui.', 'error');
-        return;
-    }
-
-    if (!confirm(`TEM CERTEZA que deseja excluir ${toDelete.length} modelos selecionados?`)) return;
-    
-    let successCount = 0;
-    for (const model of toDelete) {
-      try {
-        const res = await fetch('/api/models', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ modelPath: model.path })
-        });
-        if (res.ok) successCount++;
-      } catch (e) {}
-    }
-    
-    showToast(`${successCount} modelos excluídos permanentemente.`, 'success');
-    setSelectedModels(new Set());
-    fetchModels();
+    setDeleteModalData({ isOpen: true, models: toDelete });
   };
 
-  const handleBatchCentralize = async () => {
-    const toCentralize = models.filter(m => selectedModels.has(m.path) && !m.isSymlink);
-    if (toCentralize.length === 0) {
-        showToast('Nenhum modelo standalone selecionado para centralizar.', 'info');
-        return;
-    }
+
+
+  const handleModalConfirm = async (action: 'delete' | 'decentralize' | 'centralize') => {
+    const targetModels = deleteModalData.models;
+    if (targetModels.length === 0) return;
 
     let successCount = 0;
-    for (const model of toCentralize) {
+    let failCount = 0;
+
+    for (const m of targetModels) {
       try {
-        const res = await fetch('/api/centralize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ modelPath: model.path, finalModelName: model.finalModelName })
-        });
-        if (res.ok) successCount++;
-      } catch (e) {}
+        let res;
+        if (action === 'delete') {
+          res = await fetch('/api/models', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ modelPath: m.path, ollamaTag: m.ollamaTag })
+          });
+        } else if (action === 'centralize') {
+          res = await fetch('/api/centralize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ modelPath: m.path, finalModelName: m.finalModelName })
+          });
+        } else if (action === 'decentralize') {
+          // Decentralize means removing the symlink only
+          res = await fetch('/api/models', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ modelPath: m.path })
+          });
+        }
+
+        if (res && res.ok) successCount++;
+        else failCount++;
+      } catch (e) {
+        failCount++;
+      }
     }
 
-    showToast(`${successCount} modelos centralizados.`, 'success');
+    const actionText = action === 'delete' ? 'excluídos' : action === 'centralize' ? 'centralizados' : 'descentralizados';
+    if (successCount > 0) {
+      showToast(`${successCount} modelos ${actionText} com sucesso!`, 'success');
+    }
+    if (failCount > 0) {
+      showToast(`${failCount} modelos falharam.`, 'error');
+    }
+
     setSelectedModels(new Set());
     fetchModels();
   };
@@ -258,6 +250,13 @@ export default function MyModels() {
     newOrder.splice(oldIdx, 1);
     newOrder.splice(newIdx, 0, source);
     setSectionOrder(newOrder);
+
+    // Save new order to config
+    fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sectionOrder: newOrder })
+    });
   };
 
   const groupedModels = useMemo(() => {
@@ -367,7 +366,7 @@ export default function MyModels() {
     );
   }
 
-  return (
+return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-end mb-12">
         <div>
@@ -444,60 +443,60 @@ export default function MyModels() {
                       </thead>
                       <tbody className="divide-y divide-slate-800/30">
                         {items.map(m => {
-                          const lOptions = getLaunchOptions(m);
-                          return (
-                            <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row relative">
-                              <td className="p-8 w-16">
-                                <input 
-                                   type="checkbox" 
-                                   className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
-                                   checked={selectedModels.has(m.path)}
-                                   onChange={() => toggleModelSelection(m.path)}
-                                />
-                              </td>
-                              <td className="p-8">
-                                 <div className="flex flex-col relative">
-                                    <span 
-                                      onClick={() => setViewingModel(m)} 
-                                      className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1 flex items-center gap-2 group/name"
-                                    >
-                                       {m.name}
-                                       <div className="invisible group-hover/name:visible absolute left-0 -top-12 z-[10000] bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-2xl w-72 pointer-events-none text-xs text-slate-400 font-medium leading-relaxed backdrop-blur-xl animate-in fade-in zoom-in duration-200">
+                           const lOptions = getLaunchOptions(m);
+                           return (
+                             <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row relative">
+                               <td className="p-8 w-16">
+                                 <input 
+                                    type="checkbox" 
+                                    className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
+                                    checked={selectedModels.has(m.path)}
+                                    onChange={() => toggleModelSelection(m.path)}
+                                 />
+                               </td>
+                               <td className="p-8">
+                                  <div className="flex flex-col relative">
+                                     <span 
+                                       onClick={() => setViewingModel(m)} 
+                                       className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1 flex items-center gap-2 group/name"
+                                     >
+                                        {m.name}
+                                        <div className="invisible group-hover/name:visible absolute left-0 -top-12 z-[10000] bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-2xl w-72 pointer-events-none text-xs text-slate-400 font-medium leading-relaxed backdrop-blur-xl animate-in fade-in zoom-in duration-200">
                                           {m.description || "IA Model file optimized for local orchestration. Source: " + source}
-                                       </div>
-                                    </span>
-                                    <span 
-                                      className="text-[10px] text-slate-600 font-mono truncate max-w-sm hover:text-blue-400 hover:underline cursor-pointer"
-                                      onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }}
-                                    >
-                                      {m.path}
-                                    </span>
+                                        </div>
+                                     </span>
+                                     <span 
+                                       className="text-[10px] text-slate-600 font-mono truncate max-w-sm hover:text-blue-400 hover:underline cursor-pointer"
+                                       onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }}
+                                     >
+                                       {m.path}
+                                     </span>
+                                  </div>
+                               </td>
+                               <td className="p-8 text-center">
+                                  {m.isSymlink ? <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-4 py-2 rounded-full border border-emerald-400/10 uppercase tracking-widest">CENTRALIZED</span> 
+                                  : <span className="text-[9px] font-black text-slate-600 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 uppercase tracking-widest">STANDALONE</span>}
+                               </td>
+                               <td className="p-8 text-right">
+                                 <div className="flex justify-end gap-2">
+                                   {lOptions.map(opt => (
+                                      <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-blue-500/10 text-blue-500 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-lg active:scale-90" title={opt.label}>
+                                         <opt.icon size={16} />
+                                      </button>
+                                   ))}
+                                   <button onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Open Folder">
+                                      <FolderOpen size={16} />
+                                   </button>
+                                   <button onClick={(e) => { e.stopPropagation(); handleRename(m); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Edit/Rename">
+                                      <Edit3 size={16} />
+                                   </button>
+                                   <button onClick={(e) => { e.stopPropagation(); handleDelete(m); }} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all active:scale-90" title={m.isSymlink ? "Remover Centralização" : "Delete Permanent"}>
+                                      <Trash2 size={16} />
+                                   </button>
                                  </div>
-                              </td>
-                              <td className="p-8 text-center">
-                                 {m.isSymlink ? <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-4 py-2 rounded-full border border-emerald-400/10 uppercase tracking-widest">CENTRALIZED</span> 
-                                 : <span className="text-[9px] font-black text-slate-600 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 uppercase tracking-widest">STANDALONE</span>}
-                              </td>
-                              <td className="p-8 text-right">
-                                <div className="flex justify-end gap-2">
-                                  {lOptions.map(opt => (
-                                     <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-blue-500/10 text-blue-500 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-lg active:scale-90" title={opt.label}>
-                                        <opt.icon size={16} />
-                                     </button>
-                                  ))}
-                                  <button onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Open Folder">
-                                     <FolderOpen size={16} />
-                                  </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleRename(m); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Edit/Rename">
-                                     <Edit3 size={16} />
-                                  </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(m); }} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all active:scale-90" title={m.isSymlink ? "Remover Centralização" : "Delete Permanent"}>
-                                     <Trash2 size={16} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
+                               </td>
+                             </tr>
+                           );
                         })}
                       </tbody>
                     </table>
@@ -508,29 +507,37 @@ export default function MyModels() {
           );
         })}
       </div>
-    <LaunchModal 
-      isOpen={launchModalData.isOpen} 
-      modelName={launchModalData.model?.name || ''} 
-      onClose={() => setLaunchModalData({ isOpen: false, model: null })}
-      onLaunch={(params) => launchModalData.model && handleLaunch(launchModalData.model, 'llama.cpp', params)}
-    />
+      <LaunchModal 
+        isOpen={launchModalData.isOpen} 
+        modelName={launchModalData.model?.name || ''} 
+        onClose={() => setLaunchModalData({ isOpen: false, model: null })}
+        onLaunch={(params) => launchModalData.model && handleLaunch(launchModalData.model, 'llama.cpp', params)}
+      />
 
-      {/* Batch Action Bar */}
       {selectedModels.size > 0 && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 p-4 rounded-full shadow-2xl flex items-center gap-6 z-[9999] animate-in slide-in-from-bottom-10 backdrop-blur-xl">
           <span className="text-white font-black text-sm px-4">
             {selectedModels.size} selecionados
           </span>
           <div className="flex items-center gap-2 border-l border-slate-700 pl-6">
-             <button onClick={handleBatchCentralize} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">
-               <Zap size={14} /> Centralizar
-             </button>
+             {models.some(m => selectedModels.has(m.path) && !m.isSymlink) && (
+               <button onClick={handleBatchDelete} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">
+                 <Zap size={14} /> Centralizar
+               </button>
+             )}
              <button onClick={handleBatchDelete} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-red-500/20">
                <Trash2 size={14} /> Excluir
              </button>
           </div>
         </div>
       )}
+
+      <DeleteModal
+        isOpen={deleteModalData.isOpen}
+        models={deleteModalData.models}
+        onClose={() => setDeleteModalData({ isOpen: false, models: [] })}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 }
