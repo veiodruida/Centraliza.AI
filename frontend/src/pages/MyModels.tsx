@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Move, Trash2, FolderOpen } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
+import LaunchModal from '../components/LaunchModal';
 
 interface Model {
   name: string;
@@ -28,6 +29,7 @@ export default function MyModels() {
     'LM Studio': true,
     'Hugging Face': true
   });
+  const [launchModalData, setLaunchModalData] = useState<{ isOpen: boolean; model: Model | null }>({ isOpen: false, model: null });
   const { showToast } = useToast();
 
   const fetchModels = async () => {
@@ -51,17 +53,29 @@ export default function MyModels() {
     }
   }, [viewingModel]);
 
-  const handleLaunch = async (model: Model, type: string) => {
+  const handleLaunch = async (model: Model, type: string, extraParams: any = {}) => {
+    if (type === 'llama.cpp' && !extraParams.threads) {
+      setLaunchModalData({ isOpen: true, model });
+      return;
+    }
+
     try {
       const res = await fetch('/api/launch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, modelPath: model.path, modelName: model.name, ollamaTag: model.ollamaTag })
+        body: JSON.stringify({ 
+          type, 
+          modelPath: model.path, 
+          modelName: model.name, 
+          ollamaTag: model.ollamaTag,
+          params: extraParams 
+        })
       });
       const data = await res.json();
-      if (data.error) alert(data.error);
-      else alert(data.message);
-    } catch (e) { alert('Launch failed.'); }
+      if (data.error) showToast(data.error, 'error');
+      else showToast(data.message, 'success');
+      setLaunchModalData({ isOpen: false, model: null });
+    } catch (e) { showToast('Launch failed.', 'error'); }
   };
 
   const handleCentralize = async (model: Model) => {
@@ -323,6 +337,12 @@ export default function MyModels() {
           );
         })}
       </div>
+    <LaunchModal 
+      isOpen={launchModalData.isOpen} 
+      modelName={launchModalData.model?.name || ''} 
+      onClose={() => setLaunchModalData({ isOpen: false, model: null })}
+      onLaunch={(params) => launchModalData.model && handleLaunch(launchModalData.model, 'llama.cpp', params)}
+    />
     </div>
   );
 }

@@ -68,6 +68,8 @@ function Sidebar() {
   );
 }
 
+import DiskUsageGraph from './components/DiskUsageGraph';
+
 function Dashboard() {
   const [stats, setStats] = useState({ models: 0, space: 0 });
 
@@ -122,18 +124,24 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[4rem] p-16 flex items-center justify-between shadow-2xl shadow-blue-600/20 relative overflow-hidden group">
-         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
-         <div className="max-w-xl relative z-10">
-            <h3 className="text-4xl font-black text-white mb-4 tracking-tight">Deploy new intelligence.</h3>
-            <p className="text-blue-100 text-lg opacity-80 mb-10 leading-relaxed font-medium font-sans">Discover top-tier models and benchmark them against your hardware in seconds.</p>
-            <Link to="/explore" className="bg-white text-blue-700 font-black py-4 px-12 rounded-[1.5rem] hover:scale-105 transition-all inline-block shadow-2xl shadow-white/10 active:scale-95 text-xs uppercase tracking-widest">
-               Open Model Hub
-            </Link>
-         </div>
-         <div className="hidden lg:block relative z-10">
-            <Search size={140} className="text-white opacity-20 group-hover:scale-110 transition-transform duration-700" />
-         </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-[4rem] p-12">
+           <h3 className="text-xl font-black text-white mb-8 flex items-center gap-3 uppercase tracking-tighter">
+              <Activity className="text-blue-500" /> Disk Analysis
+           </h3>
+           <DiskUsageGraph />
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[4rem] p-16 flex flex-col justify-center shadow-2xl shadow-blue-600/20 relative overflow-hidden group">
+           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
+           <div className="relative z-10">
+              <h3 className="text-4xl font-black text-white mb-4 tracking-tight">Deploy new intelligence.</h3>
+              <p className="text-blue-100 text-lg opacity-80 mb-10 leading-relaxed font-medium font-sans">Discover top-tier models and benchmark them against your hardware in seconds.</p>
+              <Link to="/explore" className="bg-white text-blue-700 font-black py-4 px-12 rounded-[1.5rem] hover:scale-105 transition-all inline-block shadow-2xl shadow-white/10 active:scale-95 text-xs uppercase tracking-widest">
+                 Open Model Hub
+              </Link>
+           </div>
+        </div>
       </div>
     </div>
   );
