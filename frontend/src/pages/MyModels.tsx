@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, RefreshCw, FileText, ChevronRight, Play, Terminal, Box, ArrowLeft, Zap } from 'lucide-react';
+import HelpTooltip from '../components/HelpTooltip';
 
 interface Model {
   name: string;
@@ -168,7 +169,10 @@ export default function MyModels() {
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-end mb-12">
         <div>
-          <h2 className="text-4xl font-black text-white mb-2">My Models</h2>
+          <h2 className="text-4xl font-black text-white mb-2 flex items-center">
+            My Models
+            <HelpTooltip text="Aqui estão todos os seus modelos detectados. O app identifica automaticamente de onde eles vêm e quais ações são compatíveis." />
+          </h2>
           <p className="text-slate-500">Intelligent context-aware management of your AI assets.</p>
         </div>
         <div className="flex gap-4">
@@ -205,7 +209,10 @@ export default function MyModels() {
                   <tr>
                     <th className="p-8">Model & Intelligence</th>
                     <th className="p-8 text-center">Status</th>
-                    <th className="p-8 text-right">Adaptive Launch</th>
+                    <th className="p-8 text-right flex items-center justify-end">
+                      Adaptive Launch
+                      <HelpTooltip text="O Centraliza.ai escolhe o melhor 'launcher' (Ollama, ComfyUI, Llama.cpp) baseado no tipo de arquivo e origem do modelo." />
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/30">
