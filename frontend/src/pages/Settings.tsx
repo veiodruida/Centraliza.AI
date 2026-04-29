@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Folder, Trash2, Save, RefreshCw, HardDrive, Box, FolderOpen, Search } from 'lucide-react';
+import HelpTooltip from '../components/HelpTooltip';
 
 export default function Settings() {
   const [config, setConfig] = useState<any>(null);
@@ -17,8 +18,16 @@ export default function Settings() {
       });
   };
 
-  useEffect(() => { fetchConfig(); }, []);
-
+    const handleAutoDetect = async (quiet = false) => {
+    try {
+      const res = await fetch('/api/auto-detect', { method: 'POST' });
+      const data = await res.json();
+      setConfig(data.config);
+      if (!quiet) alert(`Auto-detect completo! Verifique as novas pastas.`);
+    } catch (e) {
+      if (!quiet) alert('Detection failed.');
+    }
+  };
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -63,16 +72,10 @@ export default function Settings() {
     setConfig({ ...config, scanDirectories: config.scanDirectories.filter((p: string) => p !== path) });
   };
 
-  const handleAutoDetect = async () => {
-    try {
-      const res = await fetch('/api/auto-detect', { method: 'POST' });
-      const data = await res.json();
-      setConfig(data.config);
-      alert(`Auto-detect completo! Verifique as novas pastas.`);
-    } catch (e) {
-      alert('Detection failed.');
-    }
-  };
+  useEffect(() => { 
+    fetchConfig(); 
+    handleAutoDetect(true);
+  }, []);
 
   if (loading) return <div className="p-20 text-center animate-pulse text-slate-500 font-black">SYNCING CONFIG...</div>;
 
@@ -98,7 +101,10 @@ export default function Settings() {
               <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-600/20">
                  <HardDrive size={24} />
               </div>
-              <h3 className="text-lg font-black text-white uppercase tracking-widest">Central Repository</h3>
+              <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center">
+                Central Repository
+                <HelpTooltip text="Esta é a pasta onde todos os 'atalhos' inteligentes serão criados. Centralize aqui para economizar espaço em disco sem duplicar arquivos." />
+              </h3>
            </div>
            
            <p className="text-xs text-slate-500 mb-8 leading-relaxed max-w-xl">
@@ -124,7 +130,10 @@ export default function Settings() {
               <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-600/20">
                  <Box size={24} />
               </div>
-              <h3 className="text-lg font-black text-white uppercase tracking-widest">ComfyUI Installation</h3>
+              <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center">
+                ComfyUI Installation
+                <HelpTooltip text="Aponte para a pasta raiz do seu ComfyUI. Isso permite que o Centraliza.ai encontre os scripts de inicialização da GPU automaticamente." />
+              </h3>
            </div>
            <p className="text-xs text-slate-500 mb-8 max-w-xl">Root folder of your ComfyUI (used to find run_nvidia_gpu.bat).</p>
            <div className="flex gap-3">
@@ -146,7 +155,10 @@ export default function Settings() {
               <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-purple-600/20">
                  <Folder size={24} />
               </div>
-              <h3 className="text-lg font-black text-white uppercase tracking-widest">Intelligence Sources</h3>
+              <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center">
+                Intelligence Sources
+                <HelpTooltip text="Adicione as pastas onde você já possui modelos baixados (ex: pasta de modelos do Ollama ou LM Studio). O app usará essas fontes para criar os links." />
+              </h3>
            </div>
            
            <div className="space-y-3 mb-10">
