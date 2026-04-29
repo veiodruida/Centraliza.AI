@@ -8,6 +8,7 @@ import HardwareLab from './pages/HardwareLab';
 import Settings from './pages/Settings';
 import Extensions from './pages/Extensions';
 import Centralization from './pages/Centralization';
+import HelpTooltip from './components/HelpTooltip';
 
 function Sidebar() {
   const location = useLocation();
@@ -91,6 +92,9 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
         <div className="bg-slate-900/50 p-10 rounded-[3rem] border border-slate-800 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
+          <div className="absolute top-4 right-8 z-20">
+             <HelpTooltip text="Número total de modelos únicos detectados em todas as suas pastas configuradas." />
+          </div>
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
              <HardDrive size={100} />
           </div>
@@ -102,6 +106,9 @@ function Dashboard() {
         </div>
 
         <div className="bg-slate-900/50 p-10 rounded-[3rem] border border-slate-800 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
+          <div className="absolute top-4 right-8 z-20">
+             <HelpTooltip text="Quantidade de espaço em disco recuperada através do uso de Hardlinks (links virtuais que não ocupam espaço extra)." />
+          </div>
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
              <Zap size={100} />
           </div>
@@ -149,6 +156,8 @@ function Dashboard() {
 
 import { ToastProvider } from './components/Toast';
 
+import DownloadTracker from './components/DownloadTracker';
+
 export default function App() {
   return (
     <ToastProvider>
@@ -167,6 +176,7 @@ export default function App() {
               <Route path="/extensions" element={<Extensions />} />
             </Routes>
           </main>
+          <DownloadTracker />
         </div>
       </Router>
     </ToastProvider>

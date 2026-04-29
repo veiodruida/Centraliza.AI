@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Folder, Trash2, Save, RefreshCw, HardDrive, Box, FolderOpen, Search } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
+import { useToast } from '../components/Toast';
 
 export default function Settings() {
   const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [newPath, setNewPath] = useState('');
   const [saving, setSaving] = useState(false);
+  const { showToast } = useToast();
 
   const fetchConfig = () => {
     setLoading(true);
@@ -23,11 +25,16 @@ export default function Settings() {
       const res = await fetch('/api/auto-detect', { method: 'POST' });
       const data = await res.json();
       setConfig(data.config);
-      if (!quiet) alert(`Auto-detect completo! Verifique as novas pastas.`);
+      if (quiet) {
+        showToast('Auto-detect realizado silenciosamente.', 'success');
+      } else {
+        showToast('Auto-detect completo! Verifique as pastas.', 'success');
+      }
     } catch (e) {
-      if (!quiet) alert('Detection failed.');
+      if (!quiet) showToast('Falha na detecção automática.', 'error');
     }
   };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -36,9 +43,9 @@ export default function Settings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      alert('Configurações salvas!');
+      showToast('Configurações salvas!', 'success');
     } catch (e) {
-      alert('Erro ao salvar.');
+      showToast('Erro ao salvar.', 'error');
     } finally {
       setSaving(false);
     }

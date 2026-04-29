@@ -316,7 +316,8 @@ app.post('/api/launch', (req, res) => {
         const threads = params?.threads || 4;
         const gpuLayers = params?.n_gpu_layers || 0;
         const ctx = params?.ctx_size || 2048;
-        cmd = `llama-cli -m "${modelPath}" -t ${threads} -ngl ${gpuLayers} -c ${ctx} -p "You are a helpful AI assistant."`;
+        const prompt = params?.prompt || "You are a helpful AI assistant.";
+        cmd = `llama-cli -m "${modelPath}" -t ${threads} -ngl ${gpuLayers} -c ${ctx} -p "${prompt.replace(/"/g, '\\"')}"`;
     }
 
     if (cmd) {
@@ -327,33 +328,60 @@ app.post('/api/launch', (req, res) => {
     } else res.status(400).json({ error: 'Unsupported engine.' });
 });
 
+const activeDownloads = new Map();
+
 app.post('/api/download', (req, res) => {
     const { modelName } = req.body;
-    const proc = spawn('ollama', ['pull', modelName]);
     
-    proc.stdout.on('data', (data) => {
-        const text = data.toString();
-        const match = text.match(/(\d+)%/);
-        if (match) {
-            io.emit('download-progress', { model: modelName, progress: parseInt(match[1]) });
-        }
-    });
+    if (activeDownloads.has(modelName)) {
+        return res.status(400).json({ error: 'Download already in progress.' });
+    }
 
-    proc.stderr.on('data', (data) => {
-        const text = data.toString();
-        const match = text.match(/(\d+)%/);
-        if (match) {
-            io.emit('download-progress', { model: modelName, progress: parseInt(match[1]) });
-        }
-    });
+    const proc = spawn('ollama', ['pull', modelName]);
+    activeDownloads.set(modelName, proc);
+    
+    let completed = false;
+    const finish = (success) => {
+        if (completed) return;
+        completed = true;
+        activeDownloads.delete(modelName);
+        io.emit('download-complete', { model: modelName, success });
+    };
 
-    proc.on('close', (code) => {
-        io.emit('download-complete', { model: modelName, success: code === 0 });
-    });
+    const onData = (data) => {
+        const text = data.toString().toLowerCase();
+        // Match progress percentage like "45%" or "45.2%"
+        const match = text.match(/(\d+(?:\.\d+)?)%/);
+        if (match) {
+            io.emit('download-progress', { model: modelName, progress: Math.floor(parseFloat(match[1])) });
+        }
+        if (text.includes('success') || text.includes('manifest')) {
+            io.emit('download-progress', { model: modelName, progress: 100 });
+        }
+    };
+
+    proc.stdout.on('data', onData);
+    proc.stderr.on('data', onData);
+
+    proc.on('close', (code) => finish(code === 0));
+    proc.on('exit', (code) => finish(code === 0));
+    proc.on('error', () => finish(false));
 
     res.json({ success: true, message: 'Download started' });
 });
 
+app.post('/api/download/cancel', (req, res) => {
+    const { modelName } = req.body;
+    const proc = activeDownloads.get(modelName);
+    if (proc) {
+        proc.kill();
+        activeDownloads.delete(modelName);
+        io.emit('download-complete', { model: modelName, success: false, cancelled: true });
+        res.json({ success: true, message: 'Download cancelled' });
+    } else {
+        res.status(404).json({ error: 'Download not found' });
+    }
+});
 app.post('/api/models/rename', async (req, res) => {
     const { oldPath, newName } = req.body;
     const oldDir = path.dirname(oldPath);
@@ -441,7 +469,7 @@ app.get('/api/system/disk', async (req, res) => {
 
 app.post('/api/open-folder', (req, res) => {
     const { folderPath } = req.body;
-    if (os.platform() === 'win32') exec(`explorer /select,"${folderPath}"`);
+    if (os.platform() === 'win32') exec(`start "" explorer.exe /select,"${folderPath}"`);
     else exec(`open -R "${folderPath}"`);
     res.json({ success: true });
 });
@@ -467,6 +495,19 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
     console.log('Client connected via WebSocket');
+    
+    // Test event to verify UI progress bar
+    socket.on('test-progress', () => {
+        let p = 0;
+        const iv = setInterval(() => {
+            p += 10;
+            io.emit('download-progress', { model: 'TEST_MODEL_CONNECTION', progress: p });
+            if (p >= 100) {
+                clearInterval(iv);
+                io.emit('download-complete', { model: 'TEST_MODEL_CONNECTION', success: true });
+            }
+        }, 300);
+    });
 });
 
 if (require.main === module) {
