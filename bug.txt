@@ -7,5 +7,8 @@ na area de configurações deve ser possivel configurar os padrões da aplicaç�
 A aplicação deve ter um sistema de cache para melhorar a performance.
 A aplicação deve ter um sistema de logs para melhor depuração.
 A aplicação deve ser para leigos evitar os termos tecnicos sem explicar o que é.
+Faça uma nova versão v3.2 com tudo que foi pedido.
+Usar a possibilidade de haver tema claro e escuro e modo de alto contraste.
+
 
 

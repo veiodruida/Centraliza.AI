@@ -8,6 +8,44 @@ const { promisify } = require('util');
 const { exec, spawn } = require('child_process');
 const checkDiskSpace = require('check-disk-space').default;
 
+// --- LOGGING SYSTEM ---
+const LOG_FILE = path.join(__dirname, 'server.log');
+const logger = {
+    info: (msg) => {
+        const entry = `[${new Date().toISOString()}] [INFO] ${msg}`;
+        console.log(entry);
+        fs.appendFileSync(LOG_FILE, entry + '\n');
+    },
+    error: (msg, err) => {
+        const entry = `[${new Date().toISOString()}] [ERROR] ${msg} ${err ? (err.message || err) : ''}`;
+        console.error(entry);
+        fs.appendFileSync(LOG_FILE, entry + '\n');
+    },
+    warn: (msg) => {
+        const entry = `[${new Date().toISOString()}] [WARN] ${msg}`;
+        console.warn(entry);
+        fs.appendFileSync(LOG_FILE, entry + '\n');
+    }
+};
+
+// --- CACHING SYSTEM ---
+const cache = {
+    store: new Map(),
+    get: (key) => {
+        const item = cache.store.get(key);
+        if (!item) return null;
+        if (Date.now() > item.expiry) {
+            cache.store.delete(key);
+            return null;
+        }
+        return item.data;
+    },
+    set: (key, data, ttlMs = 10000) => {
+        cache.store.set(key, { data, expiry: Date.now() + ttlMs });
+    },
+    clear: () => cache.store.clear()
+};
+
 async function getOllamaMap() {
     const blobToName = {};
     const manifestDir = path.join(os.homedir(), '.ollama', 'models', 'manifests');
@@ -44,15 +82,27 @@ async function getOllamaMap() {
         }
         
         scanManifestDir(manifestDir);
-        console.log(`[Ollama] Mapped ${Object.keys(blobToName).length} models from manifests.`);
+        logger.info(`[Ollama] Mapped ${Object.keys(blobToName).length} models from manifests.`);
     } catch (e) {
-        console.error(`[Ollama] Failed to scan manifests: ${e.message}`);
+        logger.error(`[Ollama] Failed to scan manifests`, e);
     }
     return blobToName;
 }
 
 const app = express();
 app.use(express.json());
+
+// Performance Middleware: Logging
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        if (req.path.startsWith('/api')) {
+            logger.info(`${req.method} ${req.path} ${res.statusCode} - ${duration}ms`);
+        }
+    });
+    next();
+});
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 const DEFAULT_CENTRAL_DIR = 'C:\\AI_Models';
@@ -70,10 +120,13 @@ let config = {
     sectionOrder: ['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']
 };
 if (fs.existsSync(CONFIG_FILE)) {
-    try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) {}
+    try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) { logger.error('Failed to read config', e); }
 }
 if (!fs.existsSync(config.centralDir)) fs.mkdirSync(config.centralDir, { recursive: true });
-function saveConfig() { fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); }
+function saveConfig() { 
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); 
+    cache.clear(); // Clear cache when config changes
+}
 
 const MODEL_EXTENSIONS = ['.gguf', '.safetensors', '.ckpt', '.bin', '.pt', '.pth'];
 
@@ -96,27 +149,30 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
             else if (entry.isFile()) {
                 const ext = path.extname(entry.name).toLowerCase();
                 const isOllamaBlob = entry.name.startsWith('sha256-') && ext === '';
-                // Skip partial blobs: Ollama appends '-partial' suffix during download
-                const isPartialBlob = isOllamaBlob && entry.name.endsWith('-partial');
-                if (isPartialBlob) continue;
+                // Skip partial files/blobs: Ollama appends '-partial' or '.partial'
+                const isPartial = entry.name.endsWith('-partial') || entry.name.endsWith('.partial') || entry.name.endsWith('.part');
+                
+                if (isPartial) continue;
+
                 if (MODEL_EXTENSIONS.includes(ext) || isOllamaBlob) {
                     try {
                         let finalModelName = entry.name;
                         let displayModelName = entry.name;
                         let ollamaTag = null;
                         let repoId = null;
+                        
                         if (isOllamaBlob) {
                             const humanName = ollamaMap[entry.name];
                             if (humanName) {
                                 ollamaTag = humanName;
-                                // Sanitize filename: replace both colons and slashes with dashes
                                 finalModelName = humanName.replace(/[:\/]/g, '-') + '.gguf';
                                 displayModelName = humanName;
                             } else {
-                                // Skip unmapped blobs (they are either partial or internal orphans)
+                                // Skip unmapped blobs (partial or orphans)
                                 continue;
                             }
                         }
+                        
                         if (source === 'Hugging Face' && fullPath.includes('models--')) {
                             const parts = fullPath.split('models--');
                             if (parts.length > 1) {
@@ -124,6 +180,7 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                                 if (repoParts.length >= 2) repoId = `${repoParts[0]}/${repoParts.slice(1).join('-')}`;
                             }
                         }
+                        
                         const modelBaseName = path.parse(finalModelName).name;
                         const expectedDestPath = path.resolve(config.centralDir, 'Centraliza.ai', modelBaseName, finalModelName);
                         let isCentralized = false;
@@ -132,7 +189,6 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                             if (fs.existsSync(expectedDestPath)) {
                                 const actualStat = await promisify(fs.stat)(fullPath);
                                 const destStat = await promisify(fs.stat)(expectedDestPath);
-                                // If they have the same inode (hardlink) or same size/mtime (best guess)
                                 if (actualStat.ino === destStat.ino || (actualStat.size === destStat.size && Math.abs(actualStat.mtime - destStat.mtime) < 1000)) {
                                     isCentralized = true;
                                 }
@@ -224,46 +280,59 @@ app.get('/api/pick-folder', (req, res) => {
     }
     
     exec(command, (err, stdout) => {
-        if (err) {
-            // If user cancels, zenity/osascript might return error code. We return null path.
-            return res.json({ path: null });
-        }
+        if (err) return res.json({ path: null });
         const pickedPath = stdout.trim().split('\n').pop()?.trim();
         res.json({ path: pickedPath || null });
     });
 });
 
 app.get('/api/registry', (req, res) => {
+    const cached = cache.get('registry');
+    if (cached) return res.json(cached);
+
     const registryPath = path.join(__dirname, 'data', 'hf_models.json');
     if (fs.existsSync(registryPath)) {
         let registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
         registry.unshift({ name: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B", provider: "DeepSeek", parameter_count: "8B", min_vram_gb: 5.5, use_case: "Reasoning, Coding", pipeline_tag: "text-generation", hf_downloads: 15000000 });
+        cache.set('registry', registry, 60000 * 30); // 30 min cache
         res.json(registry);
     } else res.status(404).json({ error: 'Registry not found' });
 });
 
 app.get('/api/model-readme', async (req, res) => {
     const { repoId, localPath } = req.query;
+    const cacheKey = `readme-${repoId || localPath}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.send(cached);
+
     if (repoId) {
         const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
         try {
             const response = await fetch(`https://huggingface.co/api/models/${repoId}/readme`);
             const data = await response.text();
+            cache.set(cacheKey, data, 60000 * 60); // 1h cache
             return res.send(data);
-        } catch (e) {}
+        } catch (e) { logger.error('Failed to fetch HF readme', e); }
     }
     if (localPath) {
         const dir = path.dirname(localPath);
         const readmeFiles = ['README.md', 'readme.md', 'model_details.json'];
         for (const f of readmeFiles) {
             const p = path.join(dir, f);
-            if (fs.existsSync(p)) return res.send(fs.readFileSync(p, 'utf8'));
+            if (fs.existsSync(p)) {
+                const data = fs.readFileSync(p, 'utf8');
+                cache.set(cacheKey, data, 60000 * 5); // 5 min cache
+                return res.send(data);
+            }
         }
     }
     res.send("No detailed description found for this model.");
 });
 
 app.get('/api/system-info', async (req, res) => {
+    const cached = cache.get('system-info');
+    if (cached) return res.json(cached);
+
     const getVram = () => new Promise((resolve) => {
         exec('nvidia-smi --query-gpu=memory.total,name --format=csv,noheader,nounits', (err, stdout) => {
             if (!err && stdout) {
@@ -284,16 +353,19 @@ app.get('/api/system-info', async (req, res) => {
         });
     });
     const v = await getVram();
-    res.json({ totalRam: os.totalmem(), freeRam: os.freemem(), vram: v.ram, gpuName: v.name, cpuModel: os.cpus()[0].model });
+    const info = { totalRam: os.totalmem(), freeRam: os.freemem(), vram: v.ram, gpuName: v.name, cpuModel: os.cpus()[0].model };
+    cache.set('system-info', info, 5000); // 5s cache
+    res.json(info);
 });
 
 app.get('/api/models', async (req, res) => {
+    const cached = cache.get('models-list');
+    if (cached) return res.json(cached);
+
     const modelsList = [];
     const ollamaMap = await getOllamaMap();
     for (const dir of config.scanDirectories) if (fs.existsSync(dir)) await scanDirectory(dir, modelsList, ollamaMap);
 
-    // Deduplicate: same Ollama model can appear as both a blob AND a hardlink in C:\AI_Models
-    // Keep only ONE entry per ollamaTag (prefer the blob/source, not the centralized copy)
     const seenOllamaTags = new Set();
     const seenPaths = new Set();
     const deduped = [];
@@ -307,53 +379,38 @@ app.get('/api/models', async (req, res) => {
         }
         deduped.push(m);
     }
+    cache.set('models-list', deduped, 10000); // 10s cache
     res.json(deduped);
 });
 
 app.post('/api/centralize', async (req, res) => {
     const { modelPath, finalModelName } = req.body;
-    if (!modelPath || !finalModelName) {
-        console.error('[Centralize] Missing parameters:', { modelPath, finalModelName });
-        return res.status(400).json({ error: 'Missing modelPath or finalModelName' });
-    }
-    console.log(`[Centralize] Request for ${finalModelName} from ${modelPath}`);
+    if (!modelPath || !finalModelName) return res.status(400).json({ error: 'Missing parameters' });
     
-    if (!fs.existsSync(modelPath)) {
-        console.error(`[Centralize] SOURCE FILE NOT FOUND: ${modelPath}`);
-        return res.status(404).json({ error: 'Source file not found: ' + modelPath });
-    }
+    logger.info(`[Centralize] Request for ${finalModelName} from ${modelPath}`);
+    if (!fs.existsSync(modelPath)) return res.status(404).json({ error: 'Source file not found' });
 
-    // Sanitize finalModelName again just in case
     const safeName = finalModelName.trim().replace(/[:\/]/g, '-');
     const modelBaseName = path.parse(safeName).name;
     const modelDir = path.resolve(config.centralDir, 'Centraliza.ai', modelBaseName);
     const destPath = path.resolve(modelDir, safeName);
     
-    console.log(`[Centralize] Target Path: ${destPath}`);
-
-    if (!fs.existsSync(modelDir)) {
-        console.log(`[Centralize] Creating directory: ${modelDir}`);
-        fs.mkdirSync(modelDir, { recursive: true });
-    }
-    
-    if (fs.existsSync(destPath)) {
-        console.log(`[Centralize] Target already exists. Removing to recreate: ${destPath}`);
-        fs.unlinkSync(destPath);
-    }
+    if (!fs.existsSync(modelDir)) fs.mkdirSync(modelDir, { recursive: true });
+    if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
 
     try { 
-        console.log(`[Centralize] Attempting hardlink: ${modelPath} -> ${destPath}`);
         await promisify(fs.link)(modelPath, destPath); 
-        console.log('[Centralize] Hardlink SUCCESS');
+        logger.info('[Centralize] Hardlink SUCCESS');
+        cache.clear();
         res.json({ success: true }); 
     } catch (e) { 
-        console.log(`[Centralize] Hardlink failed. Reason: ${e.code || e.message}`);
-        console.log(`[Centralize] Attempting symlink fallback...`);
+        logger.warn(`Hardlink failed: ${e.message}. Attempting symlink fallback...`);
         try { 
             await promisify(fs.symlink)(modelPath, destPath, 'file'); 
+            cache.clear();
             res.json({ success: true }); 
         } catch (err) { 
-            console.error(`[Centralize] ALL ATTEMPTS FAILED: ${err.message}`);
+            logger.error(`ALL ATTEMPTS FAILED`, err);
             res.status(500).json({ error: err.message }); 
         } 
     }
@@ -370,7 +427,10 @@ app.post('/api/chat', async (req, res) => {
         });
         const data = await response.json();
         res.json(data);
-    } catch (e) { res.status(500).json({ error: 'AI Server error: ' + e.message }); }
+    } catch (e) { 
+        logger.error('Chat error', e);
+        res.status(500).json({ error: 'AI Server error: ' + e.message }); 
+    }
 });
 
 app.post('/api/launch', (req, res) => {
@@ -393,6 +453,7 @@ app.post('/api/launch', (req, res) => {
     }
 
     if (cmd) {
+        logger.info(`Launching ${type}: ${cmd}`);
         exec(`start cmd /k "${cmd}"`, (err) => {
             if (err) return res.status(500).json({ error: 'Failed to launch: ' + err.message });
             res.json({ success: true, message: `Launching ${type}...` });
@@ -400,14 +461,10 @@ app.post('/api/launch', (req, res) => {
     } else res.status(400).json({ error: 'Unsupported engine.' });
 });
 
-// Map of modelName -> { proc, completed }
 const activeDownloads = new Map();
-// Set of models pending cancel (so proc.on('close') knows to emit cancelled:true)
 const pendingCancels = new Set();
-// Track last real progress per model (to avoid flickering with -1)
 const lastProgress = new Map();
 
-// Global finish function accessible by pause/cancel routes
 function finishDownload(modelName, options = { success: false }) {
     const entry = activeDownloads.get(modelName);
     if (!entry || entry.completed) return;
@@ -416,82 +473,61 @@ function finishDownload(modelName, options = { success: false }) {
     lastProgress.delete(modelName);
     const isCancelled = options.cancelled || pendingCancels.has(modelName);
     pendingCancels.delete(modelName);
-    console.log(`[Socket Emit] download-complete ${modelName}:`, { ...options, cancelled: isCancelled });
+    logger.info(`[Download] Finished ${modelName} - success=${options.success}, cancelled=${isCancelled}, paused=${options.paused}`);
     io.emit('download-complete', { 
         model: modelName, 
         success: options.success || false, 
         cancelled: isCancelled,
         paused: options.paused || false 
     });
+    cache.clear();
 }
 
 app.post('/api/download', (req, res) => {
     const { modelName } = req.body;
-    
-    if (activeDownloads.has(modelName)) {
-        return res.status(400).json({ error: 'Download already in progress.' });
-    }
+    if (activeDownloads.has(modelName)) return res.status(400).json({ error: 'Download already in progress.' });
 
-    // Use shell to properly handle ollama command on Windows
     const isWindows = os.platform() === 'win32';
     const shellCmd = isWindows ? 'cmd.exe' : '/bin/sh';
     const shellArgs = isWindows ? ['/c', `ollama pull ${modelName}`] : ['-c', `ollama pull ${modelName}`];
     
-    const proc = spawn(shellCmd, shellArgs, {
-        shell: false,
-        windowsHide: true,
-        env: { ...process.env }
-    });
-    
-    const entry = { proc, completed: false };
-    activeDownloads.set(modelName, entry);
-    console.log(`[Download] Started process for ${modelName} (PID: ${proc.pid})`);
+    const proc = spawn(shellCmd, shellArgs, { shell: false, windowsHide: true });
+    activeDownloads.set(modelName, { proc, completed: false });
+    logger.info(`[Download] Started process for ${modelName} (PID: ${proc.pid})`);
 
     const onData = (data) => {
-        // Skip processing if already done
         const currentEntry = activeDownloads.get(modelName);
         if (!currentEntry || currentEntry.completed) return;
-
         const text = data.toString();
-        process.stdout.write(text);
-        
-        // Ollama uses \r to overwrite the same line for progress updates.
-        // Split on \r first, then \n, to get each individual progress line.
         const lines = text.split(/\r|\n/);
         for (const rawLine of lines) {
-            // Strip ANSI escape codes
+            // Strip ANSI codes and trim
             const line = rawLine.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '').trim();
             if (!line) continue;
-
+            
             const lower = line.toLowerCase();
-
-            // Detect completion FIRST (highest priority)
-            if (
-                lower.includes('success') ||
-                lower.includes('verifying sha256 digest') ||
-                (lower.includes('complete') && !lower.includes('pulling') && !lower.includes('layer'))
-            ) {
-                console.log(`[Download] Success detected for ${modelName}`);
-                io.emit('download-progress', { model: modelName, progress: 100 });
-                setTimeout(() => io.emit('models-updated'), 1500);
+            
+            // Success terminal states
+            if (lower.includes('success') || lower.includes('verifying sha256 digest') || (lower.includes('complete') && !lower.includes('pulling') && !lower.includes('layer'))) {
                 finishDownload(modelName, { success: true });
-                return; // stop processing further lines
+                return;
             }
 
-            // Progress percentage — e.g. "pulling manifest  23%" or "pulling layer 23 %"
+            // Progress parsing - focus on overall progress lines like "pulling manifest", "pulling layer", etc.
+            // Ollama often sends multiple lines per update. We pick the first valid percentage.
             const match = line.match(/(\d+(?:\.\d+)?)\s*%/);
             if (match) {
                 const p = Math.round(parseFloat(match[1]));
                 const prev = lastProgress.get(modelName);
-                // Only emit if changed, and never go backward (avoid flicker from multi-layer reporting)
-                if (prev === undefined || p > prev) {
+                
+                // Only emit if progress increased or was -1, to prevent flicker from sub-layer progress
+                if (prev === undefined || p > prev || (p === 0 && prev === -1)) {
                     lastProgress.set(modelName, p);
-                    console.log(`[Socket Emit] download-progress ${modelName}: ${p}%`);
                     io.emit('download-progress', { model: modelName, progress: p });
                 }
             } else if (lower.includes('pulling') || lower.includes('downloading')) {
-                // Only send indeterminate if we haven't received any real % yet
-                if (!lastProgress.has(modelName)) {
+                if (!lastProgress.has(modelName) || lastProgress.get(modelName) === -1) {
+                    lastProgress.set(modelName, -1);
                     io.emit('download-progress', { model: modelName, progress: -1 });
                 }
             }
@@ -499,124 +535,102 @@ app.post('/api/download', (req, res) => {
     };
 
     proc.stdout.on('data', onData);
-    proc.stderr.on('data', (data) => {
-        console.error(`[Download stderr] ${data.toString()}`);
-        onData(data);
-    });
-
+    proc.stderr.on('data', onData);
     proc.on('close', (code) => {
-        console.log(`[Download] ${modelName} closed with code ${code}, pendingCancel=${pendingCancels.has(modelName)}`);
-        if (code === 0) {
-            io.emit('download-progress', { model: modelName, progress: 100 });
-            finishDownload(modelName, { success: true });
-        } else {
-            // If pause/cancel route already called finishDownload, this is a no-op (guard inside).
-            // If close fires first (race), pendingCancels tells us the intent.
-            finishDownload(modelName, { success: false });
+        if (code === 0) finishDownload(modelName, { success: true });
+        else {
+            const entry = activeDownloads.get(modelName);
+            if (entry && !entry.completed) finishDownload(modelName, { success: false });
         }
     });
     proc.on('error', (err) => {
-        console.error(`[Download Error] ${modelName} failed to start: ${err.message}`);
+        logger.error(`Download process error ${modelName}`, err);
         finishDownload(modelName, { success: false });
     });
-
-    res.json({ success: true, message: 'Download started' });
-    
-    // Initial indeterminate state
-    setTimeout(() => {
-        const e = activeDownloads.get(modelName);
-        if (e && !e.completed) {
-            io.emit('download-progress', { model: modelName, progress: -1 });
-        }
-    }, 500);
+    res.json({ success: true });
 });
 
 app.post('/api/download/pause', (req, res) => {
     const { modelName } = req.body;
     const entry = activeDownloads.get(modelName);
     if (entry) {
-        console.log(`[Download] Pausing model: ${modelName} (keeping partials)`);
-        // Signal BEFORE killing so proc.on('close') fires after completed=true
+        logger.info(`[Download] Pausing ${modelName}`);
         finishDownload(modelName, { success: false, paused: true });
-        if (os.platform() === 'win32') {
-            exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
-        } else {
-            entry.proc.kill('SIGKILL');
-        }
-        res.json({ success: true, message: 'Download paused (partial files kept)' });
-    } else {
-        res.status(404).json({ error: 'Download not found' });
-    }
+        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
+        else entry.proc.kill('SIGKILL');
+        res.json({ success: true });
+    } else res.status(404).json({ error: 'Download not found' });
 });
 
 app.post('/api/download/cancel', (req, res) => {
     const { modelName } = req.body;
     const entry = activeDownloads.get(modelName);
     if (entry) {
-        // Mark as pending cancel BEFORE killing — so even if proc.on('close') wins the race,
-        // finishDownload will read pendingCancels and emit cancelled:true
         pendingCancels.add(modelName);
-        // Signal cancelled immediately (also removes from activeDownloads)
+        logger.info(`[Download] Cancelling ${modelName}`);
+        
+        // Immediate UI update via finishDownload (emits cancelled: true)
         finishDownload(modelName, { success: false, cancelled: true });
         
-        if (os.platform() === 'win32') {
-            exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
-        } else {
-            entry.proc.kill('SIGKILL');
-        }
+        // Kill the process tree reliably
+        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
+        else entry.proc.kill('SIGKILL');
         
-        // Cleanup partial Ollama blobs from disk after process has time to die
-        console.log(`[Download] PERMANENT CLEANUP for model: ${modelName}...`);
+        // Post-kill cleanup: Ollama RM + partial files
         setTimeout(() => {
+            logger.info(`[Download] Starting deep cleanup for ${modelName}`);
             exec(`ollama rm ${modelName}`, (err) => {
-                if (err) console.error(`[Download] Cleanup failed for ${modelName}:`, err.message);
-                else console.log(`[Download] Cleanup success for ${modelName}`);
+                if (err) logger.warn(`[Download] ollama rm failed (expected if never finished manifest): ${err.message}`);
+                
+                // Deep scan for partial blobs
+                const blobDir = path.join(os.homedir(), '.ollama', 'models', 'blobs');
+                if (fs.existsSync(blobDir)) {
+                    try {
+                        const blobs = fs.readdirSync(blobDir);
+                        let removedCount = 0;
+                        blobs.forEach(f => {
+                            if (f.endsWith('-partial') || f.endsWith('.partial')) {
+                                try { 
+                                    fs.unlinkSync(path.join(blobDir, f)); 
+                                    removedCount++;
+                                } catch (e) {}
+                            }
+                        });
+                        logger.info(`[Download] Cleanup finished. Removed ${removedCount} partial blobs.`);
+                    } catch (e) {
+                        logger.error(`[Download] Blob cleanup failed`, e);
+                    }
+                }
+                io.emit('models-updated');
+                cache.clear();
             });
-            // Also delete any partial blob files in ~/.ollama/models/blobs/
-            const blobDir = path.join(os.homedir(), '.ollama', 'models', 'blobs');
-            if (fs.existsSync(blobDir)) {
-                try {
-                    fs.readdirSync(blobDir).forEach(f => {
-                        if (f.endsWith('-partial')) {
-                            try { 
-                                fs.unlinkSync(path.join(blobDir, f)); 
-                                console.log(`[Download] Deleted partial blob: ${f}`);
-                            } catch (e) {}
-                        }
-                    });
-                } catch (e) {}
-            }
-            io.emit('models-updated');
-        }, 2500);
-
-        res.json({ success: true, message: 'Download cancelled and cleanup scheduled' });
-    } else {
-        res.status(404).json({ error: 'Download not found' });
-    }
+        }, 1500);
+        res.json({ success: true });
+    } else res.status(404).json({ error: 'Download not found' });
 });
+
 app.post('/api/models/rename', async (req, res) => {
     const { oldPath, newName } = req.body;
-    const oldDir = path.dirname(oldPath);
-    const ext = path.extname(oldPath);
-    const newPath = path.join(oldDir, newName + ext);
+    const newPath = path.join(path.dirname(oldPath), newName + path.extname(oldPath));
     try {
         await promisify(fs.rename)(oldPath, newPath);
+        cache.clear();
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/models/move', async (req, res) => {
     const { oldPath, newDir } = req.body;
-    const fileName = path.basename(oldPath);
-    const newPath = path.join(newDir, fileName);
+    const newPath = path.join(newDir, path.basename(oldPath));
     try {
         await promisify(fs.rename)(oldPath, newPath);
+        cache.clear();
         res.json({ success: true });
     } catch (e) {
-        // Fallback for cross-device move
         try {
             await promisify(fs.copyFile)(oldPath, newPath);
             await promisify(fs.unlink)(oldPath);
+            cache.clear();
             res.json({ success: true, fallback: true });
         } catch (err) { res.status(500).json({ error: err.message }); }
     }
@@ -624,60 +638,35 @@ app.post('/api/models/move', async (req, res) => {
 
 app.delete('/api/models', async (req, res) => {
     const { modelPath, ollamaTag, centralPath } = req.body;
-    console.log(`[Delete] Request for:`, { modelPath, ollamaTag, centralPath });
+    logger.info(`[Delete] Request for: ${ollamaTag || modelPath}`);
     try {
-        // Decentralize case: ONLY remove the link in centralPath
-        if (centralPath) {
-            console.log(`[Delete] Decentralizing: removing link at ${centralPath}`);
-            if (fs.existsSync(centralPath)) {
-                await promisify(fs.unlink)(centralPath);
-                io.emit('models-updated');
-                return res.json({ success: true, decentralized: true });
-            }
-        }
-
-        // Delete case: Remove from source
-        if (ollamaTag) {
-            console.log(`[Ollama] Removing model: ${ollamaTag}`);
-            try {
-                // Ensure no download is active for this model
-                const proc = activeDownloads.get(ollamaTag);
-                if (proc) {
-                    if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${proc.pid}`);
-                    else proc.kill('SIGKILL');
-                    activeDownloads.delete(ollamaTag);
-                }
-
-                // Use a more robust way to run ollama rm
-                exec(`ollama rm ${ollamaTag}`, (err, stdout, stderr) => {
-                    if (err) {
-                        // Even if it errors, check if model is still there
-                        console.warn(`[Ollama] rm warning/error for ${ollamaTag}: ${err.message}`);
-                    }
-                    console.log(`[Ollama] rm output: ${stdout || 'none'}`);
-                    if (stderr) console.log(`[Ollama] rm stderr: ${stderr}`);
-                    io.emit('models-updated');
-                });
-                
-                // Return success immediately as ollama rm is usually non-blocking for the manifest removal
-                return res.json({ success: true, ollama: true });
-            } catch (err) {
-                console.error(`[Ollama] rm unexpected error: ${err.message}`);
-                return res.status(500).json({ error: err.message });
-            }
-        }
-        
-        if (modelPath && fs.existsSync(modelPath)) {
-            await promisify(fs.unlink)(modelPath);
+        if (centralPath && fs.existsSync(centralPath)) {
+            await promisify(fs.unlink)(centralPath);
+            cache.clear();
             io.emit('models-updated');
             return res.json({ success: true });
         }
-        
-        res.status(404).json({ error: 'Model not found or already deleted.' });
-    } catch (e) { 
-        console.error(`[Delete] General error: ${e.message}`);
-        res.status(500).json({ error: e.message }); 
-    }
+        if (ollamaTag) {
+            const proc = activeDownloads.get(ollamaTag);
+            if (proc) {
+                if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${proc.pid}`);
+                else proc.kill('SIGKILL');
+                activeDownloads.delete(ollamaTag);
+            }
+            exec(`ollama rm ${ollamaTag}`, () => {
+                cache.clear();
+                io.emit('models-updated');
+            });
+            return res.json({ success: true });
+        }
+        if (modelPath && fs.existsSync(modelPath)) {
+            await promisify(fs.unlink)(modelPath);
+            cache.clear();
+            io.emit('models-updated');
+            return res.json({ success: true });
+        }
+        res.status(404).json({ error: 'Model not found' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/models/sanity-check', async (req, res) => {
@@ -688,22 +677,19 @@ app.post('/api/models/sanity-check', async (req, res) => {
         fs.readdirSync(d, {withFileTypes:true}).forEach(e => {
             const p = path.join(d, e.name);
             if (e.isDirectory()) clean(p);
-            else {
-                try { fs.statSync(p); } catch(err) { fs.unlinkSync(p); cleaned++; }
-            }
+            else { try { fs.statSync(p); } catch(err) { fs.unlinkSync(p); cleaned++; } }
         });
     };
-    try { clean(linkDir); } catch(e) {}
+    try { clean(linkDir); cache.clear(); } catch(e) {}
     res.json({ success: true, cleaned });
 });
 
 app.get('/api/system/disk', async (req, res) => {
+    const cached = cache.get('system-disk');
+    if (cached) return res.json(cached);
     try {
         const diskPath = path.parse(process.cwd()).root;
         const disk = await checkDiskSpace(diskPath);
-        
-        // Calculate space used by Centraliza.ai links
-        let centralSize = 0;
         const linkDir = path.join(config.centralDir, 'Centraliza.ai');
         const getDirSize = (d) => {
             if (!fs.existsSync(d)) return 0;
@@ -711,21 +697,14 @@ app.get('/api/system/disk', async (req, res) => {
             fs.readdirSync(d, {withFileTypes:true}).forEach(e => {
                 const p = path.join(d, e.name);
                 if (e.isDirectory()) total += getDirSize(p);
-                else {
-                    try { total += fs.statSync(p).size; } catch(err) {}
-                }
+                else { try { total += fs.statSync(p).size; } catch(err) {} }
             });
             return total;
         };
-        centralSize = getDirSize(linkDir);
-
-        res.json({
-            total: disk.size,
-            free: disk.free,
-            used: disk.size - disk.free,
-            centraliza: centralSize,
-            others: (disk.size - disk.free) - centralSize
-        });
+        const centralSize = getDirSize(linkDir);
+        const result = { total: disk.size, free: disk.free, used: disk.size - disk.free, centraliza: centralSize, others: (disk.size - disk.free) - centralSize };
+        cache.set('system-disk', result, 15000); // 15s cache
+        res.json(result);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -733,60 +712,38 @@ app.post('/api/open-folder', (req, res) => {
     const { folderPath } = req.body;
     if (os.platform() === 'win32') {
         const cleanPath = folderPath.replace(/\//g, '\\');
-        // Open explorer and select file
         exec(`explorer.exe /select,"${cleanPath}"`);
-        
-        // Advanced focus script: find the window by path and bring to front
-        const parentDir = path.dirname(cleanPath);
-        const psFocus = `powershell.exe -Command "$path = '${parentDir}'; $wshell = New-Object -ComObject WScript.Shell; $explorer = New-Object -ComObject Shell.Application; $window = $explorer.Windows() | Where-Object { try { $_.Document.Folder.Self.Path.ToLower() -eq $path.ToLower() } catch { $false } } | Select-Object -First 1; if ($window) { $wshell.AppActivate($window.HWND) } else { $wshell.AppActivate('Explorador de Arquivos'); $wshell.AppActivate('File Explorer') }"`;
-        
-        setTimeout(() => {
-            exec(psFocus);
-        }, 1000);
-    } else {
-        exec(`open -R "${folderPath}"`);
-    }
+        const psFocus = `powershell.exe -Command "$path = '${path.dirname(cleanPath)}'; $wshell = New-Object -ComObject WScript.Shell; $explorer = New-Object -ComObject Shell.Application; $window = $explorer.Windows() | Where-Object { try { $_.Document.Folder.Self.Path.ToLower() -eq $path.ToLower() } catch { $false } } | Select-Object -First 1; if ($window) { $wshell.AppActivate($window.HWND) } else { $wshell.AppActivate('Explorador de Arquivos'); $wshell.AppActivate('File Explorer') }"`;
+        setTimeout(() => { exec(psFocus); }, 1000);
+    } else exec(`open -R "${folderPath}"`);
     res.json({ success: true });
 });
 
-// Serve Frontend Static Files
 const distPath = path.join(__dirname, 'frontend', 'dist');
 if (fs.existsSync(distPath)) {
     app.use(express.static(distPath));
-    // SPA Fallback: Redirect all non-API routes to index.html
     app.use((req, res, next) => {
-        if (!req.path.startsWith('/api')) {
-            res.sendFile(path.join(distPath, 'index.html'));
-        } else {
-            next();
-        }
+        if (!req.path.startsWith('/api')) res.sendFile(path.join(distPath, 'index.html'));
+        else next();
     });
 }
 
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: { origin: "*" }
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
 io.on('connection', (socket) => {
-    console.log('Client connected via WebSocket');
-    
-    // Test event to verify UI progress bar
+    logger.info('Client connected via WebSocket');
     socket.on('test-progress', () => {
         let p = 0;
         const iv = setInterval(() => {
             p += 10;
             io.emit('download-progress', { model: 'TEST_MODEL_CONNECTION', progress: p });
-            if (p >= 100) {
-                clearInterval(iv);
-                io.emit('download-complete', { model: 'TEST_MODEL_CONNECTION', success: true });
-            }
+            if (p >= 100) { clearInterval(iv); io.emit('download-complete', { model: 'TEST_MODEL_CONNECTION', success: true }); }
         }, 300);
     });
 });
 
 if (require.main === module) {
-    server.listen(4000, () => console.log('Centraliza.ai on http://localhost:4000'));
+    server.listen(4000, () => logger.info('Centraliza.ai on http://localhost:4000'));
 }
-
 module.exports = { app, server };

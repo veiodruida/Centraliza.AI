@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Info } from 'lucide-react';
 
 interface HelpTooltipProps {
   text: string;
@@ -23,27 +23,29 @@ export default function HelpTooltip({ text }: HelpTooltipProps) {
 
   return (
     <div className="relative inline-block ml-2 group" ref={iconRef}>
-      <HelpCircle 
-        size={14} 
-        className="text-slate-500 hover:text-blue-400 cursor-help transition-colors"
+      <Info 
+        size={16} 
+        className="text-[var(--text-muted)] hover:text-blue-400 cursor-help transition-all hover:scale-110"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
       />
       
       {show && createPortal(
         <div 
-          className="absolute w-64 p-4 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-[99999] animate-in fade-in zoom-in duration-200 pointer-events-none"
+          className="fixed w-64 p-5 bg-[var(--bg-surface)]/95 backdrop-blur-2xl border border-[var(--border)] rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[99999] animate-in fade-in zoom-in-95 duration-300 pointer-events-none"
           style={{
-            top: coords.top - 12,
+            top: coords.top - 16,
             left: coords.left,
             transform: 'translate(-50%, -100%)'
           }}
         >
-          <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
-            {text}
-          </p>
-          {/* Arrow */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900/95"></div>
+          <div className="flex gap-3 items-start">
+             <HelpCircle size={14} className="text-blue-500 mt-0.5 shrink-0" />
+             <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-bold">
+               {text}
+             </p>
+          </div>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[var(--bg-surface)]/95"></div>
         </div>,
         document.body
       )}
