@@ -25,6 +25,7 @@ type SortOption = 'Popular' | 'Newest' | 'Best Fit';
 export default function ExploreStore() {
   const [sysInfo, setSysInfo] = useState<any>(null);
   const [registry, setRegistry] = useState<RegistryModel[]>([]);
+  const [localModels, setLocalModels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
@@ -34,17 +35,29 @@ export default function ExploreStore() {
   const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    fetch('/api/registry')
-      .then(res => res.json())
-      .then(data => {
-        setRegistry(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    const fetchLocalModels = () => {
+      fetch('/api/models').then(res => res.json()).then(setLocalModels);
+    };
 
-    fetch('/api/system-info')
-      .then(res => res.json())
-      .then(setSysInfo);
+    Promise.all([
+      fetch('/api/registry').then(res => res.json()),
+      fetch('/api/models').then(res => res.json()),
+      fetch('/api/system-info').then(res => res.json())
+    ]).then(([registryData, modelsData, sysData]) => {
+      setRegistry(registryData);
+      setLocalModels(modelsData);
+      setSysInfo(sysData);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+
+    socket.on('models-updated', () => {
+      console.log('[Socket] Models updated, refreshing local list...');
+      fetchLocalModels();
+    });
+
+    return () => {
+      socket.off('models-updated');
+    };
   }, []);
 
   const filters = ['All', 'Chat', 'Coding', 'Image', 'Reasoning', 'Vision'];
@@ -60,9 +73,23 @@ export default function ExploreStore() {
   };
 
   const filteredModels = useMemo(() => {
-    let list = [...registry];
+    // Filter out models that are already downloaded
+    let list = registry.filter(reg => {
+      return !localModels.some(loc => {
+        // Match by Ollama tag or Repo ID
+        if (loc.ollamaTag && reg.gguf_sources?.[0]?.repo) {
+            const tag = loc.ollamaTag.toLowerCase();
+            const repo = reg.gguf_sources[0].repo.toLowerCase();
+            if (tag.includes(repo)) return true;
+        }
+        if (loc.repoId && reg.gguf_sources?.[0]?.repo) {
+            if (loc.repoId.toLowerCase() === reg.gguf_sources[0].repo.toLowerCase()) return true;
+        }
+        return loc.name.toLowerCase() === reg.name.toLowerCase();
+      });
+    });
     
-    // Filter
+    // Filter by type
     if (activeFilter !== 'All') {
       const f = activeFilter.toLowerCase();
       list = list.filter(m => {
@@ -98,7 +125,7 @@ export default function ExploreStore() {
     });
 
     return list;
-  }, [registry, search, activeFilter, activeSort, sysInfo]);
+  }, [registry, localModels, search, activeFilter, activeSort, sysInfo]);
 
   const handleInstall = async (model: RegistryModel) => {
     let modelNameForOllama = model.name.split('/').pop() || model.name;
@@ -147,11 +174,14 @@ export default function ExploreStore() {
       if (data.model === downloadingModel) {
         if (data.success) {
           setDownloadStatus('Installed!');
+          // Refresh local models list
+          fetch('/api/models').then(res => res.json()).then(setLocalModels);
         } else if (data.cancelled) {
           setDownloadStatus('Cancelled');
         } else {
           setDownloadStatus('Failed');
         }
+        const delay = (data.cancelled || !data.success) ? 500 : 3000;
         setTimeout(() => {
           setDownloadingModel(null);
           setDownloadStatus('');
@@ -160,7 +190,7 @@ export default function ExploreStore() {
             delete next[data.model];
             return next;
           });
-        }, 3000);
+        }, delay);
       }
     };
 

@@ -1,0 +1,11 @@
+Atualize a documentação. Adicione Help em toda aplicação explicando tudo. 
+Adicione suporte multi idiomas em toda aplicação: pt-br, pt-pt, en, es, fr, de, it, chines, arabe, coreano, japones...
+Melhore a experiência do usuário. Deixe a aplicação mais fluida e agradavel de usar.
+em AI Model Hub deve ser possivel ver os detalhes do modelo clicando ou pairando o mouse sobre ele. deve aparecer nome, tipo, tamanho, licença, descrição, data de criação, data de atualização, autor, etc...
+em centralization deve mostrar todos os modelos centralizados e não centralzaidos, sendo possivel classificar por categorias, tamanho, tipo, autor, licença, etc... e deve ser possivel centralizar e descentralizar os modelos.
+na area de configurações deve ser possivel configurar os padrões da aplicação, como idioma, tema, etc...
+A aplicação deve ter um sistema de cache para melhorar a performance.
+A aplicação deve ter um sistema de logs para melhor depuração.
+A aplicação deve ser para leigos evitar os termos tecnicos sem explicar o que é.
+
+

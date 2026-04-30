@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Trash2, FolderOpen } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Trash2, FolderOpen, Link2Off } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
 import LaunchModal from '../components/LaunchModal';
@@ -17,6 +18,7 @@ interface Model {
   repoId?: string;
   extension?: string;
   description?: string;
+  centralPath?: string;
 }
 
 export default function MyModels() {
@@ -24,7 +26,7 @@ export default function MyModels() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
-  const [description, setDescription] = useState('Carregando descrição...');
+  const [description, setDescription] = useState('Loading description...');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     'Ollama': true,
     'ComfyUI': true,
@@ -34,7 +36,7 @@ export default function MyModels() {
   const [sectionOrder, setSectionOrder] = useState<string[]>(['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']);
   const [launchModalData, setLaunchModalData] = useState<{ isOpen: boolean; model: Model | null }>({ isOpen: false, model: null });
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
-  const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[] }>({ isOpen: false, models: [] });
+  const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[]; initialAction?: 'delete' | 'decentralize' | 'centralize' | null }>({ isOpen: false, models: [], initialAction: null });
   const { showToast } = useToast();
 
   const fetchModels = async () => {
@@ -49,17 +51,28 @@ export default function MyModels() {
 
   useEffect(() => { 
     fetchModels(); 
+
+    const socket = io();
+    socket.on('models-updated', () => {
+      console.log('[Socket] Models updated, refreshing list...');
+      fetchModels();
+    });
+
     // Fetch config to get saved section order
     fetch('/api/config')
       .then(res => res.json())
       .then(data => {
         if (data.sectionOrder) setSectionOrder(data.sectionOrder);
       });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   useEffect(() => {
     if (viewingModel) {
-      setDescription('Carregando descrição do modelo...');
+      setDescription('Loading model description...');
       fetch(`/api/model-readme?repoId=${viewingModel.repoId || ''}&localPath=${encodeURIComponent(viewingModel.path)}`)
         .then(res => res.text())
         .then(data => setDescription(data));
@@ -100,22 +113,25 @@ export default function MyModels() {
       const res = await fetch('/api/centralize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modelPath: model.path, finalModelName: model.finalModelName })
+        body: JSON.stringify({ 
+          modelPath: model.path, 
+          finalModelName: model.finalModelName || model.name 
+        })
       });
       if (res.ok) {
-        showToast('Modelo centralizado com sucesso!', 'success');
+        showToast('Model centralized successfully!', 'success');
         fetchModels();
       }
-    } catch (err) { showToast('Erro ao centralizar.', 'error'); }
+    } catch (err) { showToast('Error centralizing model.', 'error'); }
   };
 
   const handleRename = async (model: Model) => {
     // Cannot rename Ollama blobs safely
     if (model.path.includes('.ollama\\models\\blobs') || model.path.includes('.ollama/models/blobs')) {
-        showToast('Não é possível renomear arquivos internos do Ollama.', 'error');
+        showToast('Cannot rename internal Ollama files.', 'error');
         return;
     }
-    const newName = prompt('Novo nome para o modelo (sem extensão):', model.name.split('.')[0]);
+    const newName = prompt('New name for the model (without extension):', model.name.split('.')[0]);
     if (!newName) return;
     try {
       const res = await fetch('/api/models/rename', {
@@ -124,27 +140,27 @@ export default function MyModels() {
         body: JSON.stringify({ oldPath: model.path, newName })
       });
       if (res.ok) {
-        showToast('Modelo renomeado com sucesso!', 'success');
+        showToast('Model renamed successfully!', 'success');
         fetchModels();
         if (viewingModel?.path === model.path) setViewingModel(null);
       } else {
         const data = await res.json();
-        showToast('Erro ao renomear: ' + (data.error || 'Desconhecido'), 'error');
+        showToast('Error renaming: ' + (data.error || 'Unknown'), 'error');
       }
-    } catch (e) { showToast('Erro de conexão ao renomear.', 'error'); }
+    } catch (e) { showToast('Connection error while renaming.', 'error'); }
   };
 
 const handleDelete = async (model: Model) => {
-    // Open unified delete modal
-    setDeleteModalData({ isOpen: true, models: [model] });
+    // Open unified manage modal with pre-selected action
+    setDeleteModalData({ 
+      isOpen: true, 
+      models: [model], 
+      initialAction: model.isSymlink ? 'decentralize' : 'delete' 
+    });
   };
 
-  const handleBatchDelete = async () => {
-    const toDelete = models.filter(m => selectedModels.has(m.path));
-    if (toDelete.length === 0) return;
-    
-    setDeleteModalData({ isOpen: true, models: toDelete });
-  };
+  // handleBatchDelete was replaced by inline setDeleteModalData calls in the batch bar
+  // to support different initialActions.
 
 
 
@@ -168,30 +184,38 @@ const handleDelete = async (model: Model) => {
           res = await fetch('/api/centralize', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ modelPath: m.path, finalModelName: m.finalModelName })
+            body: JSON.stringify({ 
+              modelPath: m.path, 
+              finalModelName: m.finalModelName || m.name 
+            })
           });
         } else if (action === 'decentralize') {
-          // Decentralize means removing the symlink only
+          console.log(`[Batch] Executing ${action} for ${m.name}`);
           res = await fetch('/api/models', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ modelPath: m.path })
+            body: JSON.stringify({ centralPath: m.centralPath }) 
           });
         }
 
-        if (res && res.ok) successCount++;
-        else failCount++;
+        if (res && res.ok) {
+            successCount++;
+        } else {
+            const data = res ? await res.json() : { error: 'Unknown error' };
+            console.error(`[Batch] Failed ${action} for ${m.name}:`, data.error);
+            failCount++;
+        }
       } catch (e) {
         failCount++;
       }
     }
 
-    const actionText = action === 'delete' ? 'excluídos' : action === 'centralize' ? 'centralizados' : 'descentralizados';
+    const actionText = action === 'delete' ? 'deleted' : action === 'centralize' ? 'centralized' : 'decentralized';
     if (successCount > 0) {
-      showToast(`${successCount} modelos ${actionText} com sucesso!`, 'success');
+      showToast(`${successCount} models ${actionText} successfully!`, 'success');
     }
     if (failCount > 0) {
-      showToast(`${failCount} modelos falharam.`, 'error');
+      showToast(`${failCount} models failed.`, 'error');
     }
 
     setSelectedModels(new Set());
@@ -372,7 +396,7 @@ return (
         <div>
           <h2 className="text-4xl font-black text-white mb-2 flex items-center">
             My Models
-            <HelpTooltip text="Aqui estão todos os seus modelos detectados. O app identifica automaticamente de onde eles vêm e quais ações são compatíveis." />
+            <HelpTooltip text="All your detected models are listed here. The app automatically identifies their source and supported actions." />
           </h2>
           <p className="text-slate-500">Intelligent context-aware management of your AI assets.</p>
         </div>
@@ -387,10 +411,21 @@ return (
         </div>
       </div>
 
+      {!loading && models.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-slate-800 flex items-center justify-center mb-6">
+            <Box size={40} className="text-slate-700" />
+          </div>
+          <h3 className="text-white font-black text-2xl mb-2">Nenhum modelo encontrado</h3>
+          <p className="text-slate-500 max-w-sm">Os teus modelos Ollama, ComfyUI e outros aparecerão aqui após a detecção. Clica em Refresh ou descarrega um modelo.</p>
+        </div>
+      )}
+
       <div className="space-y-8">
         {sectionOrder.map(source => {
           const items = groupedModels[source] || [];
-          if (items.length === 0 && source === 'Standalone' && search) return null;
+          // Hide sections that have no models (avoids confusing empty boxes)
+          if (items.length === 0) return null;
           const isExpanded = expandedSections[source] !== false;
           return (
             <div 
@@ -517,16 +552,21 @@ return (
       {selectedModels.size > 0 && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 p-4 rounded-full shadow-2xl flex items-center gap-6 z-[9999] animate-in slide-in-from-bottom-10 backdrop-blur-xl">
           <span className="text-white font-black text-sm px-4">
-            {selectedModels.size} selecionados
+            {selectedModels.size} selected
           </span>
           <div className="flex items-center gap-2 border-l border-slate-700 pl-6">
              {models.some(m => selectedModels.has(m.path) && !m.isSymlink) && (
-               <button onClick={handleBatchDelete} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">
-                 <Zap size={14} /> Centralizar
+               <button onClick={() => setDeleteModalData({ isOpen: true, models: models.filter(m => selectedModels.has(m.path) && !m.isSymlink), initialAction: 'centralize' })} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">
+                 <Zap size={14} /> Centralize
                </button>
              )}
-             <button onClick={handleBatchDelete} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-red-500/20">
-               <Trash2 size={14} /> Excluir
+             {models.some(m => selectedModels.has(m.path) && m.isSymlink) && (
+               <button onClick={() => setDeleteModalData({ isOpen: true, models: models.filter(m => selectedModels.has(m.path) && m.isSymlink), initialAction: 'decentralize' })} className="flex items-center gap-2 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-emerald-500/20">
+                 <Link2Off size={14} /> Decentralize
+               </button>
+             )}
+             <button onClick={() => setDeleteModalData({ isOpen: true, models: models.filter(m => selectedModels.has(m.path)), initialAction: 'delete' })} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-red-500/20">
+               <Trash2 size={14} /> Delete
              </button>
           </div>
         </div>
@@ -535,7 +575,8 @@ return (
       <DeleteModal
         isOpen={deleteModalData.isOpen}
         models={deleteModalData.models}
-        onClose={() => setDeleteModalData({ isOpen: false, models: [] })}
+        initialAction={deleteModalData.initialAction}
+        onClose={() => setDeleteModalData({ isOpen: false, models: [], initialAction: null })}
         onConfirm={handleModalConfirm}
       />
     </div>

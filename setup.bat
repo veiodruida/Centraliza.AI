@@ -15,6 +15,14 @@ call npm install
 
 echo [3/3] Compilando a interface (Build)...
 call npm run build
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERRO] O build falhou! Verifique os erros acima.
+    echo O servidor NAO sera iniciado com um build desatualizado.
+    cd ..
+    pause
+    exit /b 1
+)
 cd ..
 
 echo [4/4] Configurando comando 'central' no PATH...

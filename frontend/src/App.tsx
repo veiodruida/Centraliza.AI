@@ -93,7 +93,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
         <div className="bg-slate-900/50 p-10 rounded-[3rem] border border-slate-800 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
           <div className="absolute top-4 right-8 z-20">
-             <HelpTooltip text="Número total de modelos únicos detectados em todas as suas pastas configuradas." />
+             <HelpTooltip text="Total number of unique models detected across all configured folders." />
           </div>
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
              <HardDrive size={100} />
@@ -107,7 +107,7 @@ function Dashboard() {
 
         <div className="bg-slate-900/50 p-10 rounded-[3rem] border border-slate-800 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
           <div className="absolute top-4 right-8 z-20">
-             <HelpTooltip text="Quantidade de espaço em disco recuperada através do uso de Hardlinks (links virtuais que não ocupam espaço extra)." />
+             <HelpTooltip text="Amount of disk space recovered by using Hardlinks (virtual links that don't occupy extra space)." />
           </div>
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
              <Zap size={100} />
