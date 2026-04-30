@@ -53,12 +53,12 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-slate-900 border border-slate-800 rounded-[3rem] p-10 w-[500px] max-w-[90vw] shadow-2xl animate-in zoom-in-95 duration-200">
-        <button 
+      <div className="relative bg-slate-900 border border-slate-800 rounded-lg p-2 max-w-full shadow-xl animate-in scale-100 duration-200">
+        <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors"
+          className="absolute top-2 right-2 p-1 text-xs text-slate-300 hover:text-white transition-colors"
         >
-          <X size={24} />
+          <X size={18} />
         </button>
 
         <div className="flex items-center gap-4 mb-8">
@@ -82,7 +82,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
               {hasStandalones && (
                 <button
                   onClick={() => setSelectedAction('centralize')}
-                  className="w-full p-6 rounded-2xl border border-slate-800 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex items-center gap-4 text-left"
+                  className="w-full p-4 rounded-2xl border border-slate-800 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all flex items-center gap-4 text-left"
                 >
                   <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500">
                     <Zap size={24} />
@@ -100,8 +100,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
               {hasSymlinks && (
                 <button
                   onClick={() => setSelectedAction('decentralize')}
-                  className="w-full p-6 rounded-2xl border border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex items-center gap-4 text-left"
-                >
+                  className="w-full p-4 rounded-2xl border border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex items-center gap-4 text-left"
                   <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-500">
                     <Link2Off size={24} />
                   </div>

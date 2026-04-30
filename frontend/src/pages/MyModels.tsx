@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { io } from 'socket.io-client';
-import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, ChevronUp, Edit3, Trash2, FolderOpen, Link2Off } from 'lucide-react';
+import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink } from 'lucide-react';
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
-import LaunchModal from '../components/LaunchModal';
 import DeleteModal, { type ModelItem } from '../components/DeleteModal';
+import { useApp } from '../context/AppContext';
 
 interface Model {
   name: string;
@@ -22,11 +22,12 @@ interface Model {
 }
 
 export default function MyModels() {
+  const { t } = useApp();
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
-  const [description, setDescription] = useState('Loading description...');
+  const [description, setDescription] = useState('');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     'Ollama': true,
     'ComfyUI': true,
@@ -34,8 +35,6 @@ export default function MyModels() {
     'Hugging Face': true
   });
   const [sectionOrder, setSectionOrder] = useState<string[]>(['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']);
-  const [launchModalData, setLaunchModalData] = useState<{ isOpen: boolean; model: Model | null }>({ isOpen: false, model: null });
-  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[]; initialAction?: 'delete' | 'decentralize' | 'centralize' | null }>({ isOpen: false, models: [], initialAction: null });
   const { showToast } = useToast();
 
@@ -44,64 +43,52 @@ export default function MyModels() {
     try {
       const res = await fetch('/api/models');
       const data = await res.json();
-      setModels(data);
-    } catch (err) { console.error('Backend unreachable.'); }
+      // Deduplicate by path to prevent UI glitches
+      const uniqueModels = data.filter((m: Model, index: number, self: Model[]) => 
+        index === self.findIndex((t) => t.path === m.path)
+      );
+      setModels(uniqueModels);
+    } catch (err) { 
+      console.error('Backend unreachable.'); 
+      showToast('Backend connection failed', 'error');
+    }
     finally { setLoading(false); }
   };
 
   useEffect(() => { 
     fetchModels(); 
-
     const socket = io();
-    socket.on('models-updated', () => {
-      console.log('[Socket] Models updated, refreshing list...');
-      fetchModels();
+    socket.on('models-updated', () => fetchModels());
+    fetch('/api/config').then(res => res.json()).then(data => {
+      if (data.sectionOrder) setSectionOrder(data.sectionOrder);
     });
-
-    // Fetch config to get saved section order
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        if (data.sectionOrder) setSectionOrder(data.sectionOrder);
-      });
-
-    return () => {
-      socket.disconnect();
-    };
+    return () => { socket.disconnect(); };
   }, []);
 
   useEffect(() => {
     if (viewingModel) {
-      setDescription('Loading model description...');
+      setDescription(t('loading'));
       fetch(`/api/model-readme?repoId=${viewingModel.repoId || ''}&localPath=${encodeURIComponent(viewingModel.path)}`)
         .then(res => res.text())
         .then(data => setDescription(data));
     }
-  }, [viewingModel]);
+  }, [viewingModel, t]);
 
   const handleLaunch = async (model: Model, type: string, extraParams: any = {}) => {
     if (type === 'llama.cpp' && !extraParams.threads) {
-      setLaunchModalData({ isOpen: true, model });
+      showToast('Configuration required for llama.cpp', 'error');
       return;
     }
-
     try {
       const res = await fetch('/api/launch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          type, 
-          modelPath: model.path, 
-          modelName: model.name, 
-          ollamaTag: model.ollamaTag,
-          params: extraParams 
-        })
+        body: JSON.stringify({ type, modelPath: model.path, modelName: model.name, ollamaTag: model.ollamaTag, params: extraParams })
       });
       const data = await res.json();
       if (data.error) showToast(data.error, 'error');
       else showToast(data.message, 'success');
-      setLaunchModalData({ isOpen: false, model: null });
-    } catch (e) { showToast('Launch failed.', 'error'); }
+    } catch (e) { showToast(t('error'), 'error'); }
   };
 
   const handleOpenFolder = (path: string) => {
@@ -113,25 +100,14 @@ export default function MyModels() {
       const res = await fetch('/api/centralize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          modelPath: model.path, 
-          finalModelName: model.finalModelName || model.name 
-        })
+        body: JSON.stringify({ modelPath: model.path, finalModelName: model.finalModelName || model.name })
       });
-      if (res.ok) {
-        showToast('Model centralized successfully!', 'success');
-        fetchModels();
-      }
-    } catch (err) { showToast('Error centralizing model.', 'error'); }
+      if (res.ok) { showToast(t('central_centralized'), 'success'); fetchModels(); }
+    } catch (err) { showToast(t('error'), 'error'); }
   };
 
   const handleRename = async (model: Model) => {
-    // Cannot rename Ollama blobs safely
-    if (model.path.includes('.ollama\\models\\blobs') || model.path.includes('.ollama/models/blobs')) {
-        showToast('Cannot rename internal Ollama files.', 'error');
-        return;
-    }
-    const newName = prompt('New name for the model (without extension):', model.name.split('.')[0]);
+    const newName = prompt(t('name'), model.name.split('.')[0]);
     if (!newName) return;
     try {
       const res = await fetch('/api/models/rename', {
@@ -139,249 +115,114 @@ export default function MyModels() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPath: model.path, newName })
       });
-      if (res.ok) {
-        showToast('Model renamed successfully!', 'success');
-        fetchModels();
-        if (viewingModel?.path === model.path) setViewingModel(null);
-      } else {
-        const data = await res.json();
-        showToast('Error renaming: ' + (data.error || 'Unknown'), 'error');
-      }
-    } catch (e) { showToast('Connection error while renaming.', 'error'); }
+      if (res.ok) { showToast(t('settings_saved'), 'success'); fetchModels(); setViewingModel(null); }
+      else { const data = await res.json(); showToast(data.error || t('error'), 'error'); }
+    } catch (e) { showToast(t('error'), 'error'); }
   };
 
-const handleDelete = async (model: Model) => {
-    // Open unified manage modal with pre-selected action
-    setDeleteModalData({ 
-      isOpen: true, 
-      models: [model], 
-      initialAction: model.isSymlink ? 'decentralize' : 'delete' 
-    });
+  const handleDelete = async (model: Model) => {
+    setDeleteModalData({ isOpen: true, models: [model], initialAction: model.isSymlink ? 'decentralize' : 'delete' });
   };
-
-  // handleBatchDelete was replaced by inline setDeleteModalData calls in the batch bar
-  // to support different initialActions.
-
-
 
   const handleModalConfirm = async (action: 'delete' | 'decentralize' | 'centralize') => {
     const targetModels = deleteModalData.models;
     if (targetModels.length === 0) return;
-
-    let successCount = 0;
-    let failCount = 0;
-
     for (const m of targetModels) {
       try {
-        let res;
-        if (action === 'delete') {
-          res = await fetch('/api/models', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ modelPath: m.path, ollamaTag: m.ollamaTag })
-          });
-        } else if (action === 'centralize') {
-          res = await fetch('/api/centralize', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              modelPath: m.path, 
-              finalModelName: m.finalModelName || m.name 
-            })
-          });
-        } else if (action === 'decentralize') {
-          console.log(`[Batch] Executing ${action} for ${m.name}`);
-          res = await fetch('/api/models', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ centralPath: m.centralPath }) 
-          });
-        }
-
-        if (res && res.ok) {
-            successCount++;
-        } else {
-            const data = res ? await res.json() : { error: 'Unknown error' };
-            console.error(`[Batch] Failed ${action} for ${m.name}:`, data.error);
-            failCount++;
-        }
-      } catch (e) {
-        failCount++;
-      }
+        if (action === 'delete') await fetch('/api/models', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modelPath: m.path, ollamaTag: m.ollamaTag }) });
+        else if (action === 'centralize') await fetch('/api/centralize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modelPath: m.path, finalModelName: m.finalModelName || m.name }) });
+        else if (action === 'decentralize') await fetch('/api/models', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ centralPath: m.centralPath }) });
+      } catch (e) { console.error(e); }
     }
-
-    const actionText = action === 'delete' ? 'deleted' : action === 'centralize' ? 'centralized' : 'decentralized';
-    if (successCount > 0) {
-      showToast(`${successCount} models ${actionText} successfully!`, 'success');
-    }
-    if (failCount > 0) {
-      showToast(`${failCount} models failed.`, 'error');
-    }
-
-    setSelectedModels(new Set());
+    showToast(t('settings_saved'), 'success');
+    setDeleteModalData({ ...deleteModalData, isOpen: false });
     fetchModels();
-  };
-
-  const toggleModelSelection = (path: string) => {
-    setSelectedModels(prev => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      return next;
-    });
-  };
-
-  const toggleSectionSelection = (items: Model[], select: boolean) => {
-    setSelectedModels(prev => {
-      const next = new Set(prev);
-      items.forEach(m => {
-        if (select) next.add(m.path);
-        else next.delete(m.path);
-      });
-      return next;
-    });
-  };
-
-
-
-  const toggleSection = (source: string) => {
-    setExpandedSections(prev => ({ ...prev, [source]: !prev[source] }));
-  };
-
-  const handleDragStart = (e: React.DragEvent, source: string) => {
-    e.dataTransfer.setData("text/plain", source);
-    e.currentTarget.classList.add("opacity-50");
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    e.currentTarget.classList.remove("opacity-50");
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault(); // Necessary to allow dropping
-  };
-
-  const handleDrop = (e: React.DragEvent, targetSource: string) => {
-    e.preventDefault();
-    const source = e.dataTransfer.getData("text/plain");
-    if (!source || source === targetSource) return;
-    
-    const oldIdx = sectionOrder.indexOf(source);
-    const newIdx = sectionOrder.indexOf(targetSource);
-    if (oldIdx === -1 || newIdx === -1) return;
-
-    const newOrder = [...sectionOrder];
-    newOrder.splice(oldIdx, 1);
-    newOrder.splice(newIdx, 0, source);
-    setSectionOrder(newOrder);
-
-    // Save new order to config
-    fetch('/api/config', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sectionOrder: newOrder })
-    });
   };
 
   const groupedModels = useMemo(() => {
     const filtered = models.filter(m => m.name.toLowerCase().includes(search.toLowerCase()) || m.source.toLowerCase().includes(search.toLowerCase()));
     const groups: Record<string, Model[]> = {};
-    filtered.forEach(m => {
-      if (!groups[m.source]) groups[m.source] = [];
-      groups[m.source].push(m);
-    });
+    filtered.forEach(m => { if (!groups[m.source]) groups[m.source] = []; groups[m.source].push(m); });
     return groups;
   }, [models, search]);
 
   const formatSize = (bytes: number) => (bytes / (1024 ** 3)).toFixed(2) + ' GB';
 
-  const getLaunchOptions = (model: Model) => {
-    const options = [];
-    if (model.source === 'Ollama') {
-        options.push({ type: 'ollama', icon: Play, label: 'LAUNCH OLLAMA' });
-    } else if (model.source === 'ComfyUI') {
-        options.push({ type: 'comfyui', icon: Box, label: 'LAUNCH COMFYUI' });
-    } else if (model.source === 'LM Studio') {
-        options.push({ type: 'lm-studio', icon: Play, label: 'LAUNCH LM STUDIO' });
-    }
-    
-    if (model.source !== 'Ollama' && (model.name.toLowerCase().endsWith('.gguf'))) {
-        options.push({ type: 'llama.cpp', icon: Terminal, label: 'LAUNCH LLAMA.CPP' });
-    }
-    return options;
-  };
-
   if (viewingModel) {
-    const launchOptions = getLaunchOptions(viewingModel);
     return (
-      <div className="p-12 max-w-6xl mx-auto animate-in slide-in-from-right-8">
-        <button onClick={() => setViewingModel(null)} className="flex items-center gap-2 text-slate-500 hover:text-white mb-8 transition-colors font-bold text-sm uppercase">
-          <ArrowLeft size={16} /> Back to Library
+      <div className="p-3 sm:p-6 md:p-10 lg:p-12 max-w-7xl mx-auto animate-in slide-in-from-right-10 duration-700 pb-20">
+        <button onClick={() => setViewingModel(null)} className="flex items-center gap-2 sm:gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 sm:mb-8 md:mb-10 transition-all font-black text-[8px] sm:text-[9px] md:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] group">
+          <ArrowLeft size={16} className="sm:size-20 group-hover:-translate-x-2 transition-transform flex-shrink-0" /> {t('close')}
         </button>
-        <div className="bg-slate-900 border border-slate-800 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
-          <header className="border-b border-slate-800 pb-10 mb-10 flex justify-between items-start">
-             <div>
-                <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">{viewingModel.name}</h2>
-                <div className="flex gap-4">
-                   <span className="bg-slate-800 px-4 py-2 rounded-2xl text-xs font-bold text-slate-300 border border-slate-700">{viewingModel.source}</span>
-                   <span className="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-2xl text-xs font-bold border border-emerald-500/10 uppercase">
-                      {viewingModel.extension}
-                   </span>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] lg:rounded-[4rem] p-6 sm:p-8 md:p-10 lg:p-12 shadow-premium relative overflow-hidden backdrop-blur-3xl">
+          <div className="absolute -top-32 -right-32 w-64 h-64 sm:w-96 sm:h-96 bg-blue-600/5 blur-[120px] rounded-full" />
+          
+          <header className="border-b border-[var(--border)] pb-6 sm:pb-8 md:pb-12 mb-6 sm:mb-8 md:mb-12 flex justify-between items-start flex-wrap gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+             <div className="space-y-3 sm:space-y-4 min-w-0 w-full sm:w-auto">
+                <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-tight sm:leading-none truncate uppercase">{viewingModel.name}</h2>
+                <div className="flex gap-1.5 sm:gap-2 md:gap-4 flex-wrap">
+                   <span className="bg-[var(--bg-input)] px-2 sm:px-4 md:px-6 py-1 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl text-[8px] sm:text-[9px] md:text-[10px] font-black text-[var(--text-secondary)] border border-[var(--border)] uppercase tracking-widest whitespace-nowrap">{viewingModel.source}</span>
+                   <span className="bg-emerald-500/10 text-emerald-500 px-2 sm:px-4 md:px-6 py-1 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl text-[8px] sm:text-[9px] md:text-[10px] font-black border border-emerald-500/20 uppercase tracking-widest shadow-sm whitespace-nowrap">{viewingModel.extension || 'MODULE'}</span>
+                   <span className="bg-blue-500/10 text-blue-500 px-2 sm:px-4 md:px-6 py-1 sm:py-2 md:py-2.5 rounded-lg sm:rounded-xl md:rounded-2xl text-[8px] sm:text-[9px] md:text-[10px] font-black border border-blue-500/20 uppercase tracking-widest shadow-sm whitespace-nowrap">{formatSize(viewingModel.size)}</span>
                 </div>
              </div>
-             <div className="flex flex-col gap-3">
-                {launchOptions.map(opt => (
-                   <button key={opt.type} onClick={() => handleLaunch(viewingModel, opt.type)} className="bg-white text-black hover:bg-blue-600 hover:text-white px-10 py-4 rounded-[1.5rem] font-black text-xs transition-all flex items-center gap-3 shadow-xl shadow-white/5 active:scale-95">
-                      <opt.icon size={18} /> {opt.label}
-                   </button>
-                ))}
+             <div className="flex gap-2 sm:gap-3 md:gap-4 w-full sm:w-auto">
+                <button onClick={() => handleLaunch(viewingModel, viewingModel.source.toLowerCase())} className="flex-1 sm:flex-none bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white px-4 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 rounded-lg sm:rounded-xl md:rounded-[2.5rem] font-black text-[8px] sm:text-[9px] md:text-xs uppercase tracking-[0.1em] sm:tracking-[0.15em] md:tracking-[0.2em] transition-all flex items-center justify-center gap-2 sm:gap-3 md:gap-4 shadow-premium active:scale-95 whitespace-nowrap">
+                   <Play size={16} className="sm:size-18 md:size-20" /> {t('dash_status')}
+                </button>
+                <button onClick={() => handleOpenFolder(viewingModel.path)} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-[var(--border)] text-[var(--text-primary)] p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-[1.5rem] transition-all shadow-premium active:scale-95 flex-shrink-0">
+                   <FolderOpen size={20} className="sm:size-24" />
+                </button>
              </div>
           </header>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-             <div className="lg:col-span-2 space-y-8">
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-14">
+             <div className="lg:col-span-2 space-y-6 sm:space-y-8 md:space-y-10">
                 <div>
-                   <h3 className="text-white font-black text-[10px] uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                      <FileText size={16} className="text-blue-500" /> Model Description & README
+                   <h3 className="text-[var(--text-primary)] font-black text-[8px] sm:text-[9px] md:text-[10px] lg:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.3em] md:tracking-[0.4em] lg:tracking-[0.5em] mb-4 sm:mb-6 md:mb-8 flex items-center gap-2 sm:gap-3 md:gap-4">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-blue-600/10 rounded-lg sm:rounded-lg md:rounded-xl flex items-center justify-center text-blue-500 flex-shrink-0"><FileText size={16} className="sm:size-18 md:size-20" /></div>
+                      <span className="break-words">{t('hub_details_desc')}</span>
                    </h3>
-                   <div className="bg-black/30 p-8 rounded-[2.5rem] border border-slate-800/50 max-h-[500px] overflow-y-auto custom-scrollbar">
-                      <div className="prose prose-invert prose-slate max-w-none">
-                         <pre className="whitespace-pre-wrap font-sans text-sm text-slate-400 leading-relaxed">
-                            {description}
-                         </pre>
-                      </div>
+                   <div className="bg-[var(--bg-input)]/30 p-4 sm:p-6 md:p-8 lg:p-10 rounded-lg sm:rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3.5rem] border border-[var(--border)] max-h-[300px] sm:max-h-[400px] md:max-h-[500px] lg:max-h-[600px] overflow-y-auto custom-scrollbar shadow-inner no-scrollbar">
+                      <pre className="whitespace-pre-wrap font-sans text-xs sm:text-sm md:text-base text-[var(--text-secondary)] leading-relaxed font-medium">{description}</pre>
                    </div>
                 </div>
              </div>
-             <div className="space-y-6">
-                <div className="bg-slate-800/20 p-8 rounded-[2.5rem] border border-slate-800/50">
-                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">File Info</h4>
-                   <div className="space-y-4">
-                      <div className="flex justify-between border-b border-slate-800/50 pb-4 text-sm"><span className="text-slate-500 font-bold">Size</span><span className="text-white font-black">{formatSize(viewingModel.size)}</span></div>
-                      <div className="flex justify-between border-b border-slate-800/50 pb-4 text-sm"><span className="text-slate-500 font-bold">Centralized</span><span className="text-white font-black">{viewingModel.isSymlink ? 'YES' : 'NO'}</span></div>
+
+             <div className="space-y-6 sm:space-y-8 md:space-y-10">
+                <div className="bg-[var(--bg-input)]/30 p-6 sm:p-8 md:p-10 rounded-lg sm:rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3.5rem] border border-[var(--border)] shadow-premium">
+                   <h4 className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] sm:tracking-[0.3em] md:tracking-[0.4em] mb-4 sm:mb-6 md:mb-8 flex items-center gap-2 sm:gap-3">
+                      <Info size={14} className="sm:size-16 text-purple-500 flex-shrink-0" /> {t('models_source')}
+                   </h4>
+                   <div className="space-y-3 sm:space-y-4 md:space-y-6">
+                      <div className="flex justify-between items-center border-b border-[var(--border)]/50 pb-3 sm:pb-4 md:pb-6 gap-2">
+                         <span className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest whitespace-nowrap">{t('size')}</span>
+                         <span className="text-base sm:text-lg md:text-xl font-black text-[var(--text-primary)] tracking-tighter text-right">{formatSize(viewingModel.size)}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-b border-[var(--border)]/50 pb-4 md:pb-6">
+                         <span className="text-[9px] md:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{t('central_centralized')}</span>
+                         <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest ${viewingModel.isSymlink ? 'text-emerald-500' : 'text-purple-500'}`}>{viewingModel.isSymlink ? t('yes') : t('no')}</span>
+                      </div>
                    </div>
                    {!viewingModel.isSymlink && (
-                      <button onClick={() => handleCentralize(viewingModel)} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl mt-8 transition-all flex items-center justify-center gap-2">
-                         <Zap size={18} /> Centralize
+                      <button onClick={() => handleCentralize(viewingModel)} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] md:text-xs uppercase tracking-[0.2em] py-4 md:py-5 rounded-xl md:rounded-2xl mt-8 md:mt-10 transition-all flex items-center justify-center gap-3 md:gap-4 shadow-xl shadow-blue-600/30 active:scale-95">
+                         <Zap size={20} /> {t('central_centralizeBtn')}
                       </button>
                    )}
                 </div>
-                <div className="bg-slate-800/20 p-8 rounded-[2.5rem] border border-slate-800/50">
-                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Management</h4>
-                   <div className="flex flex-col gap-3">
-                      <button onClick={() => handleRename(viewingModel)} className="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
-                         <Edit3 size={16} /> Rename
+
+                <div className="bg-[var(--bg-input)]/30 p-8 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border border-[var(--border)] shadow-premium">
+                   <h4 className="text-[10px] md:text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] md:tracking-[0.4em] mb-6 md:mb-8 flex items-center gap-3">
+                      <Terminal size={16} className="text-emerald-500" /> {t('models_actions')}
+                   </h4>
+                   <div className="flex flex-col gap-3 md:gap-4">
+                      <button onClick={() => handleRename(viewingModel)} className="w-full bg-[var(--bg-surface)] hover:bg-[var(--border)] text-[var(--text-primary)] font-black py-4 md:py-5 rounded-xl md:rounded-2xl transition-all flex items-center justify-center gap-3 md:gap-4 text-[9px] md:text-[10px] uppercase tracking-[0.2em] border border-[var(--border)] shadow-sm active:scale-95">
+                         <Edit3 size={18} /> {t('save')}
                       </button>
-                      <button onClick={() => handleDelete(viewingModel)} className="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest border border-red-500/20">
-                         <Trash2 size={16} /> Delete
+                      <button onClick={() => handleDelete(viewingModel)} className="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black py-4 md:py-5 rounded-xl md:rounded-2xl transition-all flex items-center justify-center gap-3 md:gap-4 text-[9px] md:text-[10px] uppercase tracking-[0.2em] border border-red-500/20 shadow-sm active:scale-95">
+                         <Trash2 size={18} /> {t('delete')}
                       </button>
                    </div>
-                </div>
-                <div className="bg-slate-800/20 p-8 rounded-[2.5rem] border border-slate-800/50">
-                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Location</h4>
-                   <p className="text-[10px] text-slate-600 break-all font-mono mb-4">{viewingModel.path}</p>
-                   <button onClick={() => handleOpenFolder(viewingModel.path)} className="text-blue-500 font-bold text-[10px] uppercase hover:underline flex items-center gap-2">
-                      <FolderOpen size={14} /> Reveal in Explorer
-                   </button>
                 </div>
              </div>
           </div>
@@ -390,194 +231,132 @@ const handleDelete = async (model: Model) => {
     );
   }
 
-return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex justify-between items-end mb-12">
-        <div>
-          <h2 className="text-4xl font-black text-white mb-2 flex items-center">
-            My Models
-            <HelpTooltip text="All your detected models are listed here. The app automatically identifies their source and supported actions." />
+  return (
+    <div className="p-6 md:p-12 max-w-[90rem] mx-auto animate-in fade-in duration-1000 pb-20">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end mb-10 md:mb-14 gap-6 md:gap-8">
+        <div className="space-y-2">
+          <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 uppercase">
+            {t('models_title')}
+            <HelpTooltip text={t('models_subtitle')} />
           </h2>
-          <p className="text-slate-500">Intelligent context-aware management of your AI assets.</p>
+          <p className="text-[var(--text-secondary)] text-base md:text-xl font-medium opacity-80">{t('models_subtitle')}</p>
         </div>
-        <div className="flex gap-4">
-          <div className="relative">
-             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-             <input type="text" placeholder="Filter models..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-2xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-white w-72" />
+        <div className="flex gap-3 md:gap-5 flex-wrap">
+          <div className="relative group flex-1 sm:flex-none">
+             <Search size={22} className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" />
+             <input 
+              type="text" 
+              placeholder={t('models_search')} 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)} 
+              className="w-full sm:w-64 md:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl md:rounded-[2rem] py-3.5 md:py-5 pl-12 md:pl-16 pr-6 md:pr-8 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-premium transition-all font-medium" 
+             />
           </div>
-          <button onClick={fetchModels} className="bg-slate-900 hover:bg-slate-800 text-white p-3 rounded-2xl border border-slate-800 transition-colors">
-            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+          <button onClick={fetchModels} className="bg-[var(--bg-surface)] hover:bg-[var(--bg-input)] text-[var(--text-primary)] p-4 md:p-5 rounded-xl md:rounded-[1.5rem] border border-[var(--border)] transition-all shadow-premium active:scale-95">
+            <RefreshCw size={24} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>
 
       {!loading && models.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-slate-800 flex items-center justify-center mb-6">
-            <Box size={40} className="text-slate-700" />
+        <div className="flex flex-col items-center justify-center py-12 sm:py-20 md:py-40 text-center bg-[var(--bg-surface)] rounded-xl sm:rounded-[2.5rem] md:rounded-[5rem] border border-[var(--border)] shadow-premium relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5" />
+          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-lg sm:rounded-2xl md:rounded-[2.5rem] bg-[var(--bg-input)] border border-[var(--border)] flex items-center justify-center mb-4 sm:mb-6 md:mb-8 shadow-premium relative z-10">
+            <HardDrive size={40} className="sm:size-56 md:size-14 text-[var(--text-muted)] opacity-50" />
           </div>
-          <h3 className="text-white font-black text-2xl mb-2">Nenhum modelo encontrado</h3>
-          <p className="text-slate-500 max-w-sm">Os teus modelos Ollama, ComfyUI e outros aparecerão aqui após a detecção. Clica em Refresh ou descarrega um modelo.</p>
+          <h3 className="text-[var(--text-primary)] font-black text-xl sm:text-2xl md:text-4xl mb-2 sm:mb-3 md:mb-4 tracking-tighter relative z-10 break-words">{t('models_noModels')}</h3>
+          <p className="text-[var(--text-secondary)] max-w-xs sm:max-w-sm md:max-w-md text-sm sm:text-base md:text-lg font-medium relative z-10 leading-relaxed opacity-80">{t('models_noModelsDesc')}</p>
         </div>
       )}
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8 md:space-y-12">
         {sectionOrder.map(source => {
           const items = groupedModels[source] || [];
-          // Hide sections that have no models (avoids confusing empty boxes)
           if (items.length === 0) return null;
           const isExpanded = expandedSections[source] !== false;
           return (
-            <div 
-              key={source} 
-              className="bg-slate-900/50 border border-slate-800 rounded-[3rem] overflow-hidden backdrop-blur-xl group transition-all duration-500"
-              draggable
-              onDragStart={(e) => handleDragStart(e, source)}
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, source)}
-            >
-              <div className="flex items-center justify-between p-8 cursor-grab active:cursor-grabbing">
-                 <div className="flex items-center gap-5">
-                    <input 
-                       type="checkbox" 
-                       className="w-5 h-5 rounded border-slate-700 bg-slate-900/50 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
-                       checked={items.length > 0 && items.every(m => selectedModels.has(m.path))}
-                       onChange={(e) => toggleSectionSelection(items, e.target.checked)}
-                       onClick={e => e.stopPropagation()}
-                    />
-                    <div className={`w-14 h-14 rounded-3xl flex items-center justify-center text-white shadow-2xl transition-transform duration-500 ${isExpanded ? 'scale-110' : 'scale-90'} ${
-                      source === 'Ollama' ? 'bg-blue-600 shadow-blue-600/20' : source === 'ComfyUI' ? 'bg-purple-600 shadow-purple-600/20' : 'bg-slate-800 shadow-black/50'
-                    }`} onClick={() => toggleSection(source)}>
-                      <Box size={28} />
+            <div key={source} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg sm:rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-premium backdrop-blur-3xl group\">
+              <div 
+                className="flex items-center justify-between p-4 sm:p-6 md:p-10 cursor-pointer hover:bg-[var(--bg-input)]/30 transition-all\" 
+                onClick={() => setExpandedSections(prev => ({ ...prev, [source]: !isExpanded }))}
+              >
+                 <div className="flex items-center gap-4 md:gap-8">
+                    <div className={`w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-[2rem] flex items-center justify-center text-white shadow-premium transition-all duration-700 shrink-0 ${isExpanded ? 'scale-110 rotate-3 shadow-blue-500/30' : 'scale-90 opacity-40'} ${source === 'Ollama' ? 'bg-gradient-to-br from-blue-600 to-blue-400' : source === 'ComfyUI' ? 'bg-gradient-to-br from-purple-600 to-pink-500' : 'bg-gradient-to-br from-slate-800 to-slate-600'}`}>
+                      <Box size={40} />
                     </div>
-                    <div className="text-left cursor-pointer" onClick={() => toggleSection(source)}>
-                       <h3 className="text-xl font-black text-white uppercase tracking-wider">{source}</h3>
-                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{items.length} Local Intelligence Files</p>
+                    <div className="min-w-0">
+                       <h3 className="text-xl md:text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase truncate">{source}</h3>
+                       <div className="flex items-center gap-2 md:gap-3">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                          <p className="text-[9px] md:text-xs text-[var(--text-muted)] font-black uppercase tracking-widest md:tracking-[0.3em] truncate">{items.length} {t('models_title')}</p>
+                       </div>
                     </div>
                  </div>
-                 
-                 <div className="flex items-center gap-4">
-                    <div className="text-slate-500 cursor-pointer p-2 hover:bg-slate-800 rounded-full transition-colors" onClick={() => toggleSection(source)}>
-                       {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                 <div className="flex items-center gap-4 md:gap-6 shrink-0">
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] transition-all duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
+                       <ChevronDown size={24} />
                     </div>
                  </div>
               </div>
 
               {isExpanded && (
-                <div className="border-t border-slate-800/50 animate-in fade-in slide-in-from-top-2 duration-500">
-                  <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950/50 text-slate-600 font-black uppercase tracking-[0.2em] sticky top-0 z-10 backdrop-blur-md">
-                        <tr>
-                          <th className="p-8 w-16"></th>
-                          <th className="p-8">Model & Intelligence</th>
-                          <th className="p-8 text-center">Status</th>
-                          <th className="p-8 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/30">
-                        {items.map(m => {
-                           const lOptions = getLaunchOptions(m);
-                           return (
-                             <tr key={m.path} className="hover:bg-slate-800/20 transition-all group/row relative">
-                               <td className="p-8 w-16">
-                                 <input 
-                                    type="checkbox" 
-                                    className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
-                                    checked={selectedModels.has(m.path)}
-                                    onChange={() => toggleModelSelection(m.path)}
-                                 />
-                               </td>
-                               <td className="p-8">
-                                  <div className="flex flex-col relative">
-                                     <span 
-                                       onClick={() => setViewingModel(m)} 
-                                       className="text-white font-black text-base cursor-pointer hover:text-blue-500 transition-colors mb-1 flex items-center gap-2 group/name"
-                                     >
-                                        {m.name}
-                                        <div className="invisible group-hover/name:visible absolute left-0 -top-12 z-[10000] bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-2xl w-72 pointer-events-none text-xs text-slate-400 font-medium leading-relaxed backdrop-blur-xl animate-in fade-in zoom-in duration-200">
-                                          {m.description || "IA Model file optimized for local orchestration. Source: " + source}
-                                        </div>
-                                     </span>
-                                     <span 
-                                       className="text-[10px] text-slate-600 font-mono truncate max-w-sm hover:text-blue-400 hover:underline cursor-pointer"
-                                       onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }}
-                                     >
-                                       {m.path}
-                                     </span>
-                                  </div>
-                               </td>
-                               <td className="p-8 text-center">
-                                  {m.isSymlink ? <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-4 py-2 rounded-full border border-emerald-400/10 uppercase tracking-widest">CENTRALIZED</span> 
-                                  : <span className="text-[9px] font-black text-slate-600 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 uppercase tracking-widest">STANDALONE</span>}
-                               </td>
-                               <td className="p-8 text-right">
-                                 <div className="flex justify-end gap-2">
-                                   {lOptions.map(opt => (
-                                      <button key={opt.type} onClick={() => handleLaunch(m, opt.type)} className="p-3 bg-blue-500/10 text-blue-500 hover:bg-blue-600 hover:text-white rounded-xl transition-all shadow-lg active:scale-90" title={opt.label}>
-                                         <opt.icon size={16} />
-                                      </button>
-                                   ))}
-                                   <button onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Open Folder">
-                                      <FolderOpen size={16} />
-                                   </button>
-                                   <button onClick={(e) => { e.stopPropagation(); handleRename(m); }} className="p-3 bg-slate-800 text-slate-500 hover:text-white rounded-xl transition-all active:scale-90" title="Edit/Rename">
-                                      <Edit3 size={16} />
-                                   </button>
-                                   <button onClick={(e) => { e.stopPropagation(); handleDelete(m); }} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all active:scale-90" title={m.isSymlink ? "Remover Centralização" : "Delete Permanent"}>
-                                      <Trash2 size={16} />
-                                   </button>
-                                 </div>
-                               </td>
-                             </tr>
-                           );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                <div className="border-t border-[var(--border)] p-6 md:p-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 animate-in fade-in duration-700 zoom-in-95">
+                   {items.map(m => (
+                      <div 
+                        key={m.path} 
+                        onClick={() => setViewingModel(m)} 
+                        className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[2rem] md:rounded-[3rem] p-6 md:p-8 hover:border-blue-500/50 transition-all cursor-pointer group/card relative overflow-hidden shadow-sm hover:shadow-premium active:scale-[0.98] flex flex-col"
+                      >
+                         <div className="absolute top-0 right-0 p-4 md:p-6 opacity-0 group-hover/card:opacity-100 transition-all translate-x-4 group-hover/card:translate-x-0">
+                            <ExternalLink size={20} className="text-blue-500" />
+                         </div>
+                         
+                         <div className="flex justify-between items-start mb-4 md:mb-6">
+                            <span className={`text-[8px] md:text-[9px] font-black px-3 md:px-4 py-1 md:py-1.5 rounded-full uppercase tracking-widest border shadow-sm ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border-[var(--border)]'}`}>
+                               {m.isSymlink ? t('central_centralized') : t('central_standalone')}
+                            </span>
+                         </div>
+                         
+                         <h4 className="text-xl md:text-2xl font-black text-[var(--text-primary)] mb-2 line-clamp-1 tracking-tighter group-hover/card:text-blue-500 transition-colors uppercase">{m.name}</h4>
+                         <p className="text-[var(--text-muted)] text-[9px] md:text-[11px] font-mono mb-6 md:mb-10 truncate font-bold opacity-60">{m.path}</p>
+                         
+                         <div className="flex justify-between items-end mt-auto gap-4">
+                            <div className="flex flex-col gap-0.5 md:gap-1 min-w-0">
+                               <span className="text-[9px] md:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{t('size')}</span>
+                               <span className="text-lg md:text-xl font-black text-[var(--text-primary)] tracking-tighter">{formatSize(m.size)}</span>
+                            </div>
+                            <div className="flex gap-2 md:gap-3 relative z-10 shrink-0">
+                               <button 
+                                onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }} 
+                                className="w-10 h-10 md:w-12 md:h-12 bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-blue-500 rounded-xl md:rounded-2xl border border-[var(--border)] flex items-center justify-center transition-all hover:shadow-md active:scale-90"
+                                title={t('search')}
+                               >
+                                  <FolderOpen size={20} />
+                               </button>
+                               <button 
+                                onClick={(e) => { e.stopPropagation(); handleDelete(m); }} 
+                                className="w-10 h-10 md:w-12 md:h-12 bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white rounded-xl md:rounded-2xl border border-red-500/10 flex items-center justify-center transition-all hover:shadow-md active:scale-90"
+                                title={t('delete')}
+                               >
+                                  <Trash2 size={20} />
+                               </button>
+                            </div>
+                         </div>
+                      </div>
+                   ))}
                 </div>
               )}
             </div>
           );
         })}
       </div>
-      <LaunchModal 
-        isOpen={launchModalData.isOpen} 
-        modelName={launchModalData.model?.name || ''} 
-        onClose={() => setLaunchModalData({ isOpen: false, model: null })}
-        onLaunch={(params) => launchModalData.model && handleLaunch(launchModalData.model, 'llama.cpp', params)}
-      />
 
-      {selectedModels.size > 0 && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 p-4 rounded-full shadow-2xl flex items-center gap-6 z-[9999] animate-in slide-in-from-bottom-10 backdrop-blur-xl">
-          <span className="text-white font-black text-sm px-4">
-            {selectedModels.size} selected
-          </span>
-          <div className="flex items-center gap-2 border-l border-slate-700 pl-6">
-             {models.some(m => selectedModels.has(m.path) && !m.isSymlink) && (
-               <button onClick={() => setDeleteModalData({ isOpen: true, models: models.filter(m => selectedModels.has(m.path) && !m.isSymlink), initialAction: 'centralize' })} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20">
-                 <Zap size={14} /> Centralize
-               </button>
-             )}
-             {models.some(m => selectedModels.has(m.path) && m.isSymlink) && (
-               <button onClick={() => setDeleteModalData({ isOpen: true, models: models.filter(m => selectedModels.has(m.path) && m.isSymlink), initialAction: 'decentralize' })} className="flex items-center gap-2 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-emerald-500/20">
-                 <Link2Off size={14} /> Decentralize
-               </button>
-             )}
-             <button onClick={() => setDeleteModalData({ isOpen: true, models: models.filter(m => selectedModels.has(m.path)), initialAction: 'delete' })} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold py-2 px-6 rounded-full transition-all text-xs uppercase tracking-widest border border-red-500/20">
-               <Trash2 size={14} /> Delete
-             </button>
-          </div>
-        </div>
-      )}
-
-      <DeleteModal
+      <DeleteModal 
         isOpen={deleteModalData.isOpen}
+        onClose={() => setDeleteModalData({ ...deleteModalData, isOpen: false })}
+        onConfirm={handleModalConfirm}
         models={deleteModalData.models}
         initialAction={deleteModalData.initialAction}
-        onClose={() => setDeleteModalData({ isOpen: false, models: [], initialAction: null })}
-        onConfirm={handleModalConfirm}
       />
     </div>
   );
