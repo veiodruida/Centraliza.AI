@@ -58,7 +58,7 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
                 onChange={(e) => setParams({...params, n_gpu_layers: parseInt(e.target.value)})}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
-              <p className="text-[9px] text-slate-600 mt-2 font-bold uppercase tracking-widest">Defina como 0 para CPU-only. Aumente se tiver VRAM disponível.</p>
+              <p className="text-[9px] text-slate-600 mt-2 font-bold uppercase tracking-widest">Set to 0 for CPU-only. Increase if you have available VRAM.</p>
            </div>
 
            <div>
@@ -82,7 +82,7 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
                 onChange={(e) => setParams({...params, prompt: e.target.value})}
                 rows={3}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-medium text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"
-                placeholder="Ex: Você é um assistente prestativo em Português..."
+                placeholder="Ex: You are a helpful assistant..."
               />
            </div>
         </div>

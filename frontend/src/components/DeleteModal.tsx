@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Trash2, Zap, X, AlertTriangle, Link2Off } from 'lucide-react';
 
 export interface ModelItem {
@@ -9,6 +9,7 @@ export interface ModelItem {
   size?: number;
   finalModelName?: string;
   ollamaTag?: string;
+  centralPath?: string;
 }
 
 interface DeleteModalProps {
@@ -16,11 +17,19 @@ interface DeleteModalProps {
   models: ModelItem[];
   onClose: () => void;
   onConfirm: (action: 'delete' | 'decentralize' | 'centralize') => void;
+  initialAction?: 'delete' | 'decentralize' | 'centralize' | null;
 }
 
-export default function DeleteModal({ isOpen, models, onClose, onConfirm }: DeleteModalProps) {
-  const [selectedAction, setSelectedAction] = useState<'delete' | 'decentralize' | 'centralize' | null>(null);
+export default function DeleteModal({ isOpen, models, onClose, onConfirm, initialAction = null }: DeleteModalProps) {
+  const [selectedAction, setSelectedAction] = useState<'delete' | 'decentralize' | 'centralize' | null>(initialAction);
   const [confirmChecked, setConfirmChecked] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedAction(initialAction);
+      setConfirmChecked(false);
+    }
+  }, [isOpen, initialAction]);
 
   if (!isOpen || models.length === 0) return null;
 
@@ -58,10 +67,10 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
           </div>
           <div>
             <h3 className="text-2xl font-black text-white">
-              {isSingle ? `Gerenciar "${model.name}"` : `${models.length} modelos selecionados`}
+              {isSingle ? `Manage "${model.name}"` : `${models.length} models selected`}
             </h3>
             <p className="text-slate-500 text-sm mt-1">
-              Escolha uma ação para prosseguir
+              Choose an action to proceed
             </p>
           </div>
         </div>
@@ -79,9 +88,9 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
                     <Zap size={24} />
                   </div>
                   <div>
-                    <span className="text-white font-black text-sm block">Centralizar Modelo{models.length > 1 ? 's' : ''}</span>
+                    <span className="text-white font-black text-sm block">Centralize Model{models.length > 1 ? 's' : ''}</span>
                     <span className="text-slate-500 text-[10px] leading-tight block mt-1">
-                      Mover arquivos para a pasta central e criar atalhos. Economiza espaço e organiza seus modelos.
+                      Create hardlinks in the central folder. Both locations will point to the same physical data without extra disk usage.
                     </span>
                   </div>
                 </button>
@@ -97,9 +106,9 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
                     <Link2Off size={24} />
                   </div>
                   <div>
-                    <span className="text-white font-black text-sm block">Descentralizar / Remover Atalho</span>
+                    <span className="text-white font-black text-sm block">Decentralize / Remove Link</span>
                     <span className="text-slate-500 text-[10px] leading-tight block mt-1">
-                      Remove apenas a ligação na pasta central. O arquivo original no provedor (Ollama, ComfyUI, etc) permanecerá intacto.
+                      Removes only the reference in the central folder. The original file in the provider directory will remain intact.
                     </span>
                   </div>
                 </button>
@@ -115,10 +124,10 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
                 </div>
                 <div>
                   <span className="text-red-500 font-black text-sm block">
-                    Excluir Permanentemente
+                    Delete Permanently
                   </span>
                   <span className="text-slate-500 text-[10px] leading-tight block mt-1">
-                    APAGA os arquivos físicos do disco. Esta ação é irreversível e removerá tanto o atalho quanto o original.
+                    ERASES the physical files from disk. This action is irreversible and will remove both the reference and the original data.
                   </span>
                 </div>
               </button>
@@ -128,11 +137,11 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
               <div className="bg-slate-800/30 p-4 rounded-xl border border-slate-800">
                 <p className="text-slate-400 text-xs leading-relaxed">
                   {selectedAction === 'delete' ? (
-                    'ATENÇÃO: Você está prestes a excluir permanentemente os arquivos selecionados. Isso não pode ser desfeito.'
+                    'WARNING: You are about to permanently delete the selected files. This cannot be undone.'
                   ) : selectedAction === 'centralize' ? (
-                    'Os modelos serão movidos para a pasta de centralização configurada e substituídos por atalhos no local original.'
+                    'Models will be linked to the configured central folder using hardlinks. No extra disk space will be used.'
                   ) : (
-                    'Apenas as referências na pasta central serão removidas. Os arquivos originais nos diretórios dos provedores não serão afetados.'
+                    'Only the references in the central folder will be removed. The original files in the provider directories will not be affected.'
                   )}
                 </p>
               </div>
@@ -146,7 +155,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
                   className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
                 />
                 <label htmlFor="confirm-action" className="text-slate-400 text-xs cursor-pointer select-none">
-                  Estou ciente e desejo prosseguir
+                  I am aware and wish to proceed
                 </label>
               </div>
 
@@ -155,7 +164,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
                   onClick={() => { setSelectedAction(null); setConfirmChecked(false); }}
                   className="flex-1 py-4 rounded-2xl border border-slate-800 text-slate-400 font-black text-xs uppercase hover:bg-slate-800 transition-all"
                 >
-                  Voltar
+                  Back
                 </button>
                 <button
                   onClick={handleExecute}
@@ -168,7 +177,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
                       : 'bg-slate-800 text-slate-600 cursor-not-allowed'
                   }`}
                 >
-                  Confirmar {selectedAction === 'delete' ? 'Exclusão' : selectedAction === 'centralize' ? 'Centralização' : 'Remoção'}
+                  Confirm {selectedAction === 'delete' ? 'Deletion' : selectedAction === 'centralize' ? 'Centralization' : 'Removal'}
                 </button>
               </div>
             </div>
@@ -180,7 +189,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm }: Dele
             onClick={onClose}
             className="w-full py-4 rounded-2xl text-slate-500 font-black text-xs uppercase hover:text-white transition-all"
           >
-            Cancelar Tudo
+            Cancel All
           </button>
         </div>
       </div>

@@ -24,14 +24,14 @@ export default function Settings() {
     try {
       const res = await fetch('/api/auto-detect', { method: 'POST' });
       const data = await res.json();
-      setConfig(data.config);
+      if (data.config) setConfig(data.config);
       if (quiet) {
-        showToast('Auto-detect realizado silenciosamente.', 'success');
+        showToast('Auto-detect performed silently.', 'success');
       } else {
-        showToast('Auto-detect completo! Verifique as pastas.', 'success');
+        showToast('Auto-detect complete! Check the detected paths.', 'success');
       }
     } catch (e) {
-      if (!quiet) showToast('Falha na detecção automática.', 'error');
+      if (!quiet) showToast('Failed to auto-detect applications.', 'error');
     }
   };
 
@@ -43,9 +43,9 @@ export default function Settings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      showToast('Configurações salvas!', 'success');
+      showToast('Settings saved successfully!', 'success');
     } catch (e) {
-      showToast('Erro ao salvar.', 'error');
+      showToast('Error saving settings.', 'error');
     } finally {
       setSaving(false);
     }
@@ -65,7 +65,7 @@ export default function Settings() {
         else if (field === 'comfyDir') setConfig({ ...config, comfyDir: data.path });
         else if (field === 'scan') setNewPath(data.path);
       }
-    } catch (e) { alert('Erro ao abrir seletor de pastas.'); }
+    } catch (e) { alert('Error opening folder picker.'); }
   };
 
   const addPath = () => {
@@ -110,7 +110,7 @@ export default function Settings() {
               </div>
               <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center">
                 Central Repository
-                <HelpTooltip text="Esta é a pasta onde todos os 'atalhos' inteligentes serão criados. Centralize aqui para economizar espaço em disco sem duplicar arquivos." />
+                <HelpTooltip text="This is the folder where all smart 'links' will be created. Centralize here to save disk space without duplicating files." />
               </h3>
            </div>
            
@@ -139,7 +139,7 @@ export default function Settings() {
               </div>
               <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center">
                 ComfyUI Installation
-                <HelpTooltip text="Aponte para a pasta raiz do seu ComfyUI. Isso permite que o Centraliza.ai encontre os scripts de inicialização da GPU automaticamente." />
+                <HelpTooltip text="Point to your ComfyUI root folder. This allows Centraliza.ai to find GPU initialization scripts automatically." />
               </h3>
            </div>
            <p className="text-xs text-slate-500 mb-8 max-w-xl">Root folder of your ComfyUI (used to find run_nvidia_gpu.bat).</p>
@@ -164,7 +164,7 @@ export default function Settings() {
               </div>
               <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center">
                 Intelligence Sources
-                <HelpTooltip text="Adicione as pastas onde você já possui modelos baixados (ex: pasta de modelos do Ollama ou LM Studio). O app usará essas fontes para criar os links." />
+                <HelpTooltip text="Add folders where you already have models downloaded (e.g., Ollama or LM Studio model folders). The app will use these as sources for links." />
               </h3>
            </div>
            

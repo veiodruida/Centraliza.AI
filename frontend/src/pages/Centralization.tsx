@@ -61,9 +61,9 @@ export default function Centralization() {
     <div className="p-12 max-w-6xl mx-auto animate-in fade-in duration-700">
       <header className="mb-12 flex justify-between items-start">
         <div>
-           <h2 className="text-4xl font-black text-white mb-2 flex items-center">
+            <h2 className="text-4xl font-black text-white mb-2 flex items-center">
              Centralization Engine
-             <HelpTooltip text="Esta ferramenta otimiza seu armazenamento convertendo cópias físicas de modelos em links inteligentes." />
+             <HelpTooltip text="This tool optimizes your storage by converting physical model copies into smart links." />
            </h2>
            <p className="text-slate-500">Manage link integrity and storage optimization.</p>
         </div>
@@ -72,7 +72,7 @@ export default function Centralization() {
             onClick={async () => {
               const res = await fetch('/api/models/sanity-check', { method: 'POST' });
               const data = await res.json();
-              alert(`Limpeza concluída! ${data.cleaned} links órfãos removidos.`);
+              alert(`Cleanup complete! ${data.cleaned} orphan links removed.`);
               fetchModels();
             }}
             className="bg-slate-900 px-6 py-3 rounded-2xl border border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all flex items-center gap-3 shadow-xl"
@@ -90,7 +90,7 @@ export default function Centralization() {
             <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-500"><HardDrive size={100} /></div>
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center">
               Total Space Saved
-              <HelpTooltip text="Quantidade de GB que você economizou no seu SSD usando a tecnologia de Hardlinks do Centraliza.ai." />
+              <HelpTooltip text="Amount of GB saved on your disk using Centraliza.ai Hardlink technology." />
             </h3>
             <p className="text-6xl font-black text-white">{(spaceSaved / (1024**3)).toFixed(1)}<span className="text-xl">GB</span></p>
          </div>
@@ -98,7 +98,7 @@ export default function Centralization() {
             <div className="absolute top-0 right-0 p-8 opacity-5 text-purple-500"><Layers size={100} /></div>
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center">
               Standalone Models
-              <HelpTooltip text="Modelos que ainda ocupam espaço real em disco e podem ser centralizados para economizar espaço." />
+              <HelpTooltip text="Models that still occupy real disk space and can be centralized to save space." />
             </h3>
             <p className="text-6xl font-black text-white">{localModels.length}</p>
          </div>

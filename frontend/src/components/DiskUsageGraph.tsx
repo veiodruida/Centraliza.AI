@@ -14,8 +14,8 @@ export default function DiskUsageGraph() {
       
       const formatted = [
         { name: 'Centraliza.ai (Links)', value: json.centraliza },
-        { name: 'Outros Arquivos', value: json.others },
-        { name: 'Espaço Livre', value: json.free }
+        { name: 'Other Files', value: json.others },
+        { name: 'Free Space', value: json.free }
       ];
       setData(formatted);
     } catch (e) { console.error('Disk fetch failed'); }
