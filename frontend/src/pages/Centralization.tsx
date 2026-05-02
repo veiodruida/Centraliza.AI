@@ -149,7 +149,7 @@ export default function Centralization() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
          <div className="card-premium relative group">
             <div className="absolute top-0 right-0 p-12 opacity-[0.05] text-blue-500 group-hover:scale-125 transition-all"><HardDrive size={240} /></div>
-            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-8 flex items-center gap-3">
+            <h3 className="text-sm md:text-base font-black text-blue-500 uppercase tracking-widest mb-8 flex items-center gap-3">
               {t('central_spaceSaved')}
               <HelpTooltip text={t('central_spaceSavedHelp')} />
             </h3>
@@ -157,11 +157,11 @@ export default function Centralization() {
                <p className="text-6xl md:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{(spaceSaved / (1024**3)).toFixed(1)}</p>
                <span className="text-2xl font-black text-blue-500 uppercase tracking-widest">GB</span>
             </div>
-            <p className="mt-6 text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Recovered Storage Potential</p>
+            <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Recovered Storage Potential</p>
          </div>
          <div className="card-premium relative group">
             <div className="absolute top-0 right-0 p-12 opacity-[0.05] text-purple-500 group-hover:scale-125 transition-all"><Layers size={240} /></div>
-            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-8 flex items-center gap-3">
+            <h3 className="text-sm md:text-base font-black text-blue-500 uppercase tracking-widest mb-8 flex items-center gap-3">
               {t('central_standalone')}
               <HelpTooltip text={t('central_standaloneHelp')} />
             </h3>
@@ -169,7 +169,7 @@ export default function Centralization() {
                <p className="text-6xl md:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{standaloneCount}</p>
                <span className="text-2xl font-black text-purple-500 uppercase tracking-widest">MODS</span>
             </div>
-            <p className="mt-6 text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Pending Centralization</p>
+            <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Pending Centralization</p>
          </div>
       </div>
 
@@ -265,13 +265,13 @@ export default function Centralization() {
                         )}
                         <div className="flex flex-col gap-3 min-w-0">
                            <div className="flex items-center gap-4 flex-wrap">
-                              <span className={`font-black text-2xl tracking-tighter truncate ${m.isSymlink ? 'text-emerald-500' : 'text-[var(--text-primary)]'}`}>{m.name}</span>
+                              <span className={`font-black text-xl md:text-2xl tracking-tighter break-all ${m.isSymlink ? 'text-emerald-500' : 'text-[var(--text-primary)]'}`}>{m.name}</span>
                               <span className={`text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-glow-emerald' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border border-[var(--border)]'}`}>
                                  {m.isSymlink ? t('central_centralized') : t('central_standalone')}
                               </span>
                            </div>
                            <div className="flex items-center gap-6">
-                              <p className="text-xs font-mono text-[var(--text-muted)] truncate max-w-2xl font-bold opacity-60 tracking-tight">{m.path}</p>
+                              <p className="text-base font-mono text-[var(--text-primary)] break-all font-bold tracking-normal">{m.path}</p>
                               <div className="flex items-center gap-2 shrink-0 bg-blue-500/5 px-3 py-1 rounded-lg border border-blue-500/10">
                                  <Box size={14} className="text-blue-500" />
                                  <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{m.source}</span>
@@ -339,6 +339,10 @@ export default function Centralization() {
     </motion.div>
   );
 }
+
+
+
+
 
 
 
