@@ -149,7 +149,7 @@ export default function Centralization() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
          <div className="card-premium relative group">
             <div className="absolute top-0 right-0 p-12 opacity-[0.05] text-blue-500 group-hover:scale-125 transition-all"><HardDrive size={240} /></div>
-            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-8 flex items-center gap-3">
               {t('central_spaceSaved')}
               <HelpTooltip text={t('central_spaceSavedHelp')} />
             </h3>
@@ -157,11 +157,11 @@ export default function Centralization() {
                <p className="text-6xl md:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{(spaceSaved / (1024**3)).toFixed(1)}</p>
                <span className="text-2xl font-black text-blue-500 uppercase tracking-widest">GB</span>
             </div>
-            <p className="mt-6 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Recovered Storage Potential</p>
+            <p className="mt-6 text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Recovered Storage Potential</p>
          </div>
          <div className="card-premium relative group">
             <div className="absolute top-0 right-0 p-12 opacity-[0.05] text-purple-500 group-hover:scale-125 transition-all"><Layers size={240} /></div>
-            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+            <h3 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider mb-8 flex items-center gap-3">
               {t('central_standalone')}
               <HelpTooltip text={t('central_standaloneHelp')} />
             </h3>
@@ -169,7 +169,7 @@ export default function Centralization() {
                <p className="text-6xl md:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{standaloneCount}</p>
                <span className="text-2xl font-black text-purple-500 uppercase tracking-widest">MODS</span>
             </div>
-            <p className="mt-6 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Pending Centralization</p>
+            <p className="mt-6 text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Pending Centralization</p>
          </div>
       </div>
 
@@ -180,7 +180,7 @@ export default function Centralization() {
                  <button 
                   key={f}
                   onClick={() => setActiveFilter(f)}
-                  className={`px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 active:scale-95 flex-1 xl:flex-none justify-center ${
+                  className={`px-6 py-4 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all flex items-center gap-3 active:scale-95 flex-1 xl:flex-none justify-center ${
                     activeFilter === f ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                   }`}
                  >
@@ -198,7 +198,7 @@ export default function Centralization() {
                         if (sortField === field) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                         else { setSortField(field); setSortOrder('asc'); }
                       }}
-                      className={`px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 xl:flex-none justify-center ${
+                      className={`px-6 py-4 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 xl:flex-none justify-center ${
                         sortField === field ? 'bg-[var(--border)] text-[var(--text-primary)] shadow-lg' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                       }`}
                     >
@@ -209,7 +209,7 @@ export default function Centralization() {
                </div>
                
                <div className="flex flex-wrap gap-4 w-full xl:w-auto">
-                  <button onClick={handleSelectAll} className="text-[10px] font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest flex items-center justify-center gap-4 px-8 py-5 bg-[var(--bg-input)] rounded-[2rem] transition-all active:scale-95 border border-[var(--border)] flex-1 xl:flex-none">
+                  <button onClick={handleSelectAll} className="text-xs md:text-sm font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest flex items-center justify-center gap-4 px-8 py-5 bg-[var(--bg-input)] rounded-[2rem] transition-all active:scale-95 border border-[var(--border)] flex-1 xl:flex-none">
                      {selectedPaths.size === models.filter(m => !m.isSymlink).length ? <CheckSquare size={22} className="text-blue-500 shrink-0" /> : <Square size={22} className="shrink-0" />} 
                      <span>{selectedPaths.size > 0 ? t('central_deselectAll') : t('central_selectAll')}</span>
                   </button>
@@ -266,7 +266,7 @@ export default function Centralization() {
                         <div className="flex flex-col gap-3 min-w-0">
                            <div className="flex items-center gap-4 flex-wrap">
                               <span className={`font-black text-2xl tracking-tighter truncate ${m.isSymlink ? 'text-emerald-500' : 'text-[var(--text-primary)]'}`}>{m.name}</span>
-                              <span className={`text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-glow-emerald' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border border-[var(--border)]'}`}>
+                              <span className={`text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-glow-emerald' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border border-[var(--border)]'}`}>
                                  {m.isSymlink ? t('central_centralized') : t('central_standalone')}
                               </span>
                            </div>
@@ -274,14 +274,14 @@ export default function Centralization() {
                               <p className="text-xs font-mono text-[var(--text-muted)] truncate max-w-2xl font-bold opacity-60 tracking-tight">{m.path}</p>
                               <div className="flex items-center gap-2 shrink-0 bg-blue-500/5 px-3 py-1 rounded-lg border border-blue-500/10">
                                  <Box size={14} className="text-blue-500" />
-                                 <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{m.source}</span>
+                                 <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{m.source}</span>
                               </div>
                            </div>
                         </div>
                      </div>
                      <div className="flex items-center justify-between md:justify-end gap-12 relative z-10 shrink-0">
                         <div className="flex flex-col items-end">
-                           <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('models_size')}</span>
+                           <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('models_size')}</span>
                            <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">{(m.size / (1024**3)).toFixed(1)} <span className="text-base text-[var(--text-secondary)]">GB</span></span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -339,4 +339,6 @@ export default function Centralization() {
     </motion.div>
   );
 }
+
+
 

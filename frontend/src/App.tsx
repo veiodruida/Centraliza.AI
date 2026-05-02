@@ -57,7 +57,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             <h1 className="text-2xl font-black tracking-tighter bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 bg-clip-text text-transparent leading-none">
               Centraliza.ai
             </h1>
-            <span className="text-[9px] mt-1 font-black uppercase tracking-[0.3em] text-[var(--text-muted)] flex items-center gap-1.5">
+            <span className="text-xs mt-1 font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Intelligence Hub
             </span>
@@ -76,18 +76,18 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                 key={item.path}
                 to={item.path}
                 onClick={() => { if (window.innerWidth < 1024) onClose(); }}
-                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden shrink-0 ${
+                className={`flex items-center gap-4 px-6 py-5 rounded-2xl transition-all duration-300 group relative overflow-hidden shrink-0 ${
                   isActive
-                    ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20'
+                    ? 'bg-blue-600/10 text-blue-500 border border-blue-500/20 shadow-glow-blue'
                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-input)] hover:text-[var(--text-primary)] border border-transparent'
                 }`}
               >
-                <Icon size={18} className={`flex-shrink-0 transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:rotate-6 group-hover:scale-110 opacity-70'}`} />
-                <span className="font-black text-[10px] uppercase tracking-[0.15em] whitespace-nowrap truncate">{item.label}</span>
+                <Icon size={20} className={`flex-shrink-0 transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:rotate-6 group-hover:scale-110 opacity-70'}`} />
+                <span className="font-bold text-xs md:text-[13px] uppercase tracking-wider whitespace-nowrap truncate">{item.label}</span>
                 {isActive && (
                   <motion.div 
                     layoutId="active-pill"
-                    className="absolute left-0 w-1 h-6 bg-blue-500 rounded-r-full"
+                    className="absolute left-0 w-1.5 h-8 bg-blue-500 rounded-r-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"
                   />
                 )}
               </Link>
@@ -96,7 +96,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         </nav>
 
         <div className="p-6 border-t border-[var(--border)] m-4 rounded-[2rem] bg-[var(--bg-input)]/50 backdrop-blur-xl border border-[var(--border)]/50 shadow-inner">
-          <div className="flex items-center gap-2 text-[var(--text-muted)] text-[8px] font-black mb-4 px-1 tracking-[0.2em] uppercase">
+          <div className="flex items-center gap-2 text-[var(--text-muted)] text-[10px] md:text-xs font-black mb-4 px-1 tracking-[0.2em] uppercase">
             <Activity size={10} className="text-blue-500" />
             <span>Core Performance</span>
           </div>
@@ -108,7 +108,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
                   className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.3)]" 
                 />
              </div>
-             <div className="flex justify-between text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest px-1">
+             <div className="flex justify-between text-[10px] md:text-xs text-[var(--text-muted)] uppercase font-black tracking-widest px-1">
                 <span>VRAM Usage</span>
                 <span className="text-blue-500 font-mono">64.2%</span>
              </div>
@@ -143,7 +143,7 @@ function Dashboard() {
     >
       <header className="mb-12 md:mb-20 flex justify-between items-end flex-wrap gap-8">
         <div className="space-y-6 max-w-2xl">
-           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-[0.2em]">
+           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-black uppercase tracking-[0.2em]">
               <Zap size={12} className="fill-current" /> {t('dash_ready')}
            </div>
            <h2 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.95] uppercase">
@@ -163,7 +163,7 @@ function Dashboard() {
                      <Cpu size={14} className="text-[var(--text-muted)]" />
                    </div>
                  ))}
-                 <span className="ml-4 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">+12 Connected Engines</span>
+                 <span className="ml-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">+12 Connected Engines</span>
               </div>
            </div>
         </div>
@@ -177,7 +177,7 @@ function Dashboard() {
           <div className="absolute -bottom-10 -right-10 opacity-[0.05] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 text-blue-500 -rotate-12">
              <HardDrive size={240} />
           </div>
-          <h3 className="text-[var(--text-muted)] font-black text-[9px] uppercase tracking-[0.3em] mb-10">{t('dash_totalModels')}</h3>
+          <h3 className="text-[var(--text-muted)] font-black text-xs uppercase tracking-widest mb-10">{t('dash_totalModels')}</h3>
           <div className="flex items-baseline gap-2">
             <p className="text-6xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{stats.models}</p>
             <span className="text-xl font-black text-[var(--text-muted)] uppercase tracking-widest">Active</span>
@@ -190,7 +190,7 @@ function Dashboard() {
                   className="h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
                 />
              </div>
-             <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">In Sync</span>
+             <span className="text-xs font-black text-blue-500 uppercase tracking-widest">In Sync</span>
           </div>
         </div>
 
@@ -201,12 +201,12 @@ function Dashboard() {
           <div className="absolute -bottom-10 -right-10 opacity-[0.05] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 text-emerald-500 -rotate-12">
              <Zap size={240} />
           </div>
-          <h3 className="text-[var(--text-muted)] font-black text-[9px] uppercase tracking-[0.3em] mb-10">{t('central_spaceSavedHelp')}</h3>
+          <h3 className="text-[var(--text-muted)] font-black text-xs uppercase tracking-widest mb-10">{t('central_spaceSavedHelp')}</h3>
           <div className="flex items-baseline gap-2">
             <p className="text-6xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{(stats.space / (1024**3)).toFixed(1)}</p>
             <span className="text-xl font-black text-[var(--text-muted)] uppercase tracking-widest">GB</span>
           </div>
-          <div className="mt-12 flex items-center gap-3 text-emerald-500 text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 px-5 py-2.5 rounded-full border border-emerald-500/20 w-fit">
+          <div className="mt-12 flex items-center gap-3 text-emerald-500 text-xs font-black uppercase tracking-widest bg-emerald-500/10 px-5 py-2.5 rounded-full border border-emerald-500/20 w-fit">
              <CheckCircle size={12} className="fill-current" /> {stats.centralized} {t('central_centralized')}
           </div>
         </div>
@@ -215,11 +215,11 @@ function Dashboard() {
           <div className="absolute -bottom-10 -right-10 opacity-[0.05] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 text-purple-500 -rotate-12">
              <Cpu size={240} />
           </div>
-          <h3 className="text-[var(--text-muted)] font-black text-[9px] uppercase tracking-[0.3em] mb-10">{t('dash_status')}</h3>
+          <h3 className="text-[var(--text-muted)] font-black text-xs uppercase tracking-widest mb-10">{t('dash_status')}</h3>
           <p className="text-4xl md:text-6xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-4">
             {t('dash_ready')}
           </p>
-          <div className="mt-12 flex items-center gap-3 text-purple-500 text-[9px] font-black uppercase tracking-widest bg-purple-500/10 px-5 py-2.5 rounded-full border border-purple-500/20 w-fit">
+          <div className="mt-12 flex items-center gap-3 text-purple-500 text-xs font-black uppercase tracking-widest bg-purple-500/10 px-5 py-2.5 rounded-full border border-purple-500/20 w-fit">
              <Activity size={12} /> Live Telemetry
           </div>
         </div>
@@ -234,10 +234,10 @@ function Dashboard() {
                  </div>
                  <div>
                     <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{t('dash_diskAnalysis')}</h3>
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1">Resource Distribution</p>
+                    <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mt-1">Resource Distribution</p>
                  </div>
               </div>
-              <div className="text-[9px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10">Real-time Stream</div>
+              <div className="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10">Real-time Stream</div>
            </div>
            <div className="relative z-10 h-80">
               <DiskUsageGraph />
@@ -249,15 +249,25 @@ function Dashboard() {
            <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
            
            <div className="relative z-10 space-y-8">
-              <h3 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] uppercase break-words">
+              <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-[0.85] uppercase break-words">
                 {t('dash_deploy')}
               </h3>
-              <p className="text-blue-100/70 text-lg md:text-xl leading-relaxed font-medium max-w-md">
-                {t('dash_deployDesc')}
-              </p>
-              <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-12">
-                 {t('dash_openHub')} <ArrowRight size={16} />
-              </Link>
+              <div className="space-y-6">
+                <p className="text-blue-100 text-xl md:text-2xl leading-relaxed font-bold max-w-2xl">
+                  {t('dash_deployDesc')}
+                </p>
+                <p className="text-blue-200/60 text-base md:text-lg leading-relaxed font-medium max-w-xl italic border-l-4 border-blue-500/30 pl-6">
+                  Complementing LM Studio to centralize all local AI workflows. Manage, extend, and personalize your intelligence ecosystem in one unified orchestrator.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-6 pt-4">
+                <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-12 py-5 shadow-2xl">
+                   {t('dash_openHub')} <ArrowRight size={18} />
+                </Link>
+                <Link to="/test" className="btn-premium bg-blue-600/20 border border-blue-400/30 text-white hover:bg-blue-600/30 flex items-center gap-4 w-fit px-12 py-5">
+                   Custom Tester <Zap size={18} />
+                </Link>
+              </div>
            </div>
         </div>
       </div>
@@ -315,6 +325,7 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
 
 
 

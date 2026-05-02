@@ -174,7 +174,7 @@ export default function DownloadTracker() {
                 }
               </div>
               <div className="flex-1 min-w-0">
-                 <p className={`text-[10px] font-black uppercase tracking-[0.4em] mb-2 transition-colors duration-500 ${
+                 <p className={`text-xs font-black uppercase tracking-widest mb-2 transition-colors duration-500 ${
                    item.status === 'completed' ? 'text-emerald-500' : 
                    item.status === 'cancelled' ? 'text-red-500' : 
                    item.status === 'paused' ? 'text-amber-500' :
@@ -245,7 +245,7 @@ export default function DownloadTracker() {
             </div>
             
             <div className="flex justify-between items-center relative z-10">
-              <span className={`text-[11px] font-black uppercase tracking-[0.4em] transition-colors duration-500 ${
+              <span className={`text-[11px] font-black uppercase tracking-widest transition-colors duration-500 ${
                 item.status === 'completed' ? 'text-emerald-500' : 
                 item.status === 'cancelled' ? 'text-red-500' :
                 item.status === 'paused' ? 'text-amber-500' : 
@@ -268,7 +268,7 @@ export default function DownloadTracker() {
               </div>
             </div>
 
-            <div className="absolute top-4 right-8 text-[8px] text-[var(--text-muted)] font-black opacity-20 tracking-widest uppercase">Centraliza Engine</div>
+            <div className="absolute top-4 right-8 text-[10px] md:text-xs text-[var(--text-muted)] font-black opacity-20 tracking-widest uppercase">Centraliza Engine</div>
           </motion.div>
         ))}
       </AnimatePresence>
@@ -282,3 +282,4 @@ export default function DownloadTracker() {
     </div>
   );
 }
+

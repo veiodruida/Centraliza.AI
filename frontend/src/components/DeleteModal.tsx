@@ -89,7 +89,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
                   </div>
                   <div>
                     <span className="text-white font-black text-sm block">Centralize Model{models.length > 1 ? 's' : ''}</span>
-                    <span className="text-slate-500 text-[10px] leading-tight block mt-1">
+                    <span className="text-slate-500 text-xs leading-tight block mt-1">
                       Create hardlinks in the central folder. Both locations will point to the same physical data without extra disk usage.
                     </span>
                   </div>
@@ -107,7 +107,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
                   </div>
                   <div>
                     <span className="text-white font-black text-sm block">Decentralize / Remove Link</span>
-                    <span className="text-slate-500 text-[10px] leading-tight block mt-1">
+                    <span className="text-slate-500 text-xs leading-tight block mt-1">
                       Removes only the reference in the central folder. The original file in the provider directory will remain intact.
                     </span>
                   </div>
@@ -126,7 +126,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
                   <span className="text-red-500 font-black text-sm block">
                     Delete Permanently
                   </span>
-                  <span className="text-slate-500 text-[10px] leading-tight block mt-1">
+                  <span className="text-slate-500 text-xs leading-tight block mt-1">
                     ERASES the physical files from disk. This action is irreversible and will remove both the reference and the original data.
                   </span>
                 </div>

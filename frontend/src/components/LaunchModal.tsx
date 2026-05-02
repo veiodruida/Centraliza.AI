@@ -28,7 +28,7 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
         </div>
         
         <header className="mb-10">
-           <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
+           <h3 className="text-slate-500 text-xs font-black uppercase tracking-widest mb-2 flex items-center gap-2">
               <Cpu size={14} className="text-blue-500" /> Advanced Execution
            </h3>
            <h2 className="text-2xl font-black text-white tracking-tighter truncate">{modelName}</h2>
@@ -36,14 +36,14 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
 
         <div className="space-y-8">
            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 block">CPU Threads</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 block">CPU Threads</label>
               <input 
                 type="range" min="1" max="32" 
                 value={params.threads} 
                 onChange={(e) => setParams({...params, threads: parseInt(e.target.value)})}
                 className="w-full accent-blue-600 bg-slate-800 rounded-lg h-2 appearance-none cursor-pointer"
               />
-              <div className="flex justify-between mt-3 text-[10px] font-black text-white uppercase">
+              <div className="flex justify-between mt-3 text-xs font-black text-white uppercase">
                  <span>1 Thread</span>
                  <span className="text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">{params.threads} Threads</span>
                  <span>32 Threads</span>
@@ -51,18 +51,18 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
            </div>
 
            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 block">GPU Layers (n_gpu_layers)</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 block">GPU Layers (n_gpu_layers)</label>
               <input 
                 type="number" 
                 value={params.n_gpu_layers} 
                 onChange={(e) => setParams({...params, n_gpu_layers: parseInt(e.target.value)})}
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
-              <p className="text-[9px] text-slate-600 mt-2 font-bold uppercase tracking-widest">Set to 0 for CPU-only. Increase if you have available VRAM.</p>
+              <p className="text-xs text-slate-600 mt-2 font-bold uppercase tracking-widest">Set to 0 for CPU-only. Increase if you have available VRAM.</p>
            </div>
 
            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 block">Context Size</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 block">Context Size</label>
               <select 
                 value={params.ctx_size} 
                 onChange={(e) => setParams({...params, ctx_size: parseInt(e.target.value)})}
@@ -76,7 +76,7 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
            </div>
 
            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 block">System Prompt</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 block">System Prompt</label>
               <textarea 
                 value={params.prompt} 
                 onChange={(e) => setParams({...params, prompt: e.target.value})}
@@ -97,3 +97,4 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
     </div>
   );
 }
+

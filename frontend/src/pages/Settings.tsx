@@ -136,7 +136,7 @@ export default function Settings() {
                    {t('settings_language')}
                    <HelpTooltip text={t('settings_languageHelp')} />
                  </h3>
-                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1 block">Interface Localization</span>
+                 <span className="text-xs font-black text-indigo-500 uppercase tracking-widest mt-1 block">Interface Localization</span>
               </div>
            </div>
            <div className="relative z-10">
@@ -170,7 +170,7 @@ export default function Settings() {
                    {t('settings_theme')}
                    <HelpTooltip text={t('settings_themeHelp')} />
                  </h3>
-                 <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest mt-1 block">Visual Atmosphere</span>
+                 <span className="text-xs font-black text-pink-500 uppercase tracking-widest mt-1 block">Visual Atmosphere</span>
               </div>
            </div>
            <div className="grid grid-cols-3 gap-4 relative z-10">
@@ -178,7 +178,7 @@ export default function Settings() {
                 <button 
                   key={tName}
                   onClick={() => setTheme(tName)}
-                  className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border shadow-premium active:scale-95 ${
+                  className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border shadow-premium active:scale-95 ${
                     theme === tName ? 'bg-white text-black border-white' : 'bg-[var(--bg-input)]/40 text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--text-secondary)]'
                   }`}
                 >
@@ -205,7 +205,7 @@ export default function Settings() {
                    {t('settings_centralDir')}
                    <HelpTooltip text={t('settings_centralDirHelp')} />
                  </h3>
-                 <span className="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mt-1 block">Optimized Storage Core</span>
+                 <span className="text-[11px] font-black text-blue-500 uppercase tracking-widest mt-1 block">Optimized Storage Core</span>
               </div>
            </div>
            
@@ -214,7 +214,7 @@ export default function Settings() {
                 type="text" 
                 value={config.centralDir || ''}
                 onChange={(e) => setConfig({ ...config, centralDir: e.target.value })}
-                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-lg focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
               />
               <button onClick={() => pickFolder('centralDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-blue-600 hover:text-white hover:border-blue-600 text-[var(--text-primary)] px-8 rounded-[1.5rem] transition-all shadow-premium active:scale-95" title={t('search')}>
                  <FolderOpen size={24} />
@@ -237,7 +237,7 @@ export default function Settings() {
                    {t('settings_comfyDir')}
                    <HelpTooltip text={t('settings_comfyDirHelp')} />
                  </h3>
-                 <span className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.3em] mt-1 block">Generative Art Bridge</span>
+                 <span className="text-[11px] font-black text-emerald-500 uppercase tracking-widest mt-1 block">Generative Art Bridge</span>
               </div>
            </div>
            <div className="flex gap-4 relative z-10">
@@ -245,7 +245,7 @@ export default function Settings() {
                 type="text" 
                 value={config.comfyDir || ''}
                 onChange={(e) => setConfig({ ...config, comfyDir: e.target.value })}
-                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-base focus:outline-none focus:ring-4 focus:ring-emerald-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-lg focus:outline-none focus:ring-4 focus:ring-emerald-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
               />
               <button onClick={() => pickFolder('comfyDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-[var(--text-primary)] px-8 rounded-[1.5rem] transition-all shadow-premium active:scale-95" title={t('search')}>
                  <FolderOpen size={24} />
@@ -268,7 +268,7 @@ export default function Settings() {
                    {t('settings_scanDirs')}
                    <HelpTooltip text={t('settings_scanDirsHelp')} />
                  </h3>
-                 <span className="text-[11px] font-black text-purple-500 uppercase tracking-[0.3em] mt-1 block">Silicon Discovery Paths</span>
+                 <span className="text-[11px] font-black text-purple-500 uppercase tracking-widest mt-1 block">Silicon Discovery Paths</span>
               </div>
            </div>
            
@@ -280,7 +280,7 @@ export default function Settings() {
               ) : (
                 config && config.scanDirectories.map((path: string) => (
                   <div key={path} className="flex items-center justify-between bg-[var(--bg-input)]/30 border border-[var(--border)]/50 rounded-[2rem] p-8 group hover:border-[var(--text-secondary)] hover:bg-[var(--bg-input)]/50 transition-all shadow-sm">
-                     <span className="text-base font-mono text-[var(--text-secondary)] truncate font-bold">{path}</span>
+                     <span className="text-lg font-mono text-[var(--text-primary)] font-bold">{path}</span>
                      <button onClick={() => removePath(path)} className="text-[var(--text-muted)] hover:text-red-500 transition-all p-4 hover:bg-red-500/10 rounded-2xl active:scale-90 shrink-0">
                         <Trash2 size={24} />
                      </button>
@@ -296,7 +296,7 @@ export default function Settings() {
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
                   placeholder={t('search') + "..."}
-                  className="w-full bg-transparent border-none rounded-[2rem] py-5 pl-8 pr-16 text-base focus:outline-none text-[var(--text-primary)] font-mono font-bold"
+                  className="w-full bg-transparent border-none rounded-[2rem] py-5 pl-8 pr-16 text-lg focus:outline-none text-[var(--text-primary)] font-mono font-bold"
                  />
                  <button onClick={() => pickFolder('scan')} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 active:scale-90">
                     <FolderOpen size={24} />
@@ -312,7 +312,7 @@ export default function Settings() {
            <button 
              onClick={handleSave}
              disabled={saving}
-             className="bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black text-sm uppercase tracking-[0.4em] px-20 py-8 rounded-[3rem] transition-all shadow-premium flex items-center gap-6 active:scale-95 disabled:opacity-50"
+             className="bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black text-sm uppercase tracking-widest px-20 py-8 rounded-[3rem] transition-all shadow-premium flex items-center gap-6 active:scale-95 disabled:opacity-50"
            >
               {saving ? <RefreshCw size={28} className="animate-spin" /> : <Save size={28} />}
               {t('settings_save')}
@@ -322,4 +322,6 @@ export default function Settings() {
     </motion.div>
   );
 }
+
+
 

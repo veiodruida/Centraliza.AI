@@ -24,7 +24,7 @@ export default function HardwareLab() {
       });
   }, []);
 
-  if (loading) return <div className="p-12 md:p-20 text-center animate-pulse text-[var(--text-secondary)] font-black uppercase tracking-widest text-xs">{t('loading')}</div>;
+  if (loading) return <div className="p-12 md:p-20 text-center animate-pulse text-[var(--text-secondary)] font-black uppercase tracking-wider text-xs">{t('loading')}</div>;
 
   const formatGB = (bytes: number) => {
     return (bytes / (1024 ** 3)).toFixed(1);
@@ -69,10 +69,10 @@ export default function HardwareLab() {
                    <Zap size={32} className="fill-current" />
                 </div>
                 <div className="min-w-0">
-                   <h3 className="text-2xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-tight mb-2 truncate">{t('hardware_gpu')}</h3>
+                   <h3 className="text-2xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-tight mb-2">{t('hardware_gpu')}</h3>
                    <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Accelerated Engine</span>
+                      <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-wider">Accelerated Engine</span>
                    </div>
                 </div>
              </div>
@@ -81,14 +81,14 @@ export default function HardwareLab() {
           
           <div className="space-y-8 relative z-10">
              <div className="bg-[var(--bg-input)]/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-inner">
-                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-3">Unit Identification</label>
-                <div className="text-xl md:text-3xl font-black text-[var(--text-primary)] tracking-tighter leading-tight uppercase truncate">{sysInfo.gpuName}</div>
+                <label className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-wider block mb-3">Unit Identification</label>
+                <div className="text-xl md:text-3xl font-black text-[var(--text-primary)] tracking-tighter leading-tight uppercase">{sysInfo.gpuName}</div>
              </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div className="bg-[var(--bg-input)]/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-inner group/card">
-                   <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-3">VRAM Capacity</label>
+                   <label className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-wider block mb-3">VRAM Capacity</label>
                    <div className="flex items-baseline gap-2">
-                      <div className="text-5xl md:text-7xl font-black text-blue-500 tracking-tighter leading-none group-hover/card:scale-110 transition-transform">{formatGB(sysInfo.vram)}</div>
+                      <div className="text-4xl sm:text-5xl md:text-7xl font-black text-blue-500 tracking-tighter leading-none group-hover/card:scale-110 transition-transform">{formatGB(sysInfo.vram)}</div>
                       <span className="text-xl font-black text-[var(--text-secondary)] uppercase">GB</span>
                    </div>
                 </div>
@@ -96,7 +96,7 @@ export default function HardwareLab() {
                    <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 mb-4 border border-emerald-500/20">
                       <CheckCircle size={24} />
                    </div>
-                   <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em]">CUDA READY</span>
+                   <span className="text-xs md:text-sm font-black text-emerald-500 uppercase tracking-wider">CUDA READY</span>
                 </div>
              </div>
           </div>
@@ -117,10 +117,10 @@ export default function HardwareLab() {
                    <Cpu size={32} />
                 </div>
                 <div className="min-w-0">
-                   <h3 className="text-2xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-2 truncate">{t('hardware_cpu')}</h3>
+                   <h3 className="text-2xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-2">{t('hardware_cpu')}</h3>
                    <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                      <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Logic Controller</span>
+                      <span className="text-xs md:text-sm font-black text-purple-500 uppercase tracking-wider">Logic Controller</span>
                    </div>
                 </div>
              </div>
@@ -129,21 +129,21 @@ export default function HardwareLab() {
           
           <div className="space-y-8 relative z-10">
              <div className="bg-[var(--bg-input)]/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-inner">
-                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-3">Unit Identification</label>
-                <div className="text-xl md:text-3xl font-black text-[var(--text-primary)] tracking-tighter leading-tight uppercase truncate">{sysInfo.cpuModel}</div>
+                <label className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-wider block mb-3">Unit Identification</label>
+                <div className="text-xl md:text-3xl font-black text-[var(--text-primary)] tracking-tighter leading-tight uppercase">{sysInfo.cpuModel}</div>
              </div>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div className="bg-[var(--bg-input)]/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-inner group/card">
-                   <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-3">Total RAM</label>
+                   <label className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-wider block mb-3">Total RAM</label>
                    <div className="flex items-baseline gap-2">
-                      <div className="text-5xl md:text-7xl font-black text-purple-500 tracking-tighter leading-none group-hover/card:scale-110 transition-transform">{formatGB(sysInfo.totalRam)}</div>
+                      <div className="text-4xl sm:text-5xl md:text-7xl font-black text-purple-500 tracking-tighter leading-none group-hover/card:scale-110 transition-transform">{formatGB(sysInfo.totalRam)}</div>
                       <span className="text-xl font-black text-[var(--text-secondary)] uppercase">GB</span>
                    </div>
                 </div>
                 <div className="bg-[var(--bg-input)]/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-inner group/card">
-                   <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-3">Available</label>
+                   <label className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-wider block mb-3">Available</label>
                    <div className="flex items-baseline gap-2">
-                      <div className="text-5xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-none group-hover/card:scale-110 transition-transform">{formatGB(sysInfo.freeRam)}</div>
+                      <div className="text-4xl sm:text-5xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-none group-hover/card:scale-110 transition-transform">{formatGB(sysInfo.freeRam)}</div>
                       <span className="text-xl font-black text-[var(--text-secondary)] uppercase">GB</span>
                    </div>
                 </div>
@@ -167,7 +167,7 @@ export default function HardwareLab() {
          
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 relative z-10">
             <div className="space-y-8 group/insight">
-               <div className="flex items-center gap-4 text-emerald-500 font-black text-[11px] uppercase tracking-widest bg-emerald-500/10 w-fit px-6 py-3 rounded-full border border-emerald-500/20 group-hover/insight:scale-105 transition-transform">
+               <div className="flex items-center gap-4 text-emerald-500 font-black text-[11px] uppercase tracking-wider bg-emerald-500/10 w-fit px-6 py-3 rounded-full border border-emerald-500/20 group-hover/insight:scale-105 transition-transform">
                   <Gauge size={20} className="fill-current" /> Optimal Range
                </div>
                <p className="text-xl text-[var(--text-secondary)] leading-relaxed font-medium opacity-90">
@@ -177,7 +177,7 @@ export default function HardwareLab() {
                </p>
             </div>
             <div className="space-y-8 lg:border-x border-[var(--border)]/50 lg:px-16 group/insight">
-               <div className="flex items-center gap-4 text-amber-500 font-black text-[11px] uppercase tracking-widest bg-amber-500/10 w-fit px-6 py-3 rounded-full border border-amber-500/20 group-hover/insight:scale-105 transition-transform">
+               <div className="flex items-center gap-4 text-amber-500 font-black text-[11px] uppercase tracking-wider bg-amber-500/10 w-fit px-6 py-3 rounded-full border border-amber-500/20 group-hover/insight:scale-105 transition-transform">
                   <AlertCircle size={20} className="fill-current" /> Extended Range
                </div>
                <p className="text-xl text-[var(--text-secondary)] leading-relaxed font-medium opacity-90">
@@ -187,7 +187,7 @@ export default function HardwareLab() {
                </p>
             </div>
             <div className="space-y-8 group/insight">
-               <div className="flex items-center gap-4 text-blue-500 font-black text-[11px] uppercase tracking-widest bg-blue-500/10 w-fit px-6 py-3 rounded-full border border-blue-500/20 group-hover/insight:scale-105 transition-transform">
+               <div className="flex items-center gap-4 text-blue-500 font-black text-[11px] uppercase tracking-wider bg-blue-500/10 w-fit px-6 py-3 rounded-full border border-blue-500/20 group-hover/insight:scale-105 transition-transform">
                   <Brain size={20} className="fill-current" /> Smart Scaling
                </div>
                <p className="text-xl text-[var(--text-secondary)] leading-relaxed font-medium opacity-90">
@@ -199,5 +199,7 @@ export default function HardwareLab() {
     </motion.div>
   );
 }
+
+
 
 

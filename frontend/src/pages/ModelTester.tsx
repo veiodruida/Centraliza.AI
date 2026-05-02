@@ -100,7 +100,7 @@ export default function ModelTester() {
     >
       {/* Sidebar */}
       <div className="w-80 md:w-96 border-r border-[var(--border)] flex flex-col p-8 md:p-12 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20">
-        <h3 className="text-[var(--text-primary)] font-black text-[10px] md:text-xs uppercase tracking-[0.4em] mb-10 flex items-center gap-4">
+        <h3 className="text-[var(--text-primary)] font-black text-xs md:text-xs uppercase tracking-widest mb-10 flex items-center gap-4">
           <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
              <Server size={18} />
           </div>
@@ -112,7 +112,7 @@ export default function ModelTester() {
              <button 
               key={e}
               onClick={() => setEngine(e)}
-              className={`flex-1 py-3 md:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+              className={`flex-1 py-3 md:py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${
                 engine === e ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
              >
@@ -127,7 +127,7 @@ export default function ModelTester() {
              animate={{ opacity: 1, y: 0 }}
              className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2rem] mb-10 shadow-lg"
            >
-              <p className="text-[10px] text-yellow-600 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3">
+              <p className="text-xs text-yellow-600 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3">
                  <AlertCircle size={14} /> Attention
               </p>
               <p className="text-[11px] text-yellow-700/70 font-medium mt-2 leading-relaxed">
@@ -136,7 +136,7 @@ export default function ModelTester() {
            </motion.div>
         )}
         
-        <h3 className="text-[var(--text-primary)] font-black text-[10px] uppercase tracking-[0.4em] mb-8 flex items-center gap-4">
+        <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-widest mb-8 flex items-center gap-4">
            <div className="w-10 h-10 bg-purple-600/10 rounded-xl flex items-center justify-center text-purple-500 shadow-premium border border-purple-500/20">
               <Zap size={18} />
            </div>
@@ -156,7 +156,7 @@ export default function ModelTester() {
             >
               <div className="font-black text-sm truncate mb-1 group-hover:translate-x-1 transition-transform tracking-tight uppercase leading-none">{model.name.split('/').pop()}</div>
               <div className="flex items-center justify-between">
-                 <div className={`text-[8px] uppercase font-black tracking-[0.2em] opacity-60`}>{model.source}</div>
+                 <div className={`text-[10px] md:text-xs uppercase font-black tracking-[0.2em] opacity-60`}>{model.source}</div>
                  {selectedModel?.path === model.path && <Sparkles size={12} className="animate-pulse" />}
               </div>
             </button>
@@ -164,14 +164,14 @@ export default function ModelTester() {
         </div>
 
         <div className="pt-10 border-t border-[var(--border)]">
-           <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-4 ml-2">Endpoint URL</label>
+           <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest block mb-4 ml-2">Endpoint URL</label>
            <div className="flex items-center gap-4 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.25rem] px-6 py-4 shadow-inner group focus-within:ring-4 focus-within:ring-blue-500/10 transition-all">
               <Globe size={18} className="text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" />
               <input 
                 type="text" 
                 value={customEndpoint}
                 onChange={(e) => setCustomEndpoint(e.target.value)}
-                className="bg-transparent text-[10px] text-[var(--text-primary)] focus:outline-none w-full font-mono font-black tracking-tight"
+                className="bg-transparent text-xs text-[var(--text-primary)] focus:outline-none w-full font-mono font-black tracking-tight"
               />
            </div>
         </div>
@@ -211,7 +211,7 @@ export default function ModelTester() {
                  <div className="text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
                  <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
-                    <span className="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em]">{engine} engine active</span>
+                    <span className="text-xs text-emerald-500 font-black uppercase tracking-widest">{engine} engine active</span>
                  </div>
               </div>
            </div>
@@ -272,7 +272,7 @@ export default function ModelTester() {
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-500/40 animate-bounce [animation-delay:0.2s]" />
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-500/40 animate-bounce [animation-delay:0.4s]" />
                    </div>
-                   <span className="text-sm font-black text-blue-500 uppercase tracking-[0.3em] opacity-60">Processing</span>
+                   <span className="text-sm font-black text-blue-500 uppercase tracking-widest opacity-60">Processing</span>
                 </div>
              </motion.div>
           )}
@@ -282,7 +282,7 @@ export default function ModelTester() {
                    <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white shadow-lg"><AlertCircle size={24} /></div>
                    <div>
                       <div className="mb-0.5">SYSTEM ERROR</div>
-                      <div className="opacity-70 font-medium text-[10px]">{error}</div>
+                      <div className="opacity-70 font-medium text-xs">{error}</div>
                    </div>
                 </div>
              </div>
@@ -300,7 +300,7 @@ export default function ModelTester() {
                  onChange={(e) => setInput(e.target.value)}
                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                  placeholder={selectedModel ? `Message ${selectedModel.name.split('/').pop()}...` : t('chat_selectToBegin')}
-                 className="w-full bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-[2.5rem] md:rounded-[3rem] py-6 md:py-8 pl-10 md:pl-12 pr-12 md:pr-16 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-lg md:text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.2em] placeholder:text-[10px]"
+                 className="w-full bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-[2.5rem] md:rounded-[3rem] py-6 md:py-8 pl-10 md:pl-12 pr-12 md:pr-16 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-lg md:text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.2em] placeholder:text-xs"
                />
                <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex gap-4 text-[var(--text-muted)]">
                   <button className="hover:text-blue-500 transition-colors"><Globe size={22} /></button>
@@ -320,5 +320,6 @@ export default function ModelTester() {
     </motion.div>
   );
 }
+
 
 
