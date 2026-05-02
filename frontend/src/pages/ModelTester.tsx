@@ -1,11 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
+
+export const CONTAINER_VARIANTS = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+export const ITEM_VARIANTS = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 }
+};
+
+const PAGE_VARIANTS = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.3 } }
+};
 
 export default function ModelTester() {
   const { t } = useApp();
@@ -74,23 +91,29 @@ export default function ModelTester() {
   };
 
   return (
-    <div className="flex h-full bg-[var(--bg-base)] overflow-hidden animate-in fade-in duration-1000">
+    <motion.div 
+      variants={PAGE_VARIANTS}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="flex h-full bg-[var(--bg-base)] overflow-hidden"
+    >
       {/* Sidebar */}
-      <div className="w-96 border-r border-[var(--border)] flex flex-col p-12 bg-[var(--bg-surface)]/30 backdrop-blur-3xl shrink-0">
-        <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-[0.4em] mb-10 flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-3xl">
-             <Server size={20} />
+      <div className="w-80 md:w-96 border-r border-[var(--border)] flex flex-col p-8 md:p-12 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20">
+        <h3 className="text-[var(--text-primary)] font-black text-[10px] md:text-xs uppercase tracking-[0.4em] mb-10 flex items-center gap-4">
+          <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
+             <Server size={18} />
           </div>
           {t('nav_test')} ENGINE
         </h3>
 
-        <div className="flex bg-[var(--bg-input)] p-1.5 rounded-[1.5rem] border border-[var(--border)] mb-10 shadow-inner">
+        <div className="flex bg-[var(--bg-input)]/50 p-1.5 rounded-[1.5rem] border border-[var(--border)] mb-10 shadow-inner">
            {(['ollama', 'llama.cpp'] as const).map(e => (
              <button 
               key={e}
               onClick={() => setEngine(e)}
-              className={`flex-1 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${
-                engine === e ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              className={`flex-1 py-3 md:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                engine === e ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
              >
                {e}
@@ -99,38 +122,41 @@ export default function ModelTester() {
         </div>
 
         {engine === 'llama.cpp' && (
-           <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2rem] mb-10 shadow-lg shadow-yellow-500/5 animate-in slide-in-from-top-4">
-              <p className="text-[11px] text-yellow-600 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3">
-                 <AlertCircle size={16} /> Attention
+           <motion.div 
+             initial={{ opacity: 0, y: -10 }}
+             animate={{ opacity: 1, y: 0 }}
+             className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2rem] mb-10 shadow-lg"
+           >
+              <p className="text-[10px] text-yellow-600 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3">
+                 <AlertCircle size={14} /> Attention
               </p>
               <p className="text-[11px] text-yellow-700/70 font-medium mt-2 leading-relaxed">
                  {t('models_ensureLlamaLaunched') || 'Ensure Llama.cpp is launched on port 8080 in My Models tab.'}
               </p>
-           </div>
+           </motion.div>
         )}
         
-        <h3 className="text-[var(--text-primary)] font-black text-[11px] uppercase tracking-[0.4em] mb-8 flex items-center gap-4">
-           <div className="w-10 h-10 bg-purple-600/10 rounded-xl flex items-center justify-center text-purple-500 shadow-3xl">
-              <Zap size={20} />
+        <h3 className="text-[var(--text-primary)] font-black text-[10px] uppercase tracking-[0.4em] mb-8 flex items-center gap-4">
+           <div className="w-10 h-10 bg-purple-600/10 rounded-xl flex items-center justify-center text-purple-500 shadow-premium border border-purple-500/20">
+              <Zap size={18} />
            </div>
            {t('hub_details_title')}
         </h3>
         
-        <div className="space-y-4 flex-1 overflow-y-auto pr-4 mb-10 custom-scrollbar">
+        <div className="space-y-4 flex-1 overflow-y-auto pr-4 mb-10 custom-scrollbar no-scrollbar">
           {models.filter(m => engine === 'ollama' ? m.source === 'Ollama' : true).map(model => (
             <button
               key={model.path}
               onClick={() => setSelectedModel(model)}
-              className={`w-full text-left p-6 rounded-[2.5rem] border transition-all active:scale-95 relative overflow-hidden group ${
+              className={`w-full text-left p-6 rounded-[2.25rem] border transition-all active:scale-95 relative overflow-hidden group ${
                 selectedModel?.path === model.path 
                   ? 'bg-blue-600 border-blue-500 text-white shadow-premium' 
-                  : 'bg-[var(--bg-input)]/30 border-[var(--border)] text-[var(--text-secondary)] hover:border-blue-500/30 hover:bg-[var(--bg-input)] hover:shadow-xl'
+                  : 'bg-[var(--bg-input)]/40 border-[var(--border)] text-[var(--text-secondary)] hover:border-blue-500/30 hover:bg-[var(--bg-input)]/60'
               }`}
             >
-              {selectedModel?.path === model.path && <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />}
-              <div className="font-black text-sm truncate mb-2 group-hover:translate-x-1 transition-transform tracking-tighter uppercase leading-none">{model.name}</div>
+              <div className="font-black text-sm truncate mb-1 group-hover:translate-x-1 transition-transform tracking-tight uppercase leading-none">{model.name.split('/').pop()}</div>
               <div className="flex items-center justify-between">
-                 <div className={`text-[9px] uppercase font-black tracking-[0.2em] opacity-60`}>{model.source}</div>
+                 <div className={`text-[8px] uppercase font-black tracking-[0.2em] opacity-60`}>{model.source}</div>
                  {selectedModel?.path === model.path && <Sparkles size={12} className="animate-pulse" />}
               </div>
             </button>
@@ -138,14 +164,14 @@ export default function ModelTester() {
         </div>
 
         <div className="pt-10 border-t border-[var(--border)]">
-           <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-4 ml-2">Endpoint URL</label>
-           <div className="flex items-center gap-4 bg-[var(--bg-input)]/50 border border-[var(--border)] rounded-[1.5rem] px-6 py-4 shadow-inner group focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+           <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] block mb-4 ml-2">Endpoint URL</label>
+           <div className="flex items-center gap-4 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.25rem] px-6 py-4 shadow-inner group focus-within:ring-4 focus-within:ring-blue-500/10 transition-all">
               <Globe size={18} className="text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" />
               <input 
                 type="text" 
                 value={customEndpoint}
                 onChange={(e) => setCustomEndpoint(e.target.value)}
-                className="bg-transparent text-[11px] text-[var(--text-primary)] focus:outline-none w-full font-mono font-black tracking-tight"
+                className="bg-transparent text-[10px] text-[var(--text-primary)] focus:outline-none w-full font-mono font-black tracking-tight"
               />
            </div>
         </div>
@@ -153,32 +179,39 @@ export default function ModelTester() {
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col relative bg-[var(--bg-base)]">
-        {!selectedModel && (
-           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-20 bg-[var(--bg-base)]/95 backdrop-blur-3xl z-20 animate-in fade-in zoom-in-95 duration-700">
-              <div className="w-32 h-32 bg-[var(--bg-input)] rounded-[3.5rem] border border-[var(--border)] flex items-center justify-center mb-12 shadow-premium text-[var(--text-muted)] relative overflow-hidden group">
-                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                 <Terminal size={64} className="group-hover:scale-110 transition-transform duration-500" />
-              </div>
-              <h2 className="text-6xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tighter leading-none">{t('dash_ready')}</h2>
-              <p className="text-[var(--text-secondary)] max-w-md text-xl font-medium leading-relaxed opacity-80">{t('chat_selectToBegin') || 'Select a model and engine to start a local conversation.'}</p>
-              <div className="mt-12 flex gap-4">
-                 <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" />
-                 <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce [animation-delay:0.2s]" />
-                 <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]" />
-              </div>
-           </div>
-        )}
+        <AnimatePresence>
+          {!selectedModel && (
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="absolute inset-0 flex flex-col items-center justify-center text-center p-20 bg-[var(--bg-base)]/90 backdrop-blur-3xl z-30"
+             >
+                <div className="w-32 h-32 bg-[var(--bg-input)] rounded-[3.5rem] border border-[var(--border)] flex items-center justify-center mb-12 shadow-premium text-[var(--text-muted)] relative overflow-hidden group">
+                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent)]" />
+                   <Terminal size={64} className="group-hover:scale-110 transition-transform duration-700" />
+                </div>
+                <h2 className="text-5xl md:text-7xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tighter leading-none">{t('dash_ready')}</h2>
+                <p className="text-[var(--text-secondary)] max-w-md text-xl font-medium leading-relaxed opacity-80">{t('chat_selectToBegin') || 'Select a model and engine to start a local conversation.'}</p>
+                <div className="mt-12 flex gap-4">
+                   <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" />
+                   <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce [animation-delay:0.2s]" />
+                   <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]" />
+                </div>
+             </motion.div>
+          )}
+        </AnimatePresence>
 
-        <header className="h-28 border-b border-[var(--border)] flex items-center justify-between px-16 bg-[var(--bg-surface)]/50 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
+        <header className="h-28 border-b border-[var(--border)] flex items-center justify-between px-10 md:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
            <div className="flex items-center gap-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-premium animate-in slide-in-from-left-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-premium">
                  <Bot size={32} />
               </div>
-              <div className="animate-in slide-in-from-left-6">
-                 <div className="text-3xl font-black text-[var(--text-primary)] truncate max-w-2xl tracking-tighter leading-none mb-2 uppercase">{selectedModel?.name || 'IDLE ENGINE'}</div>
+              <div className="hidden sm:block">
+                 <div className="text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
                  <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
-                    <span className="text-[11px] text-emerald-500 font-black uppercase tracking-[0.3em]">{engine} engine active</span>
+                    <span className="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em]">{engine} engine active</span>
                  </div>
               </div>
            </div>
@@ -186,61 +219,70 @@ export default function ModelTester() {
            <div className="flex gap-4">
               <button 
                 onClick={() => setMessages([{ role: 'assistant', content: t('chat_welcome') }])} 
-                className="w-14 h-14 flex items-center justify-center text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg group"
+                className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg group"
                 title="Clear History"
               >
-                 <Trash2 size={24} className="group-hover:rotate-12 transition-transform" />
+                 <Trash2 size={20}  className="group-hover:rotate-12 transition-transform" />
               </button>
-              <button className="w-14 h-14 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)] rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg">
-                 <MoreHorizontal size={24} />
+              <button className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)] rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg">
+                 <MoreHorizontal size={20}  />
               </button>
            </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-16 space-y-12 scroll-smooth custom-scrollbar bg-[radial-gradient(circle_at_top_right,var(--bg-input),transparent)]">
+        <div className="flex-1 overflow-y-auto p-10 md:p-16 space-y-12 scroll-smooth custom-scrollbar no-scrollbar bg-[radial-gradient(circle_at_top_right,var(--bg-input),transparent)]">
           {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-6 duration-700`}>
-              <div className={`flex gap-8 max-w-5xl ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-14 h-14 rounded-[1.5rem] shrink-0 flex items-center justify-center shadow-premium transition-all duration-500 hover:scale-110 hover:rotate-3 ${
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`flex gap-6 md:gap-8 max-w-5xl ${msg.role === 'user' ? 'flex-row-reverse text-right' : ''}`}>
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.25rem] md:rounded-[1.5rem] shrink-0 flex items-center justify-center shadow-premium transition-all duration-500 hover:scale-110 ${
                   msg.role === 'user' ? 'bg-[var(--bg-surface)] text-blue-500 border border-[var(--border)]' : 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white'
                 }`}>
-                  {msg.role === 'user' ? <User size={28} /> : <Bot size={28} />}
+                  {msg.role === 'user' ? <User size={24}  /> : <Bot size={24}  />}
                 </div>
-                <div className={`p-10 rounded-[3.5rem] text-lg leading-relaxed shadow-premium font-medium relative ${
+                <div className={`p-8 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] text-base md:text-lg leading-relaxed shadow-premium font-medium relative ${
                   msg.role === 'user' 
                     ? 'bg-blue-600 text-white rounded-tr-none border border-white/10' 
                     : 'bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-tl-none backdrop-blur-3xl'
                 }`}>
-                  <div className="absolute top-4 right-6 opacity-20 pointer-events-none">
-                     {msg.role === 'user' ? <MessageCircle size={32} /> : <Sparkles size={32} />}
-                  </div>
-                  {msg.content}
+                   <div className={`absolute top-4 ${msg.role === 'user' ? 'left-6' : 'right-6'} opacity-10 pointer-events-none`}>
+                      {msg.role === 'user' ? <MessageCircle size={28}  /> : <Sparkles size={28}  />}
+                   </div>
+                   {msg.content}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
           {loading && (
-             <div className="flex justify-start">
-                <div className="flex gap-8 items-center animate-in fade-in slide-in-from-left-4 duration-500">
-                   <div className="w-14 h-14 rounded-[1.5rem] bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shadow-3xl">
-                      <Loader2 size={28} className="animate-spin" />
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               className="flex justify-start"
+             >
+                <div className="flex gap-8 items-center">
+                   <div className="w-12 h-12 md:w-14 md:h-14 rounded-[1.25rem] bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 shadow-premium">
+                      <Loader2 size={24}  className="animate-spin" />
                    </div>
                    <div className="flex gap-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500/40 animate-bounce" />
-                      <div className="w-3 h-3 rounded-full bg-blue-500/40 animate-bounce [animation-delay:0.2s]" />
-                      <div className="w-3 h-3 rounded-full bg-blue-500/40 animate-bounce [animation-delay:0.4s]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500/40 animate-bounce" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500/40 animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500/40 animate-bounce [animation-delay:0.4s]" />
                    </div>
-                   <span className="text-base font-black text-blue-500 uppercase tracking-[0.3em] opacity-60">Engine Processing</span>
+                   <span className="text-sm font-black text-blue-500 uppercase tracking-[0.3em] opacity-60">Processing</span>
                 </div>
-             </div>
+             </motion.div>
           )}
           {error && (
              <div className="flex justify-center">
-                <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-10 py-6 rounded-[2.5rem] flex items-center gap-5 text-sm font-black uppercase tracking-[0.2em] shadow-premium backdrop-blur-3xl animate-in shake-in">
-                   <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center text-white shadow-lg"><AlertCircle size={28} /></div>
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-8 py-5 rounded-[2rem] flex items-center gap-5 text-xs font-black uppercase tracking-[0.2em] shadow-premium backdrop-blur-3xl animate-bounce">
+                   <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white shadow-lg"><AlertCircle size={24} /></div>
                    <div>
-                      <div className="mb-1">SYSTEM ERROR</div>
-                      <div className="opacity-70 font-medium text-xs">{error}</div>
+                      <div className="mb-0.5">SYSTEM ERROR</div>
+                      <div className="opacity-70 font-medium text-[10px]">{error}</div>
                    </div>
                 </div>
              </div>
@@ -248,7 +290,7 @@ export default function ModelTester() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-12 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.1)]">
+        <div className="p-8 md:p-12 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)]">
           <div className="relative group max-w-6xl mx-auto flex gap-6">
             <div className="relative flex-1">
                <input 
@@ -258,23 +300,25 @@ export default function ModelTester() {
                  onChange={(e) => setInput(e.target.value)}
                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                  placeholder={selectedModel ? `Message ${selectedModel.name.split('/').pop()}...` : t('chat_selectToBegin')}
-                 className="w-full bg-[var(--bg-input)]/50 border border-[var(--border)] rounded-[3rem] py-8 pl-12 pr-12 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.2em] placeholder:text-xs"
+                 className="w-full bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-[2.5rem] md:rounded-[3rem] py-6 md:py-8 pl-10 md:pl-12 pr-12 md:pr-16 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-lg md:text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.2em] placeholder:text-[10px]"
                />
-               <div className="absolute right-8 top-1/2 -translate-y-1/2 flex gap-4 text-[var(--text-muted)]">
-                  <button className="hover:text-blue-500 transition-colors"><Globe size={24} /></button>
-                  <button className="hover:text-blue-500 transition-colors"><MoreHorizontal size={24} /></button>
+               <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex gap-4 text-[var(--text-muted)]">
+                  <button className="hover:text-blue-500 transition-colors"><Globe size={22} /></button>
+                  <button className="hover:text-blue-500 transition-colors"><MoreHorizontal size={22} /></button>
                </div>
             </div>
             <button 
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="w-24 h-24 bg-blue-600 text-white rounded-[2.5rem] flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
+              className="w-20 h-20 md:w-24 md:h-24 bg-blue-600 text-white rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
             >
-              {loading ? <Loader2 size={32} className="animate-spin" /> : <Send size={32} />}
+              {loading ? <Loader2 size={28}  className="animate-spin" /> : <Send size={28}  />}
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
+
+
