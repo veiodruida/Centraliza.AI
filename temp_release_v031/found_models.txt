@@ -1,0 +1,19 @@
+C:\$Recycle.Bin\S-1-5-21-770427683-1666221792-4003693742-1001\$I1GN7Z8.gguf
+C:\$Recycle.Bin\S-1-5-21-770427683-1666221792-4003693742-1001\$R1GN7Z8.gguf
+C:\Program Files\LM Studio\resources\app\.webpack\bin\bundled-models\nomic-ai\nomic-embed-text-v1.5-GGUF\nomic-embed-text-v1.5.Q4_K_M.gguf
+C:\Users\veio_\.cache\huggingface\hub\models--HauhauCS--Gemma-4-E4B-Uncensored-HauhauCS-Aggressive\snapshots\45b6a334b4bcd1d7f37179df58b3b1d66a184e5d\Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q8_K_P.gguf
+C:\Users\veio_\.cache\huggingface\hub\models--HauhauCS--Gemma-4-E4B-Uncensored-HauhauCS-Aggressive\snapshots\45b6a334b4bcd1d7f37179df58b3b1d66a184e5d\mmproj-Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-f16.gguf
+C:\Users\veio_\.cache\huggingface\hub\models--mradermacher--Gemma4-Biomedical-E4B-i1-GGUF\snapshots\9769bb267ba97153073de7a2598aaf8a1a30bc69\Gemma4-Biomedical-E4B.i1-Q6_K.gguf
+C:\Users\veio_\.cache\huggingface\hub\models--unsloth--Qwen3.6-27B-GGUF\snapshots\82d411acf4a06cfb8d9b073a5211bf410bfc29bf\mmproj-BF16.gguf
+C:\Users\veio_\.cache\huggingface\hub\models--unsloth--Qwen3.6-27B-GGUF\snapshots\82d411acf4a06cfb8d9b073a5211bf410bfc29bf\Qwen3.6-27B-Q3_K_S.gguf
+C:\Users\veio_\.cache\huggingface\hub\models--unsloth--Qwen3.6-27B-GGUF\snapshots\82d411acf4a06cfb8d9b073a5211bf410bfc29bf\Qwen3.6-27B-UD-IQ2_XXS.gguf
+C:\Users\veio_\.lmstudio\.internal\bundled-models\nomic-ai\nomic-embed-text-v1.5-GGUF\nomic-embed-text-v1.5.Q4_K_M.gguf
+C:\Users\veio_\Documents\ComfyUI\custom_nodes\comfyui-kjnodes\intrinsic_loras\intrinsic_lora_sd15_albedo.safetensors
+C:\Users\veio_\Documents\ComfyUI\custom_nodes\comfyui-kjnodes\intrinsic_loras\intrinsic_lora_sd15_depth.safetensors
+C:\Users\veio_\Documents\ComfyUI\custom_nodes\comfyui-kjnodes\intrinsic_loras\intrinsic_lora_sd15_normal.safetensors
+C:\Users\veio_\Documents\ComfyUI\custom_nodes\comfyui-kjnodes\intrinsic_loras\intrinsic_lora_sd15_shading.safetensors
+C:\Users\veio_\Documents\ComfyUI\models\loras\Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors
+C:\Users\veio_\Documents\ComfyUI\models\loras\Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors
+C:\Users\veio_\Documents\ComfyUI\models\text_encoders\qwen_2.5_vl_7b_fp8_scaled.safetensors
+C:\Users\veio_\Documents\ComfyUI\models\unet\qwen_image_2512_fp8_e4m3fn.safetensors
+C:\Users\veio_\Documents\ComfyUI\models\vae\qwen_image_vae.safetensors

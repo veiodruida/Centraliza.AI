@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centraliza.ai - Model Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-mesh"></div>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <h1>Centraliza.ai</h1>
+            </div>
+            <p class="subtitle">AI Model Manager & Symlink Centralizer</p>
+        </header>
+
+        <section class="info-card glass-panel" style="border-left: 4px solid var(--accent-color);">
+            <h3 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                O que a ação "Centralizar" faz?
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Ao centralizar um modelo, o sistema <strong>move fisicamente</strong> o arquivo original para o seu "Diretório Central" (ex: C:\AI_Models) e, em seguida, <strong>cria um Link Simbólico (Symlink)</strong> no local original. <br>
+                Isso significa que o LMStudio, ComfyUI, etc. continuarão enxergando e acessando o modelo na pasta original como se nada tivesse acontecido, mas no seu sistema, o arquivo grande existirá em apenas um único lugar. Isso evita arquivos duplicados e economiza espaço!
+            </p>
+        </section>
+
+        <section class="config-section glass-panel">
+            <h2>Configuration</h2>
+            <div class="form-group">
+                <label for="centralDir">Central Repository Path</label>
+                <input type="text" id="centralDir" placeholder="C:\AI_Models">
+                <p class="help-text">Where all your models will be safely stored.</p>
+            </div>
+            
+            <div class="form-group">
+                <label>Directories to Scan</label>
+                <ul id="scanDirsList" class="scan-list"></ul>
+                <div class="add-dir-input">
+                    <input type="text" id="newScanDir" placeholder="E.g. C:\Users\user\ComfyUI\models\checkpoints">
+                    <button id="addDirBtn" class="btn btn-secondary">Add Path</button>
+                    <button id="autoDetectBtn" class="btn btn-accent" style="white-space: nowrap;">Auto-Detect</button>
+                </div>
+            </div>
+            
+            <button id="saveConfigBtn" class="btn btn-primary">Save Configuration</button>
+        </section>
+
+        <section class="explore-section glass-panel">
+            <div class="section-header">
+                <h2>Explore & Download</h2>
+                <div class="explore-links">
+                    <a href="https://huggingface.co/models?pipeline_tag=text-generation&sort=downloads" target="_blank" class="btn btn-secondary">Hugging Face</a>
+                    <a href="https://ollama.com/library" target="_blank" class="btn btn-secondary">Ollama Library</a>
+                    <a href="https://civitai.com/" target="_blank" class="btn btn-secondary">Civitai (Images)</a>
+                </div>
+            </div>
+            <div class="download-box">
+                <div class="form-group">
+                    <label for="downloadName">Quick Pull (Ollama)</label>
+                    <div class="add-dir-input">
+                        <input type="text" id="downloadName" placeholder="e.g. llama3, phi3:mini, deepseek-r1:14b">
+                        <button id="downloadBtn" class="btn btn-accent">Pull Model</button>
+                    </div>
+                    <p class="help-text">Type an Ollama model name to download it directly to your PC.</p>
+                </div>
+                <div id="downloadStatus" class="hidden status-badge" style="margin-top: 1rem; width: 100%; text-align: center;"></div>
+            </div>
+        </section>
+
+        <section class="models-section glass-panel">
+            <div class="section-header">
+                <h2>Found Models</h2>
+                <div id="system-stats" class="system-stats">
+                    <!-- Loaded via JS -->
+                </div>
+                <div class="actions-group">
+                    <button id="selectAllBtn" class="btn btn-secondary">Select All</button>
+                    <button id="deselectAllBtn" class="btn btn-secondary">Deselect All</button>
+                    <button id="centralizeSelectedBtn" class="btn btn-primary" disabled>Centralize Selected</button>
+                    <button id="deleteSelectedBtn" class="btn btn-danger" disabled style="background-color: var(--danger-color); color: white;">Delete Selected</button>
+                    <button id="scanBtn" class="btn btn-accent">Scan Now</button>
+                </div>
+            </div>
+            
+            <div id="loading" class="hidden">Scanning directories... This might take a moment.</div>
+            <div id="errorBox" class="hidden error-box"></div>
+            
+            <div id="models-container">
+                <!-- Grouped tables injected here -->
+                <div class="table-wrapper">
+                    <table id="modelsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>Model Name</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th>Size</th>
+                                <th>Original Path</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modelsBody">
+                            <tr><td colspan="7" style="text-align:center">Click "Scan Now" to find models.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
