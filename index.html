@@ -136,6 +136,25 @@
             box-shadow: 0 15px 30px -5px var(--primary-glow);
         }
 
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-links { display: none !important; }
+            .hero h1 { font-size: 2.5rem !important; }
+            .hero p { font-size: 1.1rem !important; }
+            .nav-download-btn { display: none !important; }
+            .logo-text { font-size: 1.2rem; }
+            #lang-select { min-width: 110px !important; font-size: 0.8rem !important; padding: 6px 8px !important; }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 2.1rem !important; }
+            .hero { padding: 80px 0 60px !important; }
+            .feature-grid { grid-template-columns: 1fr !important; }
+            .container { padding: 0 15px; }
+        }
+
+        body { overflow-x: hidden; width: 100vw; }
+
         /* Hero Section */
         .hero {
             padding: 120px 0 80px;
@@ -305,7 +324,7 @@
                     <option value="ko" style="background: #111; color: #fff;">🇰🇷 한국어</option>
                     <option value="ja" style="background: #111; color: #fff;">🇯🇵 日本語</option>
                 </select>
-                <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.3.1/centraliza-ai-v0.3.1-ready.zip" download class="btn-download" data-t="btn_direct_download">Direct Download v0.3.1</a>
+                <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.3.1/centraliza-ai-v0.3.1-ready.zip" download class="btn-download nav-download-btn" data-t="btn_direct_download">Direct Download v0.3.1</a>
             </div>
         </div>
     </nav>
@@ -325,7 +344,7 @@
             </div>
         </section>
 
-        <section id="features" class="features">
+        <section id="features" class="features" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
             <div class="feature-card">
                 <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
                 <h3 data-t="feat_1_title">Zero Redundancy</h3>
