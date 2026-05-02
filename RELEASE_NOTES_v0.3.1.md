@@ -1,17 +1,17 @@
 # Centraliza.ai v0.3.1 - UX/UI Hardening Release
 
-Esta vers„o foca na estabilidade visual, acessibilidade e na educaÁ„o do utilizador sobre o ecossistema Centraliza.ai.
+Esta vers√£o foca na estabilidade visual, acessibilidade e na educa√ß√£o do utilizador sobre o ecossistema Centraliza.ai.
 
 ## ? Destaques
-- **Dashboard Redesenhado**: Novo layout com Guia de InÌcio R·pido, BenefÌcios e FAQ integrado.
-- **Legibilidade Extrema**: Fim dos textos pequenos. Caminhos tÈcnicos, SHAs e nomes de modelos agora usam fontes maiores e alto contraste.
-- **Botıes Inteligentes**: A classe .btn-premium agora È totalmente responsiva, adaptando-se a ecr„s min˙sculos sem cortar texto.
-- **Filtragem por Motor**: O Test Chat agora sÛ mostra modelos compatÌveis com o motor selecionado (ex: .gguf para Llama.cpp).
+- **Dashboard Redesenhado**: Novo layout com Guia de In√≠cio R√°pido, Benef√≠cios e FAQ integrado.
+- **Legibilidade Extrema**: Fim dos textos pequenos. Caminhos t√©cnicos, SHAs e nomes de modelos agora usam fontes maiores e alto contraste.
+- **Bot√µes Inteligentes**: A classe .btn-premium agora √© totalmente responsiva, adaptando-se a ecr√£s min√∫sculos sem cortar texto.
+- **Filtragem por Motor**: O Test Chat agora s√≥ mostra modelos compat√≠veis com o motor selecionado (ex: .gguf para Llama.cpp).
 
-## ??? CorreÁıes
-- **ComfyUI Assets**: Modelos do ComfyUI agora s„o identificados como 'Passive Assets', desativando o bot„o de launch que causava erros de caminho.
-- **i18n**: Corrigidas chaves de traduÁ„o em falta nos menus de filtragem.
-- **Layout**: Removida a truncagem (line-clamp) de nomes de modelos longos em todas as p·ginas.
+## ??? Corre√ß√µes
+- **ComfyUI Assets**: Modelos do ComfyUI agora s√£o identificados como 'Passive Assets', desativando o bot√£o de launch que causava erros de caminho.
+- **i18n**: Corrigidas chaves de tradu√ß√£o em falta nos menus de filtragem.
+- **Layout**: Removida a truncagem (line-clamp) de nomes de modelos longos em todas as p√°ginas.
 
 ---
 *Centraliza.ai - O seu orquestrador de IA Local.*
