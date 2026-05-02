@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://veiodruida.github.io/Centraliza.AI/sitemap.xml
