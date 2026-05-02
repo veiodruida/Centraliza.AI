@@ -35,8 +35,34 @@ const en = {
   dash_ready: 'READY',
   dash_openHub: 'Open Model Hub',
   dash_diskAnalysis: 'Disk Usage',
-  dash_deploy: 'Download new AI models.',
-  dash_deployDesc: 'Browse hundreds of models and install them with one click.',
+  dash_deploy: 'Explore & Orchestrate',
+  dash_deployDesc: 'The ultimate local AI manager. Centraliza.ai complements tools like LM Studio and Ollama, allowing you to orchestrate, extend, and personalize your local intelligence ecosystem in one unified and optimized workspace.',
+  dash_purposeDetail: 'By centralizing your models, you eliminate redundancy, save hundreds of GBs via smart linking, and gain a unified interface to chat and manage all your local AI entities.',
+  
+  // Benefits
+  dash_benefitTitle: 'Why Centraliza.ai?',
+  dash_benefit1: 'Zero Redundancy',
+  dash_benefit1Desc: 'Smart links share files between LM Studio, Ollama and ComfyUI without duplicating data.',
+  dash_benefit2: 'Unified Control',
+  dash_benefit2Desc: 'Search, launch and test all your local models from a single command center.',
+  dash_benefit3: 'Total Privacy',
+  dash_benefit3Desc: 'Everything stays on your machine. No cloud, no tracking, pure local performance.',
+
+  // Tutorial
+  dash_tutorialTitle: 'Getting Started',
+  dash_step1: '1. Setup Paths',
+  dash_step1Desc: 'Go to Settings and add your model folders (LM Studio, Ollama, etc.) or use Auto-Detect.',
+  dash_step2: '2. Optimize Space',
+  dash_step2Desc: 'Visit Centralization to convert standalone models into optimized smart links.',
+  dash_step3: '3. Chat & Expand',
+  dash_step3Desc: 'Use the Model Hub to find new intelligence or the Tester to chat with your local models.',
+
+  // FAQ
+  dash_faqTitle: 'Frequently Asked Questions',
+  dash_faqQ1: 'Will it break my LM Studio models?',
+  dash_faqA1: 'No. Centraliza.ai uses safe symlinks that tools like LM Studio see as normal files.',
+  dash_faqQ2: 'Does it download models?',
+  dash_faqA2: 'Yes, via the Model Hub you can download models directly from Ollama and HuggingFace.',
   // Models
   models_title: 'My Models',
   models_subtitle: 'All your AI models detected automatically.',
@@ -177,8 +203,34 @@ const ptBR: Translations = {
   dash_ready: 'PRONTO',
   dash_openHub: 'Explorar Modelos',
   dash_diskAnalysis: 'Uso do Disco',
-  dash_deploy: 'Baixar novos modelos de IA.',
-  dash_deployDesc: 'Explore centenas de modelos e instale com um clique.',
+  dash_deploy: 'Explorar & Orquestrar',
+  dash_deployDesc: 'O gestor definitivo de IA local. O Centraliza.ai complementa ferramentas como o LM Studio e Ollama, permitindo orquestrar, estender e personalizar o seu ecossistema de inteligência num espaço de trabalho unificado e otimizado.',
+  dash_purposeDetail: 'Ao centralizar os seus modelos, elimina a redundância, poupa centenas de GBs via links inteligentes e ganha uma interface unificada para conversar e gerir todas as suas entidades de IA locais.',
+  
+  // Benefícios
+  dash_benefitTitle: 'Porquê o Centraliza.ai?',
+  dash_benefit1: 'Zero Redundância',
+  dash_benefit1Desc: 'Links inteligentes partilham ficheiros entre o LM Studio, Ollama e ComfyUI sem duplicar dados.',
+  dash_benefit2: 'Controlo Unificado',
+  dash_benefit2Desc: 'Pesquise, inicie e teste todos os seus modelos locais a partir de um único centro de comando.',
+  dash_benefit3: 'Privacidade Total',
+  dash_benefit3Desc: 'Tudo fica na sua máquina. Sem nuvem, sem rastreio, apenas desempenho local puro.',
+
+  // Tutorial
+  dash_tutorialTitle: 'Guia de Início Rápido',
+  dash_step1: '1. Configurar Caminhos',
+  dash_step1Desc: 'Vá às Definições e adicione as suas pastas de modelos ou use a Deteção Automática.',
+  dash_step2: '2. Otimizar Espaço',
+  dash_step2Desc: 'Visite a Centralização para converter modelos independentes em links otimizados.',
+  dash_step3: '3. Conversar & Expandir',
+  dash_step3Desc: 'Use o Model Hub para encontrar nova inteligência ou o Tester para conversar com os seus modelos.',
+
+  // FAQ
+  dash_faqTitle: 'Perguntas Frequentes',
+  dash_faqQ1: 'Isto vai estragar os meus modelos do LM Studio?',
+  dash_faqA1: 'Não. O Centraliza.ai usa symlinks seguros que ferramentas como o LM Studio veem como ficheiros normais.',
+  dash_faqQ2: 'A app faz downloads?',
+  dash_faqA2: 'Sim, através do Model Hub pode descarregar modelos diretamente do Ollama e HuggingFace.',
   models_title: 'Meus Modelos',
   models_subtitle: 'Todos os seus modelos de IA detectados automaticamente.',
   models_search: 'Buscar modelos...',

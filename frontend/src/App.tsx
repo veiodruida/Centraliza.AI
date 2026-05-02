@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, HardDrive, Search, Cpu, MessageSquare, Settings as SettingsIcon, Puzzle, Activity, Zap, CheckCircle, Shield, Menu, X, ArrowRight } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { LayoutGrid, HardDrive, Search, Cpu, MessageSquare, Settings as SettingsIcon, Puzzle, Activity, Zap, Shield, Menu, X, ArrowRight, Info, Box, Terminal } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MyModels from './pages/MyModels';
 import ExploreStore from './pages/ExploreStore';
@@ -9,7 +9,7 @@ import HardwareLab from './pages/HardwareLab';
 import Settings from './pages/Settings';
 import Extensions from './pages/Extensions';
 import Centralization from './pages/Centralization';
-import HelpTooltip from './components/HelpTooltip';
+
 import { useApp } from './context/AppContext';
 import DiskUsageGraph from './components/DiskUsageGraph';
 import { ToastProvider } from './components/Toast';
@@ -121,17 +121,9 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
 function Dashboard() {
   const { t } = useApp();
-  const [stats, setStats] = useState({ models: 0, space: 0, centralized: 0 });
+  
 
-  useEffect(() => {
-    fetch('/api/models')
-      .then(res => res.json())
-      .then(data => {
-        const totalSize = data.reduce((acc: number, m: any) => acc + (m.isSymlink ? m.size : 0), 0);
-        const centralizedCount = data.filter((m: any) => m.isSymlink).length;
-        setStats({ models: data.length, space: totalSize, centralized: centralizedCount });
-      });
-  }, []);
+  
 
   return (
     <motion.div 
@@ -139,138 +131,111 @@ function Dashboard() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-24"
+      className="p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20 space-y-20"
     >
-      <header className="mb-12 md:mb-20 flex justify-between items-end flex-wrap gap-8">
-        <div className="space-y-6 max-w-2xl">
-           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-black uppercase tracking-[0.2em]">
-              <Zap size={12} className="fill-current" /> {t('dash_ready')}
-           </div>
-           <h2 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.95] uppercase">
-             {t('dash_title').split(' ')[0]} <br/>
-             <span className="bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600 bg-clip-text text-transparent">{t('dash_title').split(' ').slice(1).join(' ')}</span>
-           </h2>
-           <p className="text-[var(--text-secondary)] text-base md:text-xl font-medium leading-relaxed opacity-80">
-             {t('dash_subtitle')}
-           </p>
-           <div className="flex flex-wrap gap-4 pt-4">
-              <Link to="/explore" className="btn-premium bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white flex items-center gap-3">
-                 {t('dash_openHub')} <ArrowRight size={14} />
-              </Link>
-              <div className="flex -space-x-3 overflow-hidden items-center ml-4">
-                 {[1,2,3,4].map(i => (
-                   <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-[var(--bg-base)] bg-[var(--bg-input)] border border-[var(--border)] flex items-center justify-center">
-                     <Cpu size={14} className="text-[var(--text-muted)]" />
-                   </div>
-                 ))}
-                 <span className="ml-4 text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">+12 Connected Engines</span>
-              </div>
-           </div>
-        </div>
+      <header>
+        <h2 className="text-[11px] font-black text-blue-500 uppercase tracking-[0.5em] mb-4">{t('dash_title')}</h2>
+        <h1 className="text-4xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.85] uppercase max-w-4xl">{t('dash_subtitle')}</h1>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 mb-16 md:mb-24">
-        <div className="card-premium relative group overflow-hidden">
-          <div className="absolute top-8 right-8 z-20">
-             <HelpTooltip text={t('dash_totalModels')} />
-          </div>
-          <div className="absolute -bottom-10 -right-10 opacity-[0.05] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 text-blue-500 -rotate-12">
-             <HardDrive size={240} />
-          </div>
-          <h3 className="text-[var(--text-muted)] font-black text-xs uppercase tracking-widest mb-10">{t('dash_totalModels')}</h3>
-          <div className="flex items-baseline gap-2">
-            <p className="text-6xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{stats.models}</p>
-            <span className="text-xl font-black text-[var(--text-muted)] uppercase tracking-widest">Active</span>
-          </div>
-          <div className="mt-12 flex items-center gap-3">
-             <div className="h-2 flex-1 bg-[var(--bg-input)] rounded-full overflow-hidden border border-[var(--border)]/50">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: "75%" }}
-                  className="h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
-                />
-             </div>
-             <span className="text-xs font-black text-blue-500 uppercase tracking-widest">In Sync</span>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+         <div className="card-premium p-10 md:p-16 flex flex-col justify-between overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity"><HardDrive size={240} /></div>
+            <div className="relative z-10 flex items-center justify-between mb-12">
+               <div className="flex flex-col">
+                  <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('dash_diskAnalysis')}</span>
+                  <span className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase">Local Storage</span>
+               </div>
+               <div className="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10">Real-time Stream</div>
+            </div>
+            <div className="relative z-10 h-80">
+               <DiskUsageGraph />
+            </div>
+         </div>
 
-        <div className="card-premium relative group overflow-hidden">
-          <div className="absolute top-8 right-8 z-20">
-             <HelpTooltip text={t('central_spaceSavedHelp')} />
-          </div>
-          <div className="absolute -bottom-10 -right-10 opacity-[0.05] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 text-emerald-500 -rotate-12">
-             <Zap size={240} />
-          </div>
-          <h3 className="text-[var(--text-muted)] font-black text-xs uppercase tracking-widest mb-10">{t('central_spaceSavedHelp')}</h3>
-          <div className="flex items-baseline gap-2">
-            <p className="text-6xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{(stats.space / (1024**3)).toFixed(1)}</p>
-            <span className="text-xl font-black text-[var(--text-muted)] uppercase tracking-widest">GB</span>
-          </div>
-          <div className="mt-12 flex items-center gap-3 text-emerald-500 text-xs font-black uppercase tracking-widest bg-emerald-500/10 px-5 py-2.5 rounded-full border border-emerald-500/20 w-fit">
-             <CheckCircle size={12} className="fill-current" /> {stats.centralized} {t('central_centralized')}
-          </div>
-        </div>
-
-        <div className="card-premium relative group overflow-hidden">
-          <div className="absolute -bottom-10 -right-10 opacity-[0.05] group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 text-purple-500 -rotate-12">
-             <Cpu size={240} />
-          </div>
-          <h3 className="text-[var(--text-muted)] font-black text-xs uppercase tracking-widest mb-10">{t('dash_status')}</h3>
-          <p className="text-4xl md:text-6xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-4">
-            {t('dash_ready')}
-          </p>
-          <div className="mt-12 flex items-center gap-3 text-purple-500 text-xs font-black uppercase tracking-widest bg-purple-500/10 px-5 py-2.5 rounded-full border border-purple-500/20 w-fit">
-             <Activity size={12} /> Live Telemetry
-          </div>
-        </div>
+         <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[2.5rem] p-12 md:p-16 flex flex-col justify-center shadow-premium relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
+            <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
+            
+            <div className="relative z-10 space-y-8">
+               <h3 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] uppercase">
+                 {t('dash_deploy')}
+               </h3>
+               <div className="space-y-6">
+                 <p className="text-blue-100 text-xl md:text-2xl leading-relaxed font-bold">
+                   {t('dash_deployDesc')}
+                 </p>
+                 <p className="text-blue-200/60 text-base md:text-lg leading-relaxed font-medium italic border-l-4 border-blue-500/30 pl-6">
+                   {t('dash_purposeDetail')}
+                 </p>
+               </div>
+               <div className="flex flex-wrap gap-6 pt-4">
+                 <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-12 py-5 shadow-2xl">
+                    {t('dash_openHub')} <ArrowRight size={18} />
+                 </Link>
+                 <Link to="/centralize" className="btn-premium bg-blue-600/20 border border-blue-400/30 text-white hover:bg-blue-600/30 flex items-center gap-4 w-fit px-12 py-5">
+                    {t('central_title')} <Zap size={18} />
+                 </Link>
+               </div>
+            </div>
+         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
-        <div className="card-premium group relative bg-gradient-to-b from-[var(--bg-surface)] to-[var(--bg-base)]">
-           <div className="flex items-center justify-between mb-12 flex-wrap gap-4 relative z-10">
-              <div className="flex items-center gap-5">
-                 <div className="w-14 h-14 bg-blue-600/10 rounded-[1.25rem] flex items-center justify-center text-blue-500 shadow-xl border border-blue-500/20">
-                    <Activity size={24} />
-                 </div>
-                 <div>
-                    <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{t('dash_diskAnalysis')}</h3>
-                    <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mt-1">Resource Distribution</p>
-                 </div>
-              </div>
-              <div className="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10">Real-time Stream</div>
-           </div>
-           <div className="relative z-10 h-80">
-              <DiskUsageGraph />
-           </div>
+      {/* Benefits Section */}
+      <section className="space-y-12">
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase">{t('dash_benefitTitle')}</h2>
+          <div className="w-20 h-1 bg-blue-600 mx-auto rounded-full" />
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="card-premium p-10 space-y-6 hover:translate-y-[-8px] transition-transform">
+              <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500">
+                {i === 1 ? <Zap size={28} /> : i === 2 ? <Box size={28} /> : <Info size={28} />}
+              </div>
+              <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{t(`dash_benefit${i}` as any)}</h3>
+              <p className="text-[var(--text-secondary)] text-lg leading-relaxed opacity-80">{t(`dash_benefit${i}Desc` as any)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[2.5rem] p-12 md:p-20 flex flex-col justify-center shadow-premium relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
-           <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
-           
-           <div className="relative z-10 space-y-8">
-              <h3 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-[0.85] uppercase break-words">
-                {t('dash_deploy')}
-              </h3>
-              <div className="space-y-6">
-                <p className="text-blue-100 text-xl md:text-2xl leading-relaxed font-bold max-w-2xl">
-                  {t('dash_deployDesc')}
-                </p>
-                <p className="text-blue-200/60 text-base md:text-lg leading-relaxed font-medium max-w-xl italic border-l-4 border-blue-500/30 pl-6">
-                  Complementing LM Studio to centralize all local AI workflows. Manage, extend, and personalize your intelligence ecosystem in one unified orchestrator.
-                </p>
+      {/* Tutorial Section */}
+      <section className="bg-[var(--bg-input)]/30 rounded-[3.5rem] p-12 md:p-20 border border-[var(--border)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full" />
+        <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase mb-16 flex items-center gap-6">
+          <Terminal size={40} className="text-blue-500" />
+          {t('dash_tutorialTitle')}
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 relative">
+          <div className="absolute hidden lg:block top-10 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-blue-500/0" />
+          {[1, 2, 3].map(i => (
+            <div key={i} className="relative space-y-6">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-xl shadow-xl shadow-blue-600/20 z-10 relative">
+                {i}
               </div>
-              <div className="flex flex-wrap gap-6 pt-4">
-                <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-12 py-5 shadow-2xl">
-                   {t('dash_openHub')} <ArrowRight size={18} />
-                </Link>
-                <Link to="/test" className="btn-premium bg-blue-600/20 border border-blue-400/30 text-white hover:bg-blue-600/30 flex items-center gap-4 w-fit px-12 py-5">
-                   Custom Tester <Zap size={18} />
-                </Link>
-              </div>
-           </div>
+              <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{t(`dash_step${i}` as any)}</h3>
+              <p className="text-[var(--text-secondary)] text-lg leading-relaxed opacity-80">{t(`dash_step${i}Desc` as any)}</p>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="max-w-4xl mx-auto space-y-12 pb-10">
+        <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase text-center">{t('dash_faqTitle')}</h2>
+        <div className="space-y-6">
+          {[1, 2].map(i => (
+            <div key={i} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] p-8 md:p-12 space-y-4 hover:border-blue-500/30 transition-colors">
+              <h4 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-4">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                {t(`dash_faqQ${i}` as any)}
+              </h4>
+              <p className="text-[var(--text-secondary)] text-lg leading-relaxed pl-6 border-l-2 border-[var(--border)]">{t(`dash_faqA${i}` as any)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </motion.div>
   );
 }
@@ -325,7 +290,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
-
 
 
