@@ -101,6 +101,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
                 <button
                   onClick={() => setSelectedAction('decentralize')}
                   className="w-full p-4 rounded-2xl border border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex items-center gap-4 text-left"
+                >
                   <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-500">
                     <Link2Off size={24} />
                   </div>

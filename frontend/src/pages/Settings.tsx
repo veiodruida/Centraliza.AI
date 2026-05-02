@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Folder, Trash2, Save, RefreshCw, HardDrive, Box, FolderOpen, Search, Languages, Palette } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const PAGE_VARIANTS = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.3 } }
+};
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
 import { useApp, type Theme } from '../context/AppContext';
@@ -88,196 +95,231 @@ export default function Settings() {
   if (loading) return <div className="p-12 md:p-20 text-center animate-pulse text-[var(--text-secondary)] font-black uppercase tracking-widest text-xs md:text-sm">{t('loading')}</div>;
 
   return (
-    <div className="p-6 md:p-12 max-w-6xl mx-auto animate-in fade-in duration-1000 pb-32 md:pb-40">
-      <header className="mb-10 md:mb-14 flex justify-between items-end flex-wrap gap-6">
-        <div className="space-y-2">
-          <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase">{t('nav_settings')}</h2>
-          <p className="text-[var(--text-secondary)] text-base md:text-xl font-medium opacity-80">{t('settings_subtitle')}</p>
+    <motion.div 
+      variants={PAGE_VARIANTS}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="p-6 md:p-12 lg:p-16 max-w-[80rem] mx-auto pb-32 md:pb-40"
+    >
+      <header className="mb-16 flex justify-between items-end flex-wrap gap-10">
+        <div className="space-y-4">
+          <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase flex items-center gap-6">
+            {t('nav_settings')}
+            <div className="w-16 h-1 w-px bg-blue-500/20 rotate-12" />
+          </h2>
+          <p className="text-[var(--text-secondary)] text-lg md:text-2xl font-medium opacity-80">{t('settings_subtitle')}</p>
         </div>
         <button 
           onClick={() => handleAutoDetect()}
-          className="w-full sm:w-auto bg-[var(--bg-surface)] hover:bg-[var(--bg-input)] text-[var(--text-primary)] font-black text-[10px] md:text-xs uppercase tracking-widest px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-[2rem] border border-[var(--border)] transition-all flex items-center justify-center gap-3 md:gap-4 shadow-premium active:scale-95"
+          className="btn-premium px-10 py-5 bg-[var(--bg-input)] hover:bg-[var(--border)]"
         >
           <Search size={20} className="text-blue-500" /> {t('settings_autoDetect')}
         </button>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 mb-8 md:mb-12">
-        {/* Language Selection */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] md:rounded-[3.5rem] p-8 md:p-12 shadow-premium relative overflow-hidden group">
-           <div className="absolute top-0 right-0 p-8 md:p-10 text-indigo-500/5 group-hover:scale-110 transition-all">
-              <Languages size={140} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card-premium relative group overflow-hidden"
+        >
+           <div className="absolute top-0 right-0 p-12 text-indigo-500/5 group-hover:scale-110 transition-all">
+              <Languages size={240} />
            </div>
-           <div className="flex items-center gap-4 md:gap-5 mb-6 md:mb-8 relative z-10">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-indigo-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/30">
+           <div className="flex items-center gap-6 mb-10 relative z-10">
+              <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/30">
                  <Languages size={28} />
               </div>
-              <h3 className="text-lg md:text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-2">
-                {t('settings_language')}
-                <HelpTooltip text={t('settings_languageHelp')} />
-              </h3>
+              <div>
+                 <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3 leading-none">
+                   {t('settings_language')}
+                   <HelpTooltip text={t('settings_languageHelp')} />
+                 </h3>
+                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1 block">Interface Localization</span>
+              </div>
            </div>
            <div className="relative z-10">
               <select 
                 value={lang} 
                 onChange={(e) => setLang(e.target.value as Lang)}
-                className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-xl md:rounded-2xl px-6 md:px-8 py-4 md:py-5 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-indigo-600/10 text-[var(--text-primary)] font-bold cursor-pointer appearance-none shadow-inner"
+                className="w-full bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-2xl px-8 py-5 text-lg focus:outline-none focus:ring-4 focus:ring-indigo-600/10 text-[var(--text-primary)] font-bold cursor-pointer appearance-none shadow-inner uppercase tracking-tighter"
               >
                 {LANGUAGES.map(l => (
                   <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
                 ))}
               </select>
            </div>
-        </div>
+        </motion.div>
 
-        {/* Theme Selection */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] md:rounded-[3.5rem] p-8 md:p-12 shadow-premium relative overflow-hidden group">
-           <div className="absolute top-0 right-0 p-8 md:p-10 text-pink-500/5 group-hover:scale-110 transition-all">
-              <Palette size={140} />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="card-premium relative group overflow-hidden"
+        >
+           <div className="absolute top-0 right-0 p-12 text-pink-500/5 group-hover:scale-110 transition-all">
+              <Palette size={240} />
            </div>
-           <div className="flex items-center gap-4 md:gap-5 mb-6 md:mb-8 relative z-10">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-pink-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-xl shadow-pink-600/30">
+           <div className="flex items-center gap-6 mb-10 relative z-10">
+              <div className="w-14 h-14 bg-pink-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-pink-600/30">
                  <Palette size={28} />
               </div>
-              <h3 className="text-lg md:text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-2">
-                {t('settings_theme')}
-                <HelpTooltip text={t('settings_themeHelp')} />
-              </h3>
+              <div>
+                 <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3 leading-none">
+                   {t('settings_theme')}
+                   <HelpTooltip text={t('settings_themeHelp')} />
+                 </h3>
+                 <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest mt-1 block">Visual Atmosphere</span>
+              </div>
            </div>
-           <div className="grid grid-cols-3 gap-3 md:gap-4 relative z-10">
+           <div className="grid grid-cols-3 gap-4 relative z-10">
               {(['dark', 'light', 'contrast'] as Theme[]).map(tName => (
                 <button 
                   key={tName}
                   onClick={() => setTheme(tName)}
-                  className={`py-3 md:py-4 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all border shadow-premium active:scale-95 ${
-                    theme === tName ? 'bg-white text-black border-white' : 'bg-[var(--bg-input)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--text-secondary)]'
+                  className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border shadow-premium active:scale-95 ${
+                    theme === tName ? 'bg-white text-black border-white' : 'bg-[var(--bg-input)]/40 text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--text-secondary)]'
                   }`}
                 >
                   {t(`settings_theme_${tName}` as any)}
                 </button>
               ))}
            </div>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="space-y-6 md:space-y-10">
-        {/* Central Directory */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] md:rounded-[4rem] p-8 md:p-12 shadow-premium relative overflow-hidden group">
-           <div className="flex items-center gap-5 md:gap-6 mb-6 md:mb-8 relative z-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-600 rounded-xl md:rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-blue-600/30">
+      <div className="space-y-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="card-premium relative group overflow-hidden"
+        >
+           <div className="flex items-center gap-8 mb-10 relative z-10">
+              <div className="w-16 h-16 bg-blue-600/10 rounded-[1.5rem] flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
                  <HardDrive size={32} />
               </div>
               <div>
-                 <h3 className="text-xl md:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3">
+                 <h3 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3 leading-none">
                    {t('settings_centralDir')}
                    <HelpTooltip text={t('settings_centralDirHelp')} />
                  </h3>
-                 <span className="text-[9px] md:text-[10px] font-black text-blue-500 uppercase tracking-widest">Optimized Storage Core</span>
+                 <span className="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mt-1 block">Optimized Storage Core</span>
               </div>
            </div>
            
-           <div className="flex gap-3 md:gap-4 relative z-10">
+           <div className="flex gap-4 relative z-10">
               <input 
                 type="text" 
                 value={config.centralDir || ''}
                 onChange={(e) => setConfig({ ...config, centralDir: e.target.value })}
-                className="flex-1 bg-[var(--bg-input)] border border-[var(--border)] rounded-xl md:rounded-2xl px-6 md:px-8 py-4 md:py-5 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
               />
-              <button onClick={() => pickFolder('centralDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-[var(--border)] text-[var(--text-primary)] px-4 md:px-8 rounded-xl md:rounded-2xl transition-all shadow-premium active:scale-95" title={t('search')}>
+              <button onClick={() => pickFolder('centralDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-blue-600 hover:text-white hover:border-blue-600 text-[var(--text-primary)] px-8 rounded-[1.5rem] transition-all shadow-premium active:scale-95" title={t('search')}>
                  <FolderOpen size={24} />
               </button>
            </div>
-        </div>
+        </motion.div>
 
-        {/* ComfyUI Directory */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] md:rounded-[4rem] p-8 md:p-12 shadow-premium relative overflow-hidden group">
-           <div className="flex items-center gap-5 md:gap-6 mb-6 md:mb-8 relative z-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-600 rounded-xl md:rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-emerald-600/30">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="card-premium relative group overflow-hidden"
+        >
+           <div className="flex items-center gap-8 mb-10 relative z-10">
+              <div className="w-16 h-16 bg-emerald-600/10 rounded-[1.5rem] flex items-center justify-center text-emerald-500 shadow-premium border border-emerald-500/20">
                  <Box size={32} />
               </div>
               <div>
-                 <h3 className="text-xl md:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3">
+                 <h3 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3 leading-none">
                    {t('settings_comfyDir')}
                    <HelpTooltip text={t('settings_comfyDirHelp')} />
                  </h3>
-                 <span className="text-[9px] md:text-[10px] font-black text-emerald-500 uppercase tracking-widest">Generative Art Bridge</span>
+                 <span className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.3em] mt-1 block">Generative Art Bridge</span>
               </div>
            </div>
-           <div className="flex gap-3 md:gap-4 relative z-10">
+           <div className="flex gap-4 relative z-10">
               <input 
                 type="text" 
                 value={config.comfyDir || ''}
                 onChange={(e) => setConfig({ ...config, comfyDir: e.target.value })}
-                className="flex-1 bg-[var(--bg-input)] border border-[var(--border)] rounded-xl md:rounded-2xl px-6 md:px-8 py-4 md:py-5 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-emerald-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-base focus:outline-none focus:ring-4 focus:ring-emerald-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
               />
-              <button onClick={() => pickFolder('comfyDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-[var(--border)] text-[var(--text-primary)] px-4 md:px-8 rounded-xl md:rounded-2xl transition-all shadow-premium active:scale-95" title={t('search')}>
+              <button onClick={() => pickFolder('comfyDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-[var(--text-primary)] px-8 rounded-[1.5rem] transition-all shadow-premium active:scale-95" title={t('search')}>
                  <FolderOpen size={24} />
               </button>
            </div>
-        </div>
+        </motion.div>
 
-        {/* Scan Directories */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] md:rounded-[4rem] p-8 md:p-12 shadow-premium relative overflow-hidden group">
-           <div className="flex items-center gap-5 md:gap-6 mb-8 md:mb-10 relative z-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-600 rounded-xl md:rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-purple-600/30">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="card-premium relative group overflow-hidden"
+        >
+           <div className="flex items-center gap-8 mb-12 relative z-10">
+              <div className="w-16 h-16 bg-purple-600/10 rounded-[1.5rem] flex items-center justify-center text-purple-500 shadow-premium border border-purple-500/20">
                  <Folder size={32} />
               </div>
               <div>
-                 <h3 className="text-xl md:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3">
+                 <h3 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3 leading-none">
                    {t('settings_scanDirs')}
                    <HelpTooltip text={t('settings_scanDirsHelp')} />
                  </h3>
-                 <span className="text-[9px] md:text-[10px] font-black text-purple-500 uppercase tracking-widest">Silicon Discovery Paths</span>
+                 <span className="text-[11px] font-black text-purple-500 uppercase tracking-[0.3em] mt-1 block">Silicon Discovery Paths</span>
               </div>
            </div>
            
-           <div className="space-y-3 md:space-y-4 mb-8 md:mb-12 max-h-60 md:max-h-80 overflow-y-auto pr-2 md:pr-4 custom-scrollbar relative z-10 no-scrollbar">
+           <div className="space-y-4 mb-12 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar relative z-10 no-scrollbar">
               {config && config.scanDirectories.length === 0 ? (
-                 <div className="text-center py-8 md:py-10 border-2 border-dashed border-[var(--border)] rounded-xl md:rounded-[2rem] text-[var(--text-muted)] font-bold italic text-sm">
+                 <div className="text-center py-16 border-2 border-dashed border-[var(--border)] rounded-[2rem] text-[var(--text-muted)] font-black uppercase tracking-widest text-xs opacity-50">
                     No scan directories configured.
                  </div>
               ) : (
                 config && config.scanDirectories.map((path: string) => (
-                  <div key={path} className="flex items-center justify-between bg-[var(--bg-input)]/50 border border-[var(--border)]/50 rounded-xl md:rounded-[2rem] p-4 md:p-6 group hover:border-[var(--text-secondary)] hover:bg-[var(--bg-input)] transition-all shadow-sm">
-                     <span className="text-[10px] md:text-sm font-mono text-[var(--text-secondary)] truncate font-bold">{path}</span>
-                     <button onClick={() => removePath(path)} className="text-[var(--text-muted)] hover:text-red-500 transition-all p-2 md:p-3 hover:bg-red-500/10 rounded-lg md:rounded-xl active:scale-90">
-                        <Trash2 size={22} />
+                  <div key={path} className="flex items-center justify-between bg-[var(--bg-input)]/30 border border-[var(--border)]/50 rounded-[2rem] p-8 group hover:border-[var(--text-secondary)] hover:bg-[var(--bg-input)]/50 transition-all shadow-sm">
+                     <span className="text-base font-mono text-[var(--text-secondary)] truncate font-bold">{path}</span>
+                     <button onClick={() => removePath(path)} className="text-[var(--text-muted)] hover:text-red-500 transition-all p-4 hover:bg-red-500/10 rounded-2xl active:scale-90 shrink-0">
+                        <Trash2 size={24} />
                      </button>
                   </div>
                 ))
               )}
            </div>
 
-           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 relative z-10">
+           <div className="flex flex-col sm:flex-row gap-4 relative z-10 bg-[var(--bg-input)]/20 p-2 rounded-[2.5rem] border border-[var(--border)]/50">
               <div className="relative flex-1">
                  <input 
                   type="text" 
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
                   placeholder={t('search') + "..."}
-                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-xl md:rounded-2xl py-4 md:py-5 pl-6 md:pl-8 pr-12 md:pr-16 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-purple-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                  className="w-full bg-transparent border-none rounded-[2rem] py-5 pl-8 pr-16 text-base focus:outline-none text-[var(--text-primary)] font-mono font-bold"
                  />
-                 <button onClick={() => pickFolder('scan')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 active:scale-90">
-                    <FolderOpen size={22} />
+                 <button onClick={() => pickFolder('scan')} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 active:scale-90">
+                    <FolderOpen size={24} />
                  </button>
               </div>
-              <button onClick={addPath} className="bg-purple-600 hover:bg-purple-500 text-white px-8 md:px-10 py-4 md:py-0 rounded-xl md:rounded-2xl transition-all font-black text-[10px] md:text-xs uppercase tracking-widest md:tracking-[0.2em] shadow-xl shadow-purple-600/30 active:scale-95">
+              <button onClick={addPath} className="btn-premium bg-purple-600 hover:bg-purple-500 text-white px-10 py-5 rounded-[2rem] shrink-0">
                  {t('settings_addPath')}
               </button>
            </div>
-        </div>
+        </motion.div>
 
-        <div className="fixed bottom-6 md:bottom-12 right-6 md:right-12 z-50">
+        <div className="fixed bottom-12 right-12 z-50">
            <button 
              onClick={handleSave}
              disabled={saving}
-             className="bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black text-[10px] md:text-sm uppercase tracking-widest md:tracking-[0.3em] px-10 md:px-20 py-5 md:py-7 rounded-xl md:rounded-[2.5rem] transition-all shadow-premium flex items-center gap-3 md:gap-5 active:scale-95 disabled:opacity-50"
+             className="bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black text-sm uppercase tracking-[0.4em] px-20 py-8 rounded-[3rem] transition-all shadow-premium flex items-center gap-6 active:scale-95 disabled:opacity-50"
            >
-              {saving ? <RefreshCw size={24} className="animate-spin" /> : <Save size={24} />}
+              {saving ? <RefreshCw size={28} className="animate-spin" /> : <Save size={28} />}
               {t('settings_save')}
            </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
+
