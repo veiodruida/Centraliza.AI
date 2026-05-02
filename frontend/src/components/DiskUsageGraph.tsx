@@ -27,7 +27,7 @@ export default function DiskUsageGraph() {
 
   const formatGB = (val: number) => (val / (1024 ** 3)).toFixed(1) + ' GB';
 
-  if (loading) return <div className="h-48 sm:h-64 flex items-center justify-center text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] animate-pulse">Analyzing Storage Engine...</div>;
+  if (loading) return <div className="h-48 sm:h-64 flex items-center justify-center text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest animate-pulse">Analyzing Storage Engine...</div>;
 
   const COLORS = ['#3b82f6', '#8b5cf6', 'var(--bg-input)'];
 
@@ -84,7 +84,7 @@ export default function DiskUsageGraph() {
             align="center"
             iconType="circle"
             iconSize={8}
-            formatter={(value) => <span className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-3 hover:text-[var(--text-primary)] transition-colors cursor-default">{value}</span>}
+            formatter={(value) => <span className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest ml-3 hover:text-[var(--text-primary)] transition-colors cursor-default">{value}</span>}
             wrapperStyle={{ paddingTop: '32px' }}
           />
         </PieChart>
@@ -92,3 +92,4 @@ export default function DiskUsageGraph() {
     </motion.div>
   );
 }
+

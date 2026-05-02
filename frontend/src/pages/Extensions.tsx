@@ -38,7 +38,7 @@ export default function Extensions() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-8"
+          className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-xs font-black uppercase tracking-widest mb-8"
         >
           <Puzzle size={14} /> Modular Architecture
         </motion.div>
@@ -94,7 +94,7 @@ export default function Extensions() {
             
             <div className="inline-flex items-center gap-4 bg-white/10 border border-white/20 rounded-full py-4 px-10 shadow-2xl backdrop-blur-3xl">
                <ShieldAlert size={20} className="text-yellow-400" />
-               <span className="text-[11px] font-black text-white uppercase tracking-[0.3em]">SDK Documentation Coming Soon</span>
+               <span className="text-[11px] font-black text-white uppercase tracking-widest">SDK Documentation Coming Soon</span>
             </div>
          </div>
       </motion.div>
@@ -117,5 +117,6 @@ export default function Extensions() {
     </motion.div>
   );
 }
+
 
 

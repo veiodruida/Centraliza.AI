@@ -243,12 +243,12 @@ export default function ExploreStore() {
           </div>
           <div className="card-premium py-6 px-10 flex items-center gap-10 shadow-premium backdrop-blur-3xl shrink-0">
              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-1">{t('hub_gpu')}</span>
+                <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_gpu')}</span>
                 <span className="text-lg font-black text-[var(--text-primary)] tracking-tighter uppercase">{sysInfo?.gpuName || 'Detecting...'}</span>
              </div>
              <div className="h-12 w-px bg-[var(--border)]"></div>
              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-1">{t('hub_vram')}</span>
+                <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_vram')}</span>
                 <span className="text-3xl font-black text-blue-500 tracking-tighter leading-none">
                    {sysInfo ? `${(sysInfo.vram / (1024 ** 3)).toFixed(1)} GB` : '--'}
                 </span>
@@ -273,7 +273,7 @@ export default function ExploreStore() {
               <button 
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-4 py-3 md:px-8 md:py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
+                className={`px-4 py-3 md:px-8 md:py-4 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
                   activeFilter === f ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
@@ -287,7 +287,7 @@ export default function ExploreStore() {
                 <button 
                  key={s}
                  onClick={() => setActiveSort(s)}
-                 className={`px-4 py-3 md:px-6 md:py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
+                 className={`px-4 py-3 md:px-6 md:py-4 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
                    activeSort === s ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-lg' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                  }`}
                 >
@@ -329,15 +329,15 @@ export default function ExploreStore() {
                    <Brain size={28} className="text-purple-400" /> }
                 </div>
                 {score === 3 ? (
-                  <div className="flex items-center gap-2 text-emerald-500 text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20 shadow-sm">
+                  <div className="flex items-center gap-2 text-emerald-500 text-xs font-black uppercase tracking-widest bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20 shadow-sm">
                     <CheckCircle size={14} /> {t('hub_perfectFit')}
                   </div>
                 ) : score === 2 ? (
-                  <div className="flex items-center gap-2 text-amber-500 text-[9px] font-black uppercase tracking-widest bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20 shadow-sm">
+                  <div className="flex items-center gap-2 text-amber-500 text-xs font-black uppercase tracking-widest bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20 shadow-sm">
                     <AlertTriangle size={14} /> {t('hub_needsRam')}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-red-500 text-[9px] font-black uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20 shadow-sm">
+                  <div className="flex items-center gap-2 text-red-500 text-xs font-black uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20 shadow-sm">
                     <XCircle size={14} /> {t('hub_tooLarge')}
                   </div>
                 )}
@@ -345,9 +345,9 @@ export default function ExploreStore() {
 
               <div className="flex-1 relative z-10 min-w-0">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
-                  <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{model.provider}</span>
+                  <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest">{model.provider}</span>
                   <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
-                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{model.parameter_count}</span>
+                  <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{model.parameter_count}</span>
                 </div>
                 <h4 className="text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors line-clamp-1 tracking-tighter uppercase">{model.name.split('/').pop()}</h4>
                 <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-8 line-clamp-2 opacity-70">{model.use_case}</p>
@@ -366,12 +366,12 @@ export default function ExploreStore() {
 
               <div className="flex items-center justify-between mt-auto relative z-10 gap-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_details_vram')}</span>
+                  <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_details_vram')}</span>
                   <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{model.min_vram_gb} <span className="text-xs text-[var(--text-secondary)]">GB</span></span>
                 </div>
                 {isDownloading ? (
                    <div className="flex flex-col gap-2 min-w-[160px]">
-                     <div className="text-[10px] font-black text-blue-500 uppercase bg-blue-500/10 px-5 py-3 rounded-2xl text-center border border-blue-500/20 shadow-xl shadow-blue-500/10 animate-pulse truncate">
+                     <div className="text-xs md:text-sm font-black text-blue-500 uppercase bg-blue-500/10 px-5 py-3 rounded-2xl text-center border border-blue-500/20 shadow-xl shadow-blue-500/10 animate-pulse truncate">
                        {downloadStatus}
                      </div>
                      {downloadProgress[model.name] > 0 && downloadProgress[model.name] < 100 && (
@@ -434,9 +434,9 @@ export default function ExploreStore() {
                       </div>
                       <div className="text-center md:text-left">
                          <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                            <span className="text-xs font-black text-blue-500 uppercase tracking-[0.4em]">{selectedModel.provider}</span>
+                            <span className="text-xs font-black text-blue-500 uppercase tracking-wider">{selectedModel.provider}</span>
                             <span className="w-1.5 h-1.5 rounded-full bg-[var(--border)]"></span>
-                            <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">{selectedModel.parameter_count}</span>
+                            <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">{selectedModel.parameter_count}</span>
                          </div>
                          <h3 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.9] uppercase">{selectedModel.name.split('/').pop()}</h3>
                       </div>
@@ -445,22 +445,22 @@ export default function ExploreStore() {
                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
                       <div className="bg-[var(--bg-input)]/50 p-8 rounded-[2.5rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
                          <div className="absolute -bottom-4 -right-4 text-blue-500/5 group-hover:scale-110 transition-transform"><Download size={96} /></div>
-                         <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 block">{t('hub_details_downloads')}</span>
+                         <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 block">{t('hub_details_downloads')}</span>
                          <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">{(selectedModel.hf_downloads / 1000).toFixed(1)}k</span>
                       </div>
                       <div className="bg-[var(--bg-input)]/50 p-8 rounded-[2.5rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
                          <div className="absolute -bottom-4 -right-4 text-yellow-500/5 group-hover:scale-110 transition-transform"><Star size={96} /></div>
-                         <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 block">{t('hub_details_likes')}</span>
+                         <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 block">{t('hub_details_likes')}</span>
                          <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">{selectedModel.hf_likes}</span>
                       </div>
                       <div className="bg-blue-600/5 p-8 rounded-[2.5rem] border border-blue-500/20 shadow-premium relative overflow-hidden group">
                          <div className="absolute -bottom-4 -right-4 text-blue-500/10 group-hover:scale-110 transition-transform"><Monitor size={96} /></div>
-                         <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4 block">{t('hub_details_vram')}</span>
+                         <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest mb-4 block">{t('hub_details_vram')}</span>
                          <span className="text-3xl font-black text-blue-500 tracking-tighter">{selectedModel.min_vram_gb} GB</span>
                       </div>
                       <div className="bg-[var(--bg-input)]/50 p-8 rounded-[2.5rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
                          <div className="absolute -bottom-4 -right-4 text-purple-500/5 group-hover:scale-110 transition-transform"><Brain size={96} /></div>
-                         <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 block">{t('hub_details_type')}</span>
+                         <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 block">{t('hub_details_type')}</span>
                          <span className="text-2xl font-black text-[var(--text-primary)] uppercase truncate block tracking-tighter leading-none">{selectedModel.pipeline_tag}</span>
                       </div>
                    </div>
@@ -505,7 +505,7 @@ export default function ExploreStore() {
                    <button 
                      onClick={() => { handleInstall(selectedModel); setSelectedModel(null); }}
                      disabled={getFitScore(selectedModel) === 1}
-                     className="w-full bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black py-10 rounded-[3rem] transition-all shadow-premium flex items-center justify-center gap-8 active:scale-[0.98] disabled:opacity-50 text-xl uppercase tracking-[0.4em] mb-10"
+                     className="w-full bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black py-10 rounded-[3rem] transition-all shadow-premium flex items-center justify-center gap-8 active:scale-[0.98] disabled:opacity-50 text-xl uppercase tracking-wider mb-10"
                    >
                       <Download size={40} />
                       {t('hub_install')}
@@ -539,5 +539,7 @@ export default function ExploreStore() {
     </motion.div>
   );
 }
+
+
 
 

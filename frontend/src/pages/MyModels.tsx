@@ -171,7 +171,7 @@ export default function MyModels() {
         exit={{ opacity: 0, x: -20 }}
         className="p-6 md:p-12 lg:p-16 max-w-7xl mx-auto pb-20"
       >
-        <button onClick={() => setViewingModel(null)} className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-blue-500 mb-10 transition-all font-black text-[10px] uppercase tracking-[0.2em] group">
+        <button onClick={() => setViewingModel(null)} className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-blue-500 mb-10 transition-all font-black text-xs uppercase tracking-[0.2em] group">
           <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" /> {t('close')}
         </button>
         
@@ -185,9 +185,9 @@ export default function MyModels() {
                   <HelpTooltip text="Model details and management" />
                 </div>
                 <div className="flex gap-3 flex-wrap">
-                   <span className="bg-blue-500/10 text-blue-500 px-5 py-2 rounded-2xl text-[10px] font-black border border-blue-500/20 uppercase tracking-widest">{viewingModel.source}</span>
-                   <span className="bg-emerald-500/10 text-emerald-500 px-5 py-2 rounded-2xl text-[10px] font-black border border-emerald-500/20 uppercase tracking-widest">{viewingModel.extension || 'GGUF'}</span>
-                   <span className="bg-[var(--bg-input)] px-5 py-2 rounded-2xl text-[10px] font-black text-[var(--text-secondary)] border border-[var(--border)] uppercase tracking-widest">{formatSize(viewingModel.size)}</span>
+                   <span className="bg-blue-500/10 text-blue-500 px-5 py-2 rounded-2xl text-xs font-black border border-blue-500/20 uppercase tracking-widest">{viewingModel.source}</span>
+                   <span className="bg-emerald-500/10 text-emerald-500 px-5 py-2 rounded-2xl text-xs font-black border border-emerald-500/20 uppercase tracking-widest">{viewingModel.extension || 'GGUF'}</span>
+                   <span className="bg-[var(--bg-input)] px-5 py-2 rounded-2xl text-xs font-black text-[var(--text-secondary)] border border-[var(--border)] uppercase tracking-widest">{formatSize(viewingModel.size)}</span>
                 </div>
              </div>
              <div className="flex gap-4 w-full md:w-auto">
@@ -214,7 +214,7 @@ export default function MyModels() {
 
              <div className="space-y-12">
                 <div className="bg-[var(--bg-input)]/50 p-10 rounded-[3rem] border border-[var(--border)] shadow-xl">
-                   <h4 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+                   <h4 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-8 flex items-center gap-3">
                       <Info size={16} className="text-purple-500" /> Metadata
                    </h4>
                    <div className="space-y-6">
@@ -235,14 +235,14 @@ export default function MyModels() {
                 </div>
 
                 <div className="bg-red-500/5 p-10 rounded-[3rem] border border-red-500/10 shadow-xl">
-                   <h4 className="text-[11px] font-black text-red-500/70 uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+                   <h4 className="text-[11px] font-black text-red-500/70 uppercase tracking-widest mb-8 flex items-center gap-3">
                       <Terminal size={16} /> Danger Zone
                    </h4>
                    <div className="flex flex-col gap-4">
-                      <button onClick={() => handleRename(viewingModel)} className="w-full bg-[var(--bg-surface)] hover:bg-[var(--border)] text-[var(--text-primary)] font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-4 text-[10px] uppercase tracking-[0.2em] border border-[var(--border)] shadow-sm">
+                      <button onClick={() => handleRename(viewingModel)} className="w-full bg-[var(--bg-surface)] hover:bg-[var(--border)] text-[var(--text-primary)] font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] border border-[var(--border)] shadow-sm">
                          <Edit3 size={18} /> {t('save')}
                       </button>
-                      <button onClick={() => handleDelete(viewingModel)} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-4 text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-red-600/20">
+                      <button onClick={() => handleDelete(viewingModel)} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] shadow-xl shadow-red-600/20">
                          <Trash2 size={18} /> {t('delete')}
                       </button>
                    </div>
@@ -299,7 +299,7 @@ export default function MyModels() {
             className="flex flex-col items-center justify-center py-40"
           >
             <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-6" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)]">Indexing Library...</span>
+            <span className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">Indexing Library...</span>
           </motion.div>
         ) : models.length === 0 ? (
           <motion.div 
@@ -339,7 +339,7 @@ export default function MyModels() {
                            <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase">{source}</h3>
                            <div className="flex items-center gap-3 mt-1">
                               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                              <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em]">{items.length} MODELS DETECTED</p>
+                              <p className="text-xs text-[var(--text-muted)] font-black uppercase tracking-widest">{items.length} MODELS DETECTED</p>
                            </div>
                         </div>
                      </div>
@@ -377,7 +377,7 @@ export default function MyModels() {
                                     <div className={`p-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)] text-blue-500`}>
                                       <Terminal size={20} />
                                     </div>
-                                    <span className={`text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest border shadow-sm ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
+                                    <span className={`text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest border shadow-sm ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
                                        {m.isSymlink ? 'Centralized' : 'Local Only'}
                                     </span>
                                  </div>
@@ -385,13 +385,13 @@ export default function MyModels() {
                                  <h4 className="text-2xl font-black text-[var(--text-primary)] mb-3 line-clamp-1 tracking-tighter uppercase">{m.name}</h4>
                                  
                                  <div className="flex flex-col gap-1 mb-8 opacity-60">
-                                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Source Path</span>
+                                    <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Source Path</span>
                                     <p className="text-[11px] font-mono truncate font-bold text-[var(--text-secondary)]">{m.path}</p>
                                  </div>
                                  
                                  <div className="flex justify-between items-end mt-auto gap-4">
                                     <div className="flex flex-col gap-1">
-                                       <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Storage</span>
+                                       <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Storage</span>
                                        <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{formatSize(m.size)}</span>
                                     </div>
                                     <div className="flex gap-3 relative z-10">
@@ -432,6 +432,7 @@ export default function MyModels() {
     </motion.div>
   );
 }
+
 
 
 

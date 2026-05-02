@@ -13,6 +13,12 @@
     -ms-overflow-style: none;
   }
 
+  @media (max-width: 768px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
   *::-webkit-scrollbar {
     display: none;
     width: 0;
@@ -25,6 +31,7 @@
     @apply antialiased selection:bg-blue-500/30 selection:text-white overflow-x-hidden;
     font-family: 'Outfit', 'Inter', system-ui, sans-serif;
     letter-spacing: -0.01em;
+    line-height: 1.5;
   }
 
   /* Noise Overlay */
@@ -59,11 +66,11 @@
 
 @layer components {
   .btn-premium {
-    @apply relative overflow-hidden px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl hover:shadow-blue-500/20 hover:-translate-y-0.5;
+    @apply relative overflow-hidden px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all active:scale-95 shadow-xl hover:shadow-blue-500/20 hover:-translate-y-0.5;
   }
   
   .card-premium {
-    @apply bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2.5rem] p-8 shadow-premium hover:border-blue-500/30 transition-all duration-500 backdrop-blur-xl;
+    @apply bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2.5rem] p-6 md:p-10 shadow-premium hover:border-blue-500/30 transition-all duration-500 backdrop-blur-xl;
   }
 
   .text-glow {
