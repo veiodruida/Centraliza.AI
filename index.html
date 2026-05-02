@@ -527,10 +527,28 @@
             localStorage.setItem('lang', lang);
         }
 
-        // Auto-detect browser language
-        const savedLang = localStorage.getItem('lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
-        document.getElementById('lang-select').value = savedLang;
-        setLang(savedLang);
+        // Advanced Auto-detection
+        function detectLanguage() {
+            const saved = localStorage.getItem('lang');
+            if (saved) return saved;
+
+            const navLang = navigator.language.toLowerCase();
+            if (navLang.startsWith('pt')) return 'pt';
+            if (navLang.startsWith('es')) return 'es';
+            if (navLang.startsWith('fr')) return 'fr';
+            if (navLang.startsWith('de')) return 'de';
+            if (navLang.startsWith('it')) return 'it';
+            if (navLang.startsWith('zh')) return 'zh';
+            if (navLang.startsWith('ar')) return 'ar';
+            if (navLang.startsWith('ko')) return 'ko';
+            if (navLang.startsWith('ja')) return 'ja';
+            
+            return 'en'; // Default
+        }
+
+        const initialLang = detectLanguage();
+        document.getElementById('lang-select').value = initialLang;
+        setLang(initialLang);
     </script>
 </body>
 </html>
