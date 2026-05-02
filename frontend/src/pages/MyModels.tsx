@@ -191,9 +191,15 @@ export default function MyModels() {
                 </div>
              </div>
              <div className="flex gap-4 w-full md:w-auto">
-                <button onClick={() => handleLaunch(viewingModel, viewingModel.source.toLowerCase())} className="btn-premium flex-1 md:flex-none bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white flex items-center justify-center gap-4">
-                   <Play size={18} /> {t('dash_status')}
-                </button>
+                 {viewingModel.source !== 'ComfyUI' ? (
+                   <button onClick={() => handleLaunch(viewingModel, viewingModel.source.toLowerCase())} className="btn-premium flex-1 md:flex-none bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white flex items-center justify-center gap-4">
+                      <Play size={18} /> {t('dash_status')}
+                   </button>
+                 ) : (
+                   <div className="px-8 py-5 bg-[var(--bg-input)] border border-[var(--border)] rounded-2xl text-[var(--text-muted)] text-xs font-black uppercase tracking-widest flex items-center gap-3">
+                      <Info size={16} /> Passive Asset
+                   </div>
+                 )}
                 <button onClick={() => handleOpenFolder(viewingModel.path)} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-[var(--border)] text-[var(--text-primary)] p-5 rounded-2xl transition-all shadow-xl active:scale-95">
                    <FolderOpen size={24} />
                 </button>
@@ -382,7 +388,7 @@ export default function MyModels() {
                                     </span>
                                  </div>
                                  
-                                 <h4 className="text-2xl font-black text-[var(--text-primary)] mb-3 line-clamp-1 tracking-tighter uppercase">{m.name}</h4>
+                                 <h4 className="text-xl md:text-2xl font-black text-[var(--text-primary)] mb-3 tracking-tighter uppercase break-all">{m.name}</h4>
                                  
                                  <div className="flex flex-col gap-1 mb-8 ">
                                     <span className="text-sm font-black uppercase tracking-widest text-blue-500">Source Path</span>
@@ -432,6 +438,7 @@ export default function MyModels() {
     </motion.div>
   );
 }
+
 
 
 

@@ -144,7 +144,11 @@ export default function ModelTester() {
         </h3>
         
         <div className="space-y-4 flex-1 overflow-y-auto pr-4 mb-10 custom-scrollbar no-scrollbar">
-          {models.filter(m => engine === 'ollama' ? m.source === 'Ollama' : true).map(model => (
+          {models.filter(m => {
+            if (engine === 'ollama') return m.source === 'Ollama';
+            if (engine === 'llama.cpp') return m.path.toLowerCase().endsWith('.gguf') || m.extension?.toLowerCase() === '.gguf';
+            return true;
+          }).map(model => (
             <button
               key={model.path}
               onClick={() => setSelectedModel(model)}
