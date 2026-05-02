@@ -293,8 +293,18 @@
                 <li><a href="https://github.com/veiodruida/Centraliza.AI" target="_blank">GitHub</a></li>
             </ul>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <button onclick="setLang('en')" id="btn-en" style="background: var(--glass); border: 1px solid var(--primary); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">EN</button>
-                <button onclick="setLang('pt')" id="btn-pt" style="background: transparent; border: 1px solid var(--glass-border); color: var(--text-dim); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">PT</button>
+                <select id="lang-select" onchange="setLang(this.value)" style="background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; outline: none; font-family: 'Inter', sans-serif;">
+                    <option value="en">🇺🇸 English</option>
+                    <option value="pt">🇵🇹 Português</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="ar">🇸🇦 العربية</option>
+                    <option value="ko">🇰🇷 한국어</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                </select>
                 <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.3.1/centraliza-ai-v0.3.1-ready.zip" download class="btn-download" data-t="btn_direct_download">Direct Download v0.3.1</a>
             </div>
         </div>
@@ -417,95 +427,109 @@
                 hero_badge: "V0.3.1 — Official Release",
                 hero_title: "The Companion for<br>LM Studio & Ollama",
                 hero_desc: "The ultimate local AI manager. Centraliza.ai complements your existing tools, allowing you to orchestrate, extend, and personalize your local intelligence ecosystem in one unified workspace.",
-                btn_download: "Download for Windows",
-                btn_how_to_install: "How to Install",
-                feat_1_title: "Zero Redundancy",
-                feat_1_desc: "Advanced smart links share files between LM Studio, Ollama, and ComfyUI without duplicating data. Save hundreds of GBs instantly.",
-                feat_2_title: "Unified Control",
-                feat_2_desc: "Search, launch, and test all your local models from a single command center. No more switching between apps to find your AI.",
-                feat_3_title: "Global AI",
-                feat_3_desc: "Built for everyone. Native support for 11 languages including Portuguese, English, Spanish, and Chinese. Break the language barrier.",
-                setup_title: "Quick Setup",
-                setup_1_title: "Install",
-                setup_1_desc: "Run setup.bat. This installs dependencies and configures the global central command for your system.",
-                setup_2_title: "Detect",
-                setup_2_desc: "Open the app and use Auto-Detect in Settings to find your LM Studio, Ollama, and ComfyUI folders automatically.",
-                setup_3_title: "Orchestrate",
-                setup_3_desc: "Launch models, save disk space, and chat with your local AI from a single, unified interface.",
-                term_title: "Command Your Universe",
-                term_desc: "Centraliza.ai integrates into your workflow. After installation, launch your dashboard from any terminal at any time.",
-                term_log_1: "[System] Initializing Centraliza.ai Orchestrator...",
-                term_log_2: "[System] Checking model links... Done.",
-                term_log_3: "[Ready] Dashboard live at http://localhost:5000",
-                faq_title: "FAQ",
-                faq_q1: "Will it break my LM Studio models?",
-                faq_a1: "No. Centraliza.ai uses safe symlinks that tools like LM Studio see as normal files. Your existing workflows remain intact.",
-                faq_q2: "Does it download models?",
-                faq_a2: "Yes. Via the AI Model Hub, you can search and download models directly from Ollama and HuggingFace repositories.",
-                faq_q3: "Is it free?",
-                faq_a3: "Yes. Centraliza.ai is an open-source tool built to empower the local AI community.",
-                tech_title: "Unifying the Industry Standards",
-                footer_text: "© 2026 Centraliza.ai. Built for the local AI revolution."
+                btn_download: "Download for Windows", btn_how_to_install: "How to Install",
+                feat_1_title: "Zero Redundancy", feat_1_desc: "Advanced smart links share files between engines without duplicating data. Save hundreds of GBs instantly.",
+                feat_2_title: "Unified Control", feat_2_desc: "Search, launch, and test all your local models from a single command center.",
+                feat_3_title: "Global AI", feat_3_desc: "Built for everyone. Native support for 11 languages including Portuguese, English, Spanish, and Chinese.",
+                setup_title: "Quick Setup", setup_1_title: "Install", setup_1_desc: "Run setup.bat. This installs dependencies and configures the global central command.",
+                setup_2_title: "Detect", setup_2_desc: "Open the app and use Auto-Detect in Settings to find your AI folders automatically.",
+                setup_3_title: "Orchestrate", setup_3_desc: "Launch models, save disk space, and chat with your local AI from one interface.",
+                term_title: "Command Your Universe", term_desc: "Launch your dashboard from any terminal at any time.",
+                term_log_1: "[System] Initializing Centraliza.ai Orchestrator...", term_log_2: "[System] Checking model links... Done.", term_log_3: "[Ready] Dashboard live at http://localhost:5000",
+                faq_title: "FAQ", faq_q1: "Will it break my LM Studio models?", faq_a1: "No. Centraliza.ai uses safe symlinks that tools see as normal files.",
+                faq_q2: "Does it download models?", faq_a2: "Yes. Via the AI Model Hub, you can download models directly from Ollama and HF.",
+                faq_q3: "Is it free?", faq_a3: "Yes. Centraliza.ai is an open-source tool.",
+                tech_title: "Unifying the Industry Standards", footer_text: "© 2026 Centraliza.ai. Built for the local AI revolution."
             },
             pt: {
                 nav_benefits: "Benefícios", nav_setup: "Instalação", nav_faq: "FAQ",
                 btn_direct_download: "Download Direto v0.3.1",
                 hero_badge: "V0.3.1 — Lançamento Oficial",
                 hero_title: "O Companheiro para<br>LM Studio & Ollama",
-                hero_desc: "O gestor definitivo de IA local. O Centraliza.ai complementa as tuas ferramentas, permitindo orquestrar, estender e personalizar o teu ecossistema de inteligência local num espaço de trabalho unificado.",
-                btn_download: "Descarregar para Windows",
-                btn_how_to_install: "Como Instalar",
-                feat_1_title: "Zero Redundância",
-                feat_1_desc: "Links inteligentes partilham ficheiros entre LM Studio, Ollama e ComfyUI sem duplicar dados. Poupa centenas de GBs instantaneamente.",
-                feat_2_title: "Controlo Unificado",
-                feat_2_desc: "Pesquise, inicie e teste todos os seus modelos locais a partir de um único centro de comando. Chega de saltar entre apps.",
-                feat_3_title: "IA Global",
-                feat_3_desc: "Feito para todos. Suporte nativo para 11 idiomas, incluindo Português, Inglês, Espanhol e Chinês. Quebre a barreira da língua.",
-                setup_title: "Configuração Rápida",
-                setup_1_title: "Instalar",
-                setup_1_desc: "Execute o setup.bat. Isto instala as dependências e configura o comando global central no seu sistema.",
-                setup_2_title: "Detetar",
-                setup_2_desc: "Abra a app e use o Auto-Detect nas Definições para encontrar as suas pastas do LM Studio e Ollama automaticamente.",
-                setup_3_title: "Orquestrar",
-                setup_3_desc: "Inicie modelos, poupe espaço em disco e converse com a sua IA local a partir de uma interface unificada.",
-                term_title: "Comande o seu Universo",
-                term_desc: "O Centraliza.ai integra-se no seu fluxo. Após a instalação, lance o seu painel a partir de qualquer terminal a qualquer momento.",
-                term_log_1: "[Sistema] Inicializando Orquestrador Centraliza.ai...",
-                term_log_2: "[Sistema] Verificando links de modelos... Concluído.",
-                term_log_3: "[Pronto] Painel ativo em http://localhost:5000",
-                faq_title: "Perguntas Frequentes",
-                faq_q1: "Isto vai estragar os meus modelos do LM Studio?",
-                faq_a1: "Não. O Centraliza.ai usa symlinks seguros que ferramentas como o LM Studio veem como ficheiros normais. O seu fluxo de trabalho permanece intacto.",
-                faq_q2: "A app faz downloads?",
-                faq_a2: "Sim. Através do AI Model Hub, pode pesquisar e descarregar modelos diretamente do Ollama e HuggingFace.",
-                faq_q3: "É gratuito?",
-                faq_a3: "Sim. O Centraliza.ai é uma ferramenta de código aberto feita para empoderar a comunidade de IA local.",
-                tech_title: "Unificando os Padrões da Indústria",
-                footer_text: "© 2026 Centraliza.ai. Criado para a revolução da IA local."
+                hero_desc: "O gestor definitivo de IA local. O Centraliza.ai complementa as tuas ferramentas num espaço de trabalho unificado.",
+                btn_download: "Descarregar Windows", btn_how_to_install: "Como Instalar",
+                feat_1_title: "Zero Redundância", feat_1_desc: "Links inteligentes partilham ficheiros entre motores sem duplicar dados. Poupa centenas de GBs.",
+                feat_2_title: "Controlo Unificado", feat_2_desc: "Pesquise, inicie e teste todos os seus modelos locais a partir de um único centro de comando.",
+                feat_3_title: "IA Global", feat_3_desc: "Suporte nativo para 11 idiomas, incluindo Português, Inglês, Espanhol e Chinês.",
+                setup_title: "Configuração Rápida", setup_1_title: "Instalar", setup_1_desc: "Execute o setup.bat para instalar dependências e configurar o comando global central.",
+                setup_2_title: "Detetar", setup_2_desc: "Use o Auto-Detect nas Definições para encontrar as suas pastas de IA automaticamente.",
+                setup_3_title: "Orquestrar", setup_3_desc: "Inicie modelos e converse com a sua IA local a partir de uma interface unificada.",
+                term_title: "Comande o seu Universo", term_desc: "Lance o seu painel a partir de qualquer terminal a qualquer momento.",
+                term_log_1: "[Sistema] Inicializando Orquestrador Centraliza.ai...", term_log_2: "[Sistema] Verificando links... Concluído.", term_log_3: "[Pronto] Painel ativo em http://localhost:5000",
+                faq_title: "Perguntas Frequentes", faq_q1: "Isto vai estragar os meus modelos?", faq_a1: "Não. O Centraliza.ai usa symlinks seguros que são vistos como ficheiros normais.",
+                faq_q2: "A app faz downloads?", faq_a2: "Sim. Pode descarregar modelos diretamente do Ollama e HuggingFace.",
+                faq_q3: "É gratuito?", faq_a3: "Sim. O Centraliza.ai é uma ferramenta de código aberto.",
+                tech_title: "Unificando os Padrões da Indústria", footer_text: "© 2026 Centraliza.ai. Criado para a revolução da IA local."
+            },
+            es: {
+                nav_benefits: "Beneficios", nav_setup: "Instalación", nav_faq: "FAQ", btn_direct_download: "Descarga Directa",
+                hero_title: "El Compañero para<br>LM Studio & Ollama", hero_desc: "El gestor de IA local definitivo en un espacio de trabajo unificado.",
+                feat_1_title: "Cero Redundancia", feat_2_title: "Control Unificado", feat_3_title: "IA Global",
+                setup_title: "Configuración Rápida", term_title: "Comanda tu Universo", faq_title: "FAQ", tech_title: "Unificando Estándares"
+            },
+            fr: {
+                nav_benefits: "Avantages", nav_setup: "Installation", nav_faq: "FAQ", btn_direct_download: "Téléchargement Direct",
+                hero_title: "Le Compagnon pour<br>LM Studio & Ollama", hero_desc: "Le gestionnaire d'IA locale ultime dans un espace de travail unifié.",
+                feat_1_title: "Zéro Redondance", feat_2_title: "Contrôle Unifié", feat_3_title: "IA Globale",
+                setup_title: "Configuration Rapide", term_title: "Commandez votre Univers", faq_title: "FAQ", tech_title: "Unification"
+            },
+            de: {
+                nav_benefits: "Vorteile", nav_setup: "Installation", nav_faq: "FAQ", btn_direct_download: "Direkter Download",
+                hero_title: "Begleiter für<br>LM Studio & Ollama", hero_desc: "Der ultimative lokale KI-Manager in einem vereinheitlichten Arbeitsbereich.",
+                feat_1_title: "Null Redundanz", feat_2_title: "Zentrale Steuerung", feat_3_title: "Globale KI",
+                setup_title: "Schnelle Einrichtung", term_title: "Befehligen Sie Ihr Universum", faq_title: "FAQ", tech_title: "Standardisierung"
+            },
+            it: {
+                nav_benefits: "Vantaggi", nav_setup: "Installazione", nav_faq: "FAQ", btn_direct_download: "Download Diretto",
+                hero_title: "Il Compagno per<br>LM Studio & Ollama", hero_desc: "Il gestore di IA locale definitivo in un'area di lavoro unificata.",
+                feat_1_title: "Zero Ridondanza", feat_2_title: "Controllo Unificato", feat_3_title: "IA Globale",
+                setup_title: "Configurazione Rapida", term_title: "Comanda il tuo Universo", faq_title: "FAQ", tech_title: "Unificazione Standard"
+            },
+            zh: {
+                nav_benefits: "优势", nav_setup: "安装", nav_faq: "常见问题", btn_direct_download: "直接下载",
+                hero_title: "LM Studio & Ollama 的<br>最佳伴侣", hero_desc: "终极本地 AI 管理器。",
+                feat_1_title: "零冗余", feat_2_title: "统一控制", feat_3_title: "全球 AI",
+                setup_title: "快速设置", term_title: "掌控你的宇宙", faq_title: "常见问题", tech_title: "统一行业标准"
+            },
+            ar: {
+                nav_benefits: "المميزات", nav_setup: "التثبيت", nav_faq: "الأسئلة", btn_direct_download: "تحميل مباشر",
+                hero_title: "الرفيق لـ <br>LM Studio & Ollama", hero_desc: "مدير الذكاء الاصطناعي المحلي النهائي.",
+                feat_1_title: "صفر تكرار", feat_2_title: "تحكم موحد", feat_3_title: "ذكاء عالمي",
+                setup_title: "إعداد سريع", term_title: "تحكم في عالمك", faq_title: "الأسئلة", tech_title: "توحيد المعايير"
+            },
+            ko: {
+                nav_benefits: "혜택", nav_setup: "설치", nav_faq: "FAQ", btn_direct_download: "직접 다운로드",
+                hero_title: "최고의 파트너", hero_desc: "통합된 작업 공간에서 기존 도구를 보완합니다.",
+                feat_1_title: "중복 제로", feat_2_title: "통합 제어", feat_3_title: "글로벌 AI",
+                setup_title: "빠른 설정", term_title: "당신의 우주를 명령하세요", faq_title: "FAQ", tech_title: "산업 표준 통합"
+            },
+            ja: {
+                nav_benefits: "メリット", nav_setup: "インストール", nav_faq: "FAQ", btn_direct_download: "直接ダウンロード",
+                hero_title: "最高のコンパニオン", hero_desc: "統合されたワークスペースで既存のツールを補完します。",
+                feat_1_title: "冗長性ゼロ", feat_2_title: "一元管理", feat_3_title: "グローバル AI",
+                setup_title: "クイックセットアップ", term_title: "宇宙をコマンドする", faq_title: "FAQ", tech_title: "業界標準の統合"
             }
         };
 
         function setLang(lang) {
-            const t = translations[lang];
+            const t = translations[lang] || translations['en'];
+            
+            // Handle RTL for Arabic
+            document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.body.style.textAlign = lang === 'ar' ? 'right' : 'left';
+
             document.querySelectorAll('[data-t]').forEach(el => {
                 const key = el.getAttribute('data-t');
-                if (t[key]) {
-                    if (el.tagName === 'INPUT') el.placeholder = t[key];
-                    else el.innerHTML = t[key];
-                }
+                const text = t[key] || translations['en'][key];
+                if (text) el.innerHTML = text;
             });
-
-            // Update button styles
-            document.getElementById('btn-en').style.background = lang === 'en' ? 'var(--glass)' : 'transparent';
-            document.getElementById('btn-en').style.borderColor = lang === 'en' ? 'var(--primary)' : 'var(--glass-border)';
-            document.getElementById('btn-pt').style.background = lang === 'pt' ? 'var(--glass)' : 'transparent';
-            document.getElementById('btn-pt').style.borderColor = lang === 'pt' ? 'var(--primary)' : 'var(--glass-border)';
             
             localStorage.setItem('lang', lang);
         }
 
         // Auto-detect browser language
         const savedLang = localStorage.getItem('lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
+        document.getElementById('lang-select').value = savedLang;
         setLang(savedLang);
     </script>
 </body>
