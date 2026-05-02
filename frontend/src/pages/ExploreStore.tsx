@@ -349,7 +349,7 @@ export default function ExploreStore() {
                   <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
                   <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{model.parameter_count}</span>
                 </div>
-                <h4 className="text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors line-clamp-1 tracking-tighter uppercase">{model.name.split('/').pop()}</h4>
+                <h4 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors tracking-tighter uppercase break-words">{model.name.split('/').pop()}</h4>
                 <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-8 line-clamp-2 opacity-70">{model.use_case}</p>
                 
                 <div className="flex gap-4 mb-8">
@@ -364,7 +364,7 @@ export default function ExploreStore() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-auto relative z-10 gap-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mt-auto relative z-10 gap-6 flex-wrap" onClick={(e) => e.stopPropagation()}>
                 <div className="flex flex-col">
                   <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_details_vram')}</span>
                   <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{model.min_vram_gb} <span className="text-xs text-[var(--text-secondary)]">GB</span></span>
@@ -387,7 +387,7 @@ export default function ExploreStore() {
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleInstall(model); }}
                     disabled={score === 1}
-                    className={`btn-premium px-10 py-5 text-xs flex-1 ${
+                    className={`btn-premium px-8 py-4 text-xs ${
                       score === 1 
                         ? 'opacity-30 cursor-not-allowed grayscale' 
                         : 'bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white'
@@ -539,6 +539,8 @@ export default function ExploreStore() {
     </motion.div>
   );
 }
+
+
 
 
 

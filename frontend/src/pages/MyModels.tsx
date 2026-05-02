@@ -181,7 +181,7 @@ export default function MyModels() {
           <header className="border-b border-[var(--border)] pb-12 mb-12 flex justify-between items-start flex-wrap gap-10">
              <div className="space-y-6 min-w-0 flex-1">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-3xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase truncate">{viewingModel.name}</h2>
+                  <h2 className="text-3xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-all">{viewingModel.name}</h2>
                   <HelpTooltip text="Model details and management" />
                 </div>
                 <div className="flex gap-3 flex-wrap">
@@ -384,9 +384,9 @@ export default function MyModels() {
                                  
                                  <h4 className="text-2xl font-black text-[var(--text-primary)] mb-3 line-clamp-1 tracking-tighter uppercase">{m.name}</h4>
                                  
-                                 <div className="flex flex-col gap-1 mb-8 opacity-60">
-                                    <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Source Path</span>
-                                    <p className="text-[11px] font-mono truncate font-bold text-[var(--text-secondary)]">{m.path}</p>
+                                 <div className="flex flex-col gap-1 mb-8 ">
+                                    <span className="text-sm font-black uppercase tracking-widest text-blue-500">Source Path</span>
+                                    <p className="text-sm md:text-base font-mono break-all font-bold text-[var(--text-primary)] leading-relaxed">{m.path}</p>
                                  </div>
                                  
                                  <div className="flex justify-between items-end mt-auto gap-4">
@@ -432,6 +432,9 @@ export default function MyModels() {
     </motion.div>
   );
 }
+
+
+
 
 
 
