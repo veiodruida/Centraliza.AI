@@ -293,7 +293,7 @@
                 <li><a href="https://github.com/veiodruida/Centraliza.AI" target="_blank">GitHub</a></li>
             </ul>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <select id="lang-select" onchange="setLang(this.value)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; outline: none; font-family: 'Inter', sans-serif; appearance: none; -webkit-appearance: none; min-width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                <select id="lang-select" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #fff; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; outline: none; font-family: 'Inter', sans-serif; appearance: none; -webkit-appearance: none; min-width: 140px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
                     <option value="en" style="background: #111; color: #fff;">🇺🇸 English</option>
                     <option value="pt" style="background: #111; color: #fff;">🇵🇹 Português</option>
                     <option value="es" style="background: #111; color: #fff;">🇪🇸 Español</option>
@@ -639,11 +639,11 @@
              }
         };
 
-        function setLang(lang) {
+        function setLang(lang, isManual = false) {
             const t = translations[lang] || translations['en'];
             
-            // Handle RTL for Arabic
-            document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            // Apply RTL for Arabic
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.body.style.textAlign = lang === 'ar' ? 'right' : 'left';
 
             document.querySelectorAll('[data-t]').forEach(el => {
@@ -652,31 +652,47 @@
                 if (text) el.innerHTML = text;
             });
             
-            localStorage.setItem('lang', lang);
+            // Only save to localStorage if the user manually picked it
+            if (isManual) {
+                localStorage.setItem('lang_selection', lang);
+            }
+            
+            // Sync the dropdown value
+            const select = document.getElementById('lang-select');
+            if (select) select.value = lang;
         }
 
         // Advanced Auto-detection
         function detectLanguage() {
-            const saved = localStorage.getItem('lang');
-            if (saved) return saved;
+            // Priority 1: Manual selection from previous session
+            const manual = localStorage.getItem('lang_selection');
+            if (manual && translations[manual]) return manual;
 
+            // Priority 2: Browser/OS language
             const navLang = navigator.language.toLowerCase();
-            if (navLang.startsWith('pt')) return 'pt';
-            if (navLang.startsWith('es')) return 'es';
-            if (navLang.startsWith('fr')) return 'fr';
-            if (navLang.startsWith('de')) return 'de';
-            if (navLang.startsWith('it')) return 'it';
-            if (navLang.startsWith('zh')) return 'zh';
-            if (navLang.startsWith('ar')) return 'ar';
-            if (navLang.startsWith('ko')) return 'ko';
-            if (navLang.startsWith('ja')) return 'ja';
+            const supported = ['pt', 'es', 'fr', 'de', 'it', 'zh', 'ar', 'ko', 'ja'];
+            for (const code of supported) {
+                if (navLang.startsWith(code)) return code;
+            }
             
             return 'en'; // Default
         }
 
-        const initialLang = detectLanguage();
-        document.getElementById('lang-select').value = initialLang;
-        setLang(initialLang);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('lang-select');
+            const initialLang = detectLanguage();
+            
+            // Set initial state
+            setLang(initialLang);
+
+            // Attach listener via JS for reliability
+            if (select) {
+                select.addEventListener('change', (e) => {
+                    setLang(e.target.value, true);
+                });
+            }
+        });
     </script>
 </body>
 </html>
