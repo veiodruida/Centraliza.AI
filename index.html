@@ -330,22 +330,41 @@
         </section>
 
         <section id="setup" style="padding: 100px 0; border-top: 1px solid var(--glass-border);">
-            <h2 style="font-size: 2.5rem; text-align: center; margin-bottom: 60px;">Installation & Setup</h2>
+            <h2 style="font-size: 2.5rem; text-align: center; margin-bottom: 60px;">Quick Setup</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
                 <div class="feature-card">
                     <span style="color: var(--primary); font-weight: 800; font-size: 1.2rem;">01</span>
-                    <h3 style="margin: 15px 0;">Run Setup</h3>
-                    <p>Download and run <code>setup.bat</code>. This installs dependencies and adds the <code>central</code> command to your Windows PATH.</p>
+                    <h3 style="margin: 15px 0;">Install</h3>
+                    <p>Run <code>setup.bat</code>. This installs dependencies and configures the global <b>central</b> command for your system.</p>
                 </div>
                 <div class="feature-card">
                     <span style="color: var(--primary); font-weight: 800; font-size: 1.2rem;">02</span>
-                    <h3 style="margin: 15px 0;">Configure Paths</h3>
-                    <p>Go to Settings and add your model folders (LM Studio, Ollama, etc.) or use the <b>Auto-Detect</b> button to find them instantly.</p>
+                    <h3 style="margin: 15px 0;">Detect</h3>
+                    <p>Open the app and use <b>Auto-Detect</b> in Settings to find your LM Studio, Ollama, and ComfyUI folders automatically.</p>
                 </div>
                 <div class="feature-card">
                     <span style="color: var(--primary); font-weight: 800; font-size: 1.2rem;">03</span>
-                    <h3 style="margin: 15px 0;">Centralize</h3>
-                    <p>Visit the Centralization tab to convert standalone models into optimized smart links and recover your disk space.</p>
+                    <h3 style="margin: 15px 0;">Orchestrate</h3>
+                    <p>Launch models, save disk space, and chat with your local AI from a single, unified interface.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="terminal" style="padding: 100px 0; background: rgba(99, 102, 241, 0.03); border-radius: 40px; margin-bottom: 100px;">
+            <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 24px;">Command Your Universe</h2>
+                <p style="color: var(--text-dim); margin-bottom: 48px; font-size: 1.1rem;">Centraliza.ai integrates into your workflow. After installation, launch your dashboard from any terminal at any time.</p>
+                
+                <div style="background: #000; border: 1px solid var(--glass-border); border-radius: 12px; padding: 24px; text-align: left; font-family: 'Courier New', Courier, monospace; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></div>
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></div>
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></div>
+                    </div>
+                    <div style="color: #27c93f;">C:\Users\User> <span style="color: #fff;">central</span></div>
+                    <div style="color: var(--text-dim); margin-top: 8px;">[System] Initializing Centraliza.ai Orchestrator...</div>
+                    <div style="color: var(--text-dim);">[System] Checking model links... Done.</div>
+                    <div style="color: var(--primary); font-weight: bold;">[Ready] Dashboard live at http://localhost:5000</div>
                 </div>
             </div>
         </section>
