@@ -416,6 +416,107 @@ app.post('/api/centralize', async (req, res) => {
     }
 });
 
+// --- API GATEWAY: OPENAI COMPATIBLE ---
+// Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
+app.post('/v1/chat/completions', async (req, res) => {
+    const { model, messages, temperature, top_p, stream = false } = req.body;
+
+    if (!model || !messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: 'Invalid payload. Model and messages array are required.' });
+    }
+
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+    // For Phase 2, we proxy to Ollama on localhost:11434.
+    // In Phase 3, this will proxy to our internal llama.cpp engine if running.
+    const targetEndpoint = 'http://localhost:11434/api/chat';
+
+    const payload = {
+        model: model,
+        messages: messages, // Ollama natively supports the OpenAI role/content array format on /api/chat
+        stream: stream
+    };
+
+    const options = {};
+    if (temperature !== undefined) options.temperature = temperature;
+    if (top_p !== undefined) options.top_p = top_p;
+    if (Object.keys(options).length > 0) payload.options = options;
+
+    logger.info(`[API Gateway] Routing /v1/chat/completions for model: ${model} (Stream: ${stream})`);
+
+    try {
+        const response = await fetch(targetEndpoint, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Upstream error: ${response.status} - ${errText}`);
+        }
+
+        if (stream) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+
+            // Proxying the stream directly from Ollama
+            response.body.on('data', (chunk) => {
+                try {
+                    const lines = chunk.toString().split('\n').filter(l => l.trim());
+                    for (const line of lines) {
+                        const parsed = JSON.parse(line);
+                        // Convert Ollama stream format to OpenAI stream format
+                        const openAIChunk = {
+                            id: `chatcmpl-${Date.now()}`,
+                            object: 'chat.completion.chunk',
+                            created: Math.floor(Date.now() / 1000),
+                            model: model,
+                            choices: [{
+                                index: 0,
+                                delta: { content: parsed.message?.content || '' },
+                                finish_reason: parsed.done ? 'stop' : null
+                            }]
+                        };
+                        res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                        if (parsed.done) res.write('data: [DONE]\n\n');
+                    }
+                } catch (err) {
+                    logger.warn('Error parsing stream chunk', err);
+                }
+            });
+
+            response.body.on('end', () => res.end());
+            response.body.on('error', () => res.end());
+
+        } else {
+            const data = await response.json();
+            // Convert Ollama static format to OpenAI static format
+            const openAIResponse = {
+                id: `chatcmpl-${Date.now()}`,
+                object: 'chat.completion',
+                created: Math.floor(Date.now() / 1000),
+                model: model,
+                choices: [{
+                    index: 0,
+                    message: data.message, // { role: "assistant", content: "..." }
+                    finish_reason: 'stop'
+                }],
+                usage: {
+                    prompt_tokens: data.prompt_eval_count || 0,
+                    completion_tokens: data.eval_count || 0,
+                    total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+                }
+            };
+            res.json(openAIResponse);
+        }
+    } catch (e) {
+        logger.error('[API Gateway] Error routing completion request', e);
+        res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
+    }
+});
+
 app.post('/api/chat', async (req, res) => {
     const { ollamaTag, prompt, endpoint = 'http://localhost:11434/api/generate', options, system } = req.body;
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
