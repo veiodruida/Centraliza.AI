@@ -268,28 +268,42 @@ export default function ModelTester() {
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest flex items-center gap-2">
-                        <SlidersHorizontal size={14} className="text-blue-500" /> Temperature
+                        <SlidersHorizontal size={14} className="text-blue-500" /> Temperatura
                       </label>
                       <span className="text-xs font-mono font-bold bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)]">{temperature}</span>
                     </div>
                     <input type="range" min="0" max="2" step="0.1" value={temperature} onChange={e => setTemperature(parseFloat(e.target.value))} className="w-full accent-blue-500" />
-                    <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Higher values make output more random, lower makes it more deterministic.</p>
+                    <div className="flex justify-between mt-1 text-[10px] font-black uppercase tracking-widest text-blue-500/70">
+                       <span>Preciso / Robótico</span>
+                       <span>Criativo / Solto</span>
+                    </div>
+                    <p className="text-[11px] text-[var(--text-muted)] mt-2 font-medium leading-relaxed">
+                       {temperature < 0.5 ? 'O modelo dará respostas exatas, fatuais e previsíveis. Excelente para código e raciocínio lógico.' :
+                        temperature > 1.2 ? 'O modelo será altamente criativo, ideal para histórias, mas com risco de inventar fatos (alucinação).' :
+                        'Equilíbrio entre criatividade e coerência. Ideal para conversas do dia a dia.'}
+                    </p>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Top P</label>
+                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Top P (Foco de Vocabulário)</label>
                       <span className="text-xs font-mono font-bold bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)]">{topP}</span>
                     </div>
                     <input type="range" min="0" max="1" step="0.05" value={topP} onChange={e => setTopP(parseFloat(e.target.value))} className="w-full accent-blue-500" />
+                    <p className="text-[11px] text-[var(--text-muted)] mt-2 font-medium leading-relaxed">
+                      {topP < 0.5 ? 'O modelo usará apenas as palavras mais óbvias. Respostas mais curtas e diretas.' : 'O modelo considerará um vocabulário rico e abrangente antes de responder.'}
+                    </p>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Top K</label>
+                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Top K (Diversidade)</label>
                       <span className="text-xs font-mono font-bold bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)]">{topK}</span>
                     </div>
                     <input type="range" min="1" max="100" step="1" value={topK} onChange={e => setTopK(parseInt(e.target.value))} className="w-full accent-blue-500" />
+                    <p className="text-[11px] text-[var(--text-muted)] mt-2 font-medium leading-relaxed">
+                      {topK < 20 ? 'Bloqueia ideias malucas. A IA foca apenas nos conceitos top de linha.' : 'Permite que a IA explore ideias secundárias e traga nuances para a resposta.'}
+                    </p>
                   </div>
                 </div>
 
