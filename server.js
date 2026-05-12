@@ -417,12 +417,18 @@ app.post('/api/centralize', async (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-    const { ollamaTag, prompt, endpoint = 'http://localhost:11434/api/generate' } = req.body;
+    const { ollamaTag, prompt, endpoint = 'http://localhost:11434/api/generate', options, system } = req.body;
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+    // Prepare the payload based on provided parameters
+    const payload = { model: ollamaTag, prompt, stream: false };
+    if (options) Object.assign(payload, { options });
+    if (system) Object.assign(payload, { system });
+
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
-            body: JSON.stringify({ model: ollamaTag, prompt, stream: false }),
+            body: JSON.stringify(payload),
             headers: { 'Content-Type': 'application/json' }
         });
         const data = await response.json();
