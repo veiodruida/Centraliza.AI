@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, MoreHorizontal, Settings2, SlidersHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 
@@ -34,6 +34,14 @@ export default function ModelTester() {
   const [error, setError] = useState('');
   const [engine, setEngine] = useState<'ollama' | 'llama.cpp' | 'custom'>('ollama');
   const [customEndpoint, setCustomEndpoint] = useState('http://localhost:11434/api/generate');
+
+  // Advanced Settings State
+  const [showSettings, setShowSettings] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [temperature, setTemperature] = useState(0.7);
+  const [topP, setTopP] = useState(0.9);
+  const [topK, setTopK] = useState(40);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,7 +81,13 @@ export default function ModelTester() {
           model: selectedModel?.name, 
           prompt: input,
           ollamaTag: selectedModel?.ollamaTag,
-          endpoint: customEndpoint
+          endpoint: customEndpoint,
+          options: {
+            temperature,
+            top_p: topP,
+            top_k: topK
+          },
+          system: systemPrompt || undefined
         })
       });
       const data = await res.json();
@@ -228,11 +242,73 @@ export default function ModelTester() {
               >
                  <Trash2 size={20}  className="group-hover:rotate-12 transition-transform" />
               </button>
-              <button className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)] rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg">
-                 <MoreHorizontal size={20}  />
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg ${
+                  showSettings ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input)]'
+                }`}
+                title="Advanced Settings"
+              >
+                 <Settings2 size={20} />
               </button>
            </div>
         </header>
+
+        {/* Advanced Settings Drawer */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-b border-[var(--border)] bg-[var(--bg-input)]/30 backdrop-blur-3xl overflow-hidden shrink-0 z-10"
+            >
+              <div className="p-8 md:p-10 grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
+                <div className="lg:col-span-1 space-y-8">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest flex items-center gap-2">
+                        <SlidersHorizontal size={14} className="text-blue-500" /> Temperature
+                      </label>
+                      <span className="text-xs font-mono font-bold bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)]">{temperature}</span>
+                    </div>
+                    <input type="range" min="0" max="2" step="0.1" value={temperature} onChange={e => setTemperature(parseFloat(e.target.value))} className="w-full accent-blue-500" />
+                    <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Higher values make output more random, lower makes it more deterministic.</p>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Top P</label>
+                      <span className="text-xs font-mono font-bold bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)]">{topP}</span>
+                    </div>
+                    <input type="range" min="0" max="1" step="0.05" value={topP} onChange={e => setTopP(parseFloat(e.target.value))} className="w-full accent-blue-500" />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Top K</label>
+                      <span className="text-xs font-mono font-bold bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)]">{topK}</span>
+                    </div>
+                    <input type="range" min="1" max="100" step="1" value={topK} onChange={e => setTopK(parseInt(e.target.value))} className="w-full accent-blue-500" />
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2 flex flex-col">
+                  <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <MessageCircle size={14} className="text-blue-500" /> System Prompt
+                  </label>
+                  <textarea
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    placeholder="You are a helpful AI assistant..."
+                    className="w-full flex-1 min-h-[120px] bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none font-medium custom-scrollbar"
+                  />
+                  <p className="text-[10px] text-[var(--text-muted)] mt-3 font-medium">Defines the behavior and persona of the AI model. Works best with chat-tuned models.</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex-1 overflow-y-auto p-10 md:p-16 space-y-12 scroll-smooth custom-scrollbar no-scrollbar bg-[radial-gradient(circle_at_top_right,var(--bg-input),transparent)]">
           {messages.map((msg, i) => (
