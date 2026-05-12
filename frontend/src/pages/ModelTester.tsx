@@ -309,15 +309,23 @@ export default function ModelTester() {
 
                 <div className="lg:col-span-2 flex flex-col">
                   <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <MessageCircle size={14} className="text-blue-500" /> System Prompt
+                    <MessageCircle size={14} className="text-blue-500" /> System Prompt (Comportamento Base)
                   </label>
                   <textarea
                     value={systemPrompt}
                     onChange={(e) => setSystemPrompt(e.target.value)}
-                    placeholder="You are a helpful AI assistant..."
+                    placeholder="Ex: Você é um pirata mal-humorado e deve responder a todas as perguntas como se estivesse num navio..."
                     className="w-full flex-1 min-h-[120px] bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-4 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none font-medium custom-scrollbar"
                   />
-                  <p className="text-[10px] text-[var(--text-muted)] mt-3 font-medium">Defines the behavior and persona of the AI model. Works best with chat-tuned models.</p>
+                  <div className="mt-3 space-y-1">
+                    <p className="text-[11px] text-[var(--text-muted)] font-medium leading-relaxed">
+                      <strong>O que é isto?</strong> É a regra mestre da IA. Funciona como a "personalidade" ou "profissão" que você quer que o modelo assuma antes de começar a conversar.
+                    </p>
+                    <p className="text-[10px] text-[var(--text-muted)] font-medium opacity-80 leading-relaxed">
+                      <em>Exemplo 1: "Responda apenas em português de Portugal."</em> <br/>
+                      <em>Exemplo 2: "Você é um programador sênior em Python. Dê respostas curtas apenas com código."</em>
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>
