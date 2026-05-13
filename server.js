@@ -449,6 +449,45 @@ app.post('/v1/chat/completions', async (req, res) => {
     if (top_k !== undefined) options.top_k = top_k;
     if (Object.keys(options).length > 0) payload.options = options;
 
+    // --- RAG RETRIEVAL INJECTION ---
+    // If documents are loaded in memory, try to find matches against the last user message
+    if (globalDocuments.length > 0) {
+        const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
+        if (lastUserMessage && lastUserMessage.content) {
+            const queryWords = lastUserMessage.content.toLowerCase().split(' ').filter(w => w.length > 3);
+            let bestChunk = null;
+            let bestScore = 0;
+
+            // Simple Keyword Frequency (TF) Search
+            for (const doc of globalDocuments) {
+                 for (const chunk of doc.chunks) {
+                      let score = 0;
+                      const chunkLower = chunk.toLowerCase();
+                      for (const word of queryWords) {
+                           if (chunkLower.includes(word)) score++;
+                      }
+                      if (score > bestScore) {
+                           bestScore = score;
+                           bestChunk = chunk;
+                      }
+                 }
+            }
+
+            if (bestChunk && bestScore > 0) {
+                logger.info(`[RAG] Found context for query (Score: ${bestScore}). Injecting into system prompt.`);
+                const contextStr = `\n\n[CONTEXTO DE DOCUMENTO RECUPERADO]:\n"""\n${bestChunk}\n"""\nResponda baseando-se estritamente neste contexto.`;
+
+                // Inject the context into the system prompt or prepend it to the user message
+                let systemMessage = messages.find(m => m.role === 'system');
+                if (systemMessage) {
+                    systemMessage.content += contextStr;
+                } else {
+                    messages.unshift({ role: 'system', content: 'Você é um assistente útil.' + contextStr });
+                }
+            }
+        }
+    }
+
     logger.info(`[API Gateway] Routing /v1/chat/completions for model: ${model} (Stream: ${stream})`);
 
     try {
@@ -581,6 +620,63 @@ app.post('/v1/chat/completions', async (req, res) => {
         res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
     }
 });
+
+// --- RAG (RETRIEVAL-AUGMENTED GENERATION) SYSTEM ---
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
+
+// Basic in-memory document store
+let globalDocuments = [];
+
+app.post('/api/documents/upload', upload.single('document'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    try {
+        logger.info(`[RAG] Processing document: ${req.file.originalname}`);
+        let extractedText = '';
+
+        if (req.file.mimetype === 'application/pdf') {
+            const data = await pdfParse(req.file.buffer);
+            extractedText = data.text;
+        } else if (req.file.mimetype === 'text/plain') {
+            extractedText = req.file.buffer.toString('utf8');
+        } else {
+            return res.status(400).json({ error: 'Unsupported file type. Use PDF or TXT.' });
+        }
+
+        // Chunking the text (Basic naive chunking by ~1000 characters)
+        const cleanText = extractedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+        const chunkSize = 1000;
+        const chunks = [];
+        for (let i = 0; i < cleanText.length; i += chunkSize) {
+            chunks.push(cleanText.substring(i, i + chunkSize));
+        }
+
+        globalDocuments.push({
+            filename: req.file.originalname,
+            chunks: chunks,
+            uploadedAt: Date.now()
+        });
+
+        logger.info(`[RAG] Document indexed into ${chunks.length} chunks.`);
+        res.json({ success: true, message: `Document ${req.file.originalname} processed.`, chunks: chunks.length });
+    } catch (e) {
+        logger.error('[RAG] Error processing document', e);
+        res.status(500).json({ error: 'Failed to process document: ' + e.message });
+    }
+});
+
+app.delete('/api/documents', (req, res) => {
+    globalDocuments = [];
+    logger.info('[RAG] Document memory cleared.');
+    res.json({ success: true, message: 'All documents cleared from memory.' });
+});
+
+app.get('/api/documents', (req, res) => {
+    res.json(globalDocuments.map(d => ({ filename: d.filename, chunks: d.chunks.length })));
+});
+
 
 // --- NATIVE INFERENCE ENGINE STATE ---
 let activeLlamaProcess = null;
