@@ -419,7 +419,7 @@ app.post('/api/centralize', async (req, res) => {
 // --- API GATEWAY: OPENAI COMPATIBLE ---
 // Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
 app.post('/v1/chat/completions', async (req, res) => {
-    const { model, messages, temperature, top_p, stream = false } = req.body;
+    const { model, messages, temperature, top_p, top_k, stream = false } = req.body;
 
     if (!model || !messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: 'Invalid payload. Model and messages array are required.' });
@@ -427,12 +427,12 @@ app.post('/v1/chat/completions', async (req, res) => {
 
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-    // Proxy to Ollama by default, but if our native Llama.cpp engine is running, we proxy to it.
+    // Proxy to Ollama by default, but if our native Llama.cpp engine is running for the requested model, we proxy to it.
     // llama-server natively implements an OpenAI compatible /v1/chat/completions endpoint.
     let targetEndpoint = 'http://localhost:11434/api/chat';
     let isNativeLlama = false;
 
-    if (activeLlamaProcess) {
+    if (activeLlamaProcess && model === currentLlamaModel) {
         targetEndpoint = `http://localhost:${currentLlamaPort}/v1/chat/completions`;
         isNativeLlama = true;
     }
@@ -446,6 +446,7 @@ app.post('/v1/chat/completions', async (req, res) => {
     const options = {};
     if (temperature !== undefined) options.temperature = temperature;
     if (top_p !== undefined) options.top_p = top_p;
+    if (top_k !== undefined) options.top_k = top_k;
     if (Object.keys(options).length > 0) payload.options = options;
 
     logger.info(`[API Gateway] Routing /v1/chat/completions for model: ${model} (Stream: ${stream})`);
@@ -454,7 +455,7 @@ app.post('/v1/chat/completions', async (req, res) => {
         // If it's native llama, we don't need to wrap it in the Ollama format.
         // We just pass the raw OpenAI request to llama-server.
         const finalPayload = isNativeLlama
-            ? { model, messages, temperature, top_p, stream }
+            ? { model, messages, temperature, top_p, top_k, stream }
             : payload;
 
         const response = await fetch(targetEndpoint, {
@@ -568,12 +569,20 @@ app.post('/v1/chat/completions', async (req, res) => {
 // --- NATIVE INFERENCE ENGINE STATE ---
 let activeLlamaProcess = null;
 let currentLlamaPort = 8080;
+let currentLlamaModel = null;
 
 app.post('/api/inference/start', (req, res) => {
     const { modelPath, ngl = 0, ctx = 2048 } = req.body;
     if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
 
     if (activeLlamaProcess) {
+        // If the exact same model is already running, skip spawn and just return ready
+        if (currentLlamaModel === modelPath) {
+             logger.info('[Llama.cpp] Engine already running with this model.');
+             return res.json({ success: true, port: currentLlamaPort, message: 'Engine already running.' });
+        }
+
+        logger.info('[Llama.cpp] Terminating old engine to load new model.');
         if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
         else activeLlamaProcess.kill('SIGKILL');
         activeLlamaProcess = null;
@@ -595,12 +604,20 @@ app.post('/api/inference/start', (req, res) => {
             if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) activeLlamaProcess = null;
         });
 
+        currentLlamaModel = modelPath;
+
         proc.on('close', () => {
             logger.info('[Llama.cpp] Engine stopped.');
-            if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) activeLlamaProcess = null;
+            if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) {
+                 activeLlamaProcess = null;
+                 currentLlamaModel = null;
+            }
         });
 
-        res.json({ success: true, port: currentLlamaPort, message: 'Engine starting...' });
+        // Wait a small amount of time for the server to bind the port before declaring success
+        setTimeout(() => {
+            res.json({ success: true, port: currentLlamaPort, message: 'Engine starting...' });
+        }, 1500);
     } catch (e) {
         logger.error('Failed to start llama-server', e);
         res.status(500).json({ error: 'Failed to start engine: ' + e.message });
@@ -619,7 +636,7 @@ app.post('/api/inference/stop', (req, res) => {
 });
 
 app.get('/api/inference/status', (req, res) => {
-    res.json({ running: !!activeLlamaProcess, port: currentLlamaPort });
+    res.json({ running: !!activeLlamaProcess, port: currentLlamaPort, model: currentLlamaModel });
 });
 
 app.post('/api/chat', async (req, res) => {
