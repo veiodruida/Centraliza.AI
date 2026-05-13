@@ -427,9 +427,15 @@ app.post('/v1/chat/completions', async (req, res) => {
 
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-    // For Phase 2, we proxy to Ollama on localhost:11434.
-    // In Phase 3, this will proxy to our internal llama.cpp engine if running.
-    const targetEndpoint = 'http://localhost:11434/api/chat';
+    // Proxy to Ollama by default, but if our native Llama.cpp engine is running, we proxy to it.
+    // llama-server natively implements an OpenAI compatible /v1/chat/completions endpoint.
+    let targetEndpoint = 'http://localhost:11434/api/chat';
+    let isNativeLlama = false;
+
+    if (activeLlamaProcess) {
+        targetEndpoint = `http://localhost:${currentLlamaPort}/v1/chat/completions`;
+        isNativeLlama = true;
+    }
 
     const payload = {
         model: model,
@@ -445,9 +451,15 @@ app.post('/v1/chat/completions', async (req, res) => {
     logger.info(`[API Gateway] Routing /v1/chat/completions for model: ${model} (Stream: ${stream})`);
 
     try {
+        // If it's native llama, we don't need to wrap it in the Ollama format.
+        // We just pass the raw OpenAI request to llama-server.
+        const finalPayload = isNativeLlama
+            ? { model, messages, temperature, top_p, stream }
+            : payload;
+
         const response = await fetch(targetEndpoint, {
             method: 'POST',
-            body: JSON.stringify(payload),
+            body: JSON.stringify(finalPayload),
             headers: { 'Content-Type': 'application/json' }
         });
 
@@ -462,59 +474,152 @@ app.post('/v1/chat/completions', async (req, res) => {
             res.setHeader('Connection', 'keep-alive');
 
             // Proxying the stream directly from Ollama
+            let buffer = '';
             response.body.on('data', (chunk) => {
-                try {
-                    const lines = chunk.toString().split('\n').filter(l => l.trim());
-                    for (const line of lines) {
-                        const parsed = JSON.parse(line);
-                        // Convert Ollama stream format to OpenAI stream format
-                        const openAIChunk = {
-                            id: `chatcmpl-${Date.now()}`,
-                            object: 'chat.completion.chunk',
-                            created: Math.floor(Date.now() / 1000),
-                            model: model,
-                            choices: [{
-                                index: 0,
-                                delta: { content: parsed.message?.content || '' },
-                                finish_reason: parsed.done ? 'stop' : null
-                            }]
-                        };
-                        res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
-                        if (parsed.done) res.write('data: [DONE]\n\n');
+                buffer += chunk.toString();
+                const lines = buffer.split('\n');
+
+                // Keep the last incomplete line in the buffer
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        if (isNativeLlama) {
+                            if (line.startsWith('data: ')) {
+                                res.write(`${line}\n\n`);
+                            }
+                        } else {
+                            const parsed = JSON.parse(line);
+                            // Convert Ollama stream format to OpenAI stream format
+                            const openAIChunk = {
+                                id: `chatcmpl-${Date.now()}`,
+                                object: 'chat.completion.chunk',
+                                created: Math.floor(Date.now() / 1000),
+                                model: model,
+                                choices: [{
+                                    index: 0,
+                                    delta: { content: parsed.message?.content || '' },
+                                    finish_reason: parsed.done ? 'stop' : null
+                                }]
+                            };
+                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                            if (parsed.done) res.write('data: [DONE]\n\n');
+                        }
+                    } catch (err) {
+                        logger.warn('Error parsing stream line: ' + line, err);
                     }
-                } catch (err) {
-                    logger.warn('Error parsing stream chunk', err);
                 }
             });
 
-            response.body.on('end', () => res.end());
+            response.body.on('end', () => {
+                // Process any remaining text in buffer just in case
+                if (buffer.trim()) {
+                    try {
+                        if (isNativeLlama) {
+                            if (buffer.startsWith('data: ')) res.write(`${buffer}\n\n`);
+                        } else {
+                            const parsed = JSON.parse(buffer);
+                            const openAIChunk = {
+                                id: `chatcmpl-${Date.now()}`, object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model: model,
+                                choices: [{ index: 0, delta: { content: parsed.message?.content || '' }, finish_reason: parsed.done ? 'stop' : null }]
+                            };
+                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                            if (parsed.done) res.write('data: [DONE]\n\n');
+                        }
+                    } catch(e) {}
+                }
+                res.end();
+            });
             response.body.on('error', () => res.end());
 
         } else {
             const data = await response.json();
-            // Convert Ollama static format to OpenAI static format
-            const openAIResponse = {
-                id: `chatcmpl-${Date.now()}`,
-                object: 'chat.completion',
-                created: Math.floor(Date.now() / 1000),
-                model: model,
-                choices: [{
-                    index: 0,
-                    message: data.message, // { role: "assistant", content: "..." }
-                    finish_reason: 'stop'
-                }],
-                usage: {
-                    prompt_tokens: data.prompt_eval_count || 0,
-                    completion_tokens: data.eval_count || 0,
-                    total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
-                }
-            };
-            res.json(openAIResponse);
+
+            if (isNativeLlama) {
+                res.json(data);
+            } else {
+                // Convert Ollama static format to OpenAI static format
+                const openAIResponse = {
+                    id: `chatcmpl-${Date.now()}`,
+                    object: 'chat.completion',
+                    created: Math.floor(Date.now() / 1000),
+                    model: model,
+                    choices: [{
+                        index: 0,
+                        message: data.message, // { role: "assistant", content: "..." }
+                        finish_reason: 'stop'
+                    }],
+                    usage: {
+                        prompt_tokens: data.prompt_eval_count || 0,
+                        completion_tokens: data.eval_count || 0,
+                        total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+                    }
+                };
+                res.json(openAIResponse);
+            }
         }
     } catch (e) {
         logger.error('[API Gateway] Error routing completion request', e);
         res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
     }
+});
+
+// --- NATIVE INFERENCE ENGINE STATE ---
+let activeLlamaProcess = null;
+let currentLlamaPort = 8080;
+
+app.post('/api/inference/start', (req, res) => {
+    const { modelPath, ngl = 0, ctx = 2048 } = req.body;
+    if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
+
+    if (activeLlamaProcess) {
+        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
+        else activeLlamaProcess.kill('SIGKILL');
+        activeLlamaProcess = null;
+    }
+
+    const isWindows = os.platform() === 'win32';
+    const binaryName = isWindows ? 'llama-server.exe' : 'llama-server';
+    const args = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--port', String(currentLlamaPort)];
+
+    try {
+        const proc = spawn(binaryName, args, { stdio: 'pipe' });
+        activeLlamaProcess = proc;
+
+        proc.stdout.on('data', d => logger.info(`[Llama.cpp] ${d.toString().trim()}`));
+        proc.stderr.on('data', d => logger.info(`[Llama.cpp ERR] ${d.toString().trim()}`));
+
+        proc.on('error', (err) => {
+            logger.error('[Llama.cpp] Spawn error. Binary missing?', err);
+            if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) activeLlamaProcess = null;
+        });
+
+        proc.on('close', () => {
+            logger.info('[Llama.cpp] Engine stopped.');
+            if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) activeLlamaProcess = null;
+        });
+
+        res.json({ success: true, port: currentLlamaPort, message: 'Engine starting...' });
+    } catch (e) {
+        logger.error('Failed to start llama-server', e);
+        res.status(500).json({ error: 'Failed to start engine: ' + e.message });
+    }
+});
+
+app.post('/api/inference/stop', (req, res) => {
+    if (activeLlamaProcess) {
+        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
+        else activeLlamaProcess.kill('SIGKILL');
+        activeLlamaProcess = null;
+        res.json({ success: true, message: 'Engine stopped.' });
+    } else {
+        res.json({ success: true, message: 'No engine running.' });
+    }
+});
+
+app.get('/api/inference/status', (req, res) => {
+    res.json({ running: !!activeLlamaProcess, port: currentLlamaPort });
 });
 
 app.post('/api/chat', async (req, res) => {
