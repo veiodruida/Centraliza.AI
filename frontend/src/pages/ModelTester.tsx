@@ -139,14 +139,40 @@ export default function ModelTester() {
            <motion.div 
              initial={{ opacity: 0, y: -10 }}
              animate={{ opacity: 1, y: 0 }}
-             className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-[2rem] mb-10 shadow-lg"
+             className="bg-purple-500/10 border border-purple-500/20 p-6 rounded-[2rem] mb-10 shadow-lg relative overflow-hidden"
            >
-              <p className="text-xs text-yellow-600 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3">
-                 <AlertCircle size={14} /> Attention
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[30px] rounded-full" />
+              <p className="text-xs text-purple-400 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3 mb-4">
+                 <Zap size={14} className="fill-purple-500/50" /> Native Engine
               </p>
-              <p className="text-[11px] text-yellow-700/70 font-medium mt-2 leading-relaxed">
-                 {t('models_ensureLlamaLaunched') || 'Ensure Llama.cpp is launched on port 8080 in My Models tab.'}
+              <p className="text-[11px] text-purple-300/70 font-medium leading-relaxed mb-6">
+                 O Centraliza.ai gerenciará o servidor Llama.cpp de forma nativa para você usando o GGUF selecionado abaixo.
               </p>
+
+              <button
+                onClick={async () => {
+                  if (!selectedModel) return alert("Selecione um modelo primeiro.");
+                  setLoading(true);
+                  try {
+                    const res = await fetch('/api/inference/start', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ modelPath: selectedModel.path })
+                    });
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.error);
+                    setMessages([{ role: 'assistant', content: 'Native Engine started successfully! I am ready.' }]);
+                  } catch (e: any) {
+                    setError('Failed to start engine: ' + e.message);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={!selectedModel || loading}
+                className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl transition-colors shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+              >
+                START ENGINE
+              </button>
            </motion.div>
         )}
         
@@ -261,10 +287,10 @@ export default function ModelTester() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="border-b border-[var(--border)] bg-[var(--bg-input)]/30 backdrop-blur-3xl overflow-hidden shrink-0 z-10"
+              className="border-b border-[var(--border)] bg-[var(--bg-input)]/30 backdrop-blur-3xl overflow-hidden shrink-0 z-10 w-full"
             >
-              <div className="p-8 md:p-10 grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
-                <div className="lg:col-span-1 space-y-8">
+              <div className="p-6 md:p-10 grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-12 w-full mx-auto max-w-[100rem]">
+                <div className="xl:col-span-1 space-y-8">
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest flex items-center gap-2">
@@ -307,7 +333,7 @@ export default function ModelTester() {
                   </div>
                 </div>
 
-                <div className="lg:col-span-2 flex flex-col">
+                <div className="xl:col-span-2 flex flex-col min-w-0">
                   <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
                     <MessageCircle size={14} className="text-blue-500" /> System Prompt (Comportamento Base)
                   </label>
