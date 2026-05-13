@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, MoreHorizontal, Settings2, SlidersHorizontal } from 'lucide-react';
+import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, MoreHorizontal, Settings2, SlidersHorizontal, FileText, UploadCloud } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 
@@ -44,6 +44,10 @@ export default function ModelTester() {
   const [topK, setTopK] = useState(40);
   const [ctxSize, setCtxSize] = useState(4096);
   const [gpuLayers, setGpuLayers] = useState(99);
+
+  // RAG State
+  const [ragDoc, setRagDoc] = useState<File | null>(null);
+  const [ragUploading, setRagUploading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -161,6 +165,41 @@ export default function ModelTester() {
           </div>
           {t('nav_test')} ENGINE
         </h3>
+
+        {/* RAG Component */}
+        <div className="mb-10 bg-indigo-500/5 border border-indigo-500/20 p-5 rounded-[2rem] shadow-inner relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[30px] rounded-full pointer-events-none" />
+            <h4 className="text-[10px] text-indigo-400 font-black uppercase tracking-widest flex items-center gap-2 mb-3">
+               <FileText size={12} /> Local Knowledge (RAG)
+            </h4>
+            {!ragDoc ? (
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-500/30 rounded-[1.5rem] p-6 hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-colors cursor-pointer group/upload">
+                   <UploadCloud size={24} className="text-indigo-400 mb-2 group-hover/upload:-translate-y-1 transition-transform" />
+                   <span className="text-[10px] text-[var(--text-muted)] font-bold text-center">Click to attach PDF/TXT</span>
+                   <input type="file" accept=".pdf,.txt" className="hidden" onChange={async (e) => {
+                       const file = e.target.files?.[0];
+                       if (!file) return;
+                       setRagUploading(true);
+                       const formData = new FormData();
+                       formData.append('document', file);
+                       try {
+                           await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                           setRagDoc(file);
+                       } catch(err) { alert('Upload failed'); }
+                       setRagUploading(false);
+                   }} />
+                </label>
+            ) : (
+                <div className="flex items-center justify-between bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border)]">
+                   <span className="text-[11px] font-bold text-[var(--text-primary)] truncate max-w-[150px]">{ragDoc.name}</span>
+                   <button onClick={async () => {
+                       await fetch('/api/documents', { method: 'DELETE' });
+                       setRagDoc(null);
+                   }} className="text-red-400 hover:bg-red-400/20 p-1.5 rounded-lg transition-colors"><Trash2 size={12} /></button>
+                </div>
+            )}
+            {ragUploading && <p className="text-[9px] text-indigo-400 mt-2 text-center animate-pulse uppercase tracking-widest">Processing Document...</p>}
+        </div>
 
         <div className="flex bg-[var(--bg-input)]/50 p-1.5 rounded-[1.5rem] border border-[var(--border)] mb-10 shadow-inner">
            {(['ollama', 'llama.cpp'] as const).map(e => (
