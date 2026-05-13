@@ -110,10 +110,10 @@ export default function ModelTester() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="flex h-full bg-[var(--bg-base)] overflow-hidden"
+      className="flex flex-col lg:flex-row absolute inset-0 bg-[var(--bg-base)] overflow-hidden"
     >
       {/* Sidebar */}
-      <div className="w-80 md:w-96 border-r border-[var(--border)] flex flex-col p-8 md:p-12 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20">
+      <div className="w-full lg:w-[26rem] xl:w-[30rem] lg:border-r border-b lg:border-b-0 border-[var(--border)] flex flex-col p-6 md:p-10 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20 overflow-y-auto max-h-[40vh] lg:max-h-full">
         <h3 className="text-[var(--text-primary)] font-black text-xs md:text-xs uppercase tracking-widest mb-10 flex items-center gap-4">
           <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
              <Server size={18} />
@@ -186,7 +186,12 @@ export default function ModelTester() {
         <div className="space-y-4 flex-1 overflow-y-auto pr-4 mb-10 custom-scrollbar no-scrollbar">
           {models.filter(m => {
             if (engine === 'ollama') return m.source === 'Ollama';
-            if (engine === 'llama.cpp') return m.path.toLowerCase().endsWith('.gguf') || m.extension?.toLowerCase() === '.gguf';
+            if (engine === 'llama.cpp') {
+               const isGGUF = m.path.toLowerCase().endsWith('.gguf') || m.extension?.toLowerCase() === '.gguf';
+               const isOllama = m.source === 'Ollama';
+               const isComfy = m.source === 'ComfyUI';
+               return isGGUF && !isOllama && !isComfy;
+            }
             return true;
           }).map(model => (
             <button
@@ -222,7 +227,7 @@ export default function ModelTester() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col relative bg-[var(--bg-base)]">
+      <div className="flex-1 flex flex-col relative bg-[var(--bg-base)] min-w-0 min-h-0">
         <AnimatePresence>
           {!selectedModel && (
              <motion.div 
@@ -418,9 +423,9 @@ export default function ModelTester() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-8 md:p-12 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)]">
-          <div className="relative group max-w-6xl mx-auto flex gap-6">
-            <div className="relative flex-1">
+        <div className="p-4 md:p-8 lg:p-10 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)] shrink-0">
+          <div className="relative group max-w-6xl mx-auto flex gap-3 md:gap-6">
+            <div className="relative flex-1 min-w-0">
                <input 
                  type="text" 
                  value={input}
@@ -428,9 +433,9 @@ export default function ModelTester() {
                  onChange={(e) => setInput(e.target.value)}
                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                  placeholder={selectedModel ? `Message ${selectedModel.name.split('/').pop()}...` : t('chat_selectToBegin')}
-                 className="w-full bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-[2.5rem] md:rounded-[3rem] py-6 md:py-8 pl-10 md:pl-12 pr-12 md:pr-16 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-lg md:text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.2em] placeholder:text-xs"
+                 className="w-full bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-[2rem] md:rounded-[3rem] py-4 md:py-6 lg:py-8 pl-6 md:pl-12 pr-12 md:pr-16 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-sm md:text-lg lg:text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.1em] md:placeholder:tracking-[0.2em] placeholder:text-[10px] md:placeholder:text-xs truncate"
                />
-               <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex gap-4 text-[var(--text-muted)]">
+               <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden md:flex gap-4 text-[var(--text-muted)]">
                   <button className="hover:text-blue-500 transition-colors"><Globe size={22} /></button>
                   <button className="hover:text-blue-500 transition-colors"><MoreHorizontal size={22} /></button>
                </div>
@@ -438,9 +443,9 @@ export default function ModelTester() {
             <button 
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="w-20 h-20 md:w-24 md:h-24 bg-blue-600 text-white rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
+              className="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-blue-600 text-white rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[2.5rem] shrink-0 flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
             >
-              {loading ? <Loader2 size={28}  className="animate-spin" /> : <Send size={28}  />}
+              {loading ? <Loader2 size={24} className="animate-spin md:w-7 md:h-7 lg:w-8 lg:h-8" /> : <Send size={24} className="md:w-7 md:h-7 lg:w-8 lg:h-8" />}
             </button>
           </div>
         </div>
