@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
+  metrics?: { tps: string, time: string };
 }
 
 export const CONTAINER_VARIANTS = {
@@ -41,6 +42,8 @@ export default function ModelTester() {
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.9);
   const [topK, setTopK] = useState(40);
+  const [ctxSize, setCtxSize] = useState(4096);
+  const [gpuLayers, setGpuLayers] = useState(99);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -68,37 +71,75 @@ export default function ModelTester() {
     if (!input.trim() || (!selectedModel && engine !== 'custom') || loading) return;
 
     const userMsg: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMsg]);
+    const currentMessages = [...messages, userMsg];
+    setMessages(currentMessages);
     setInput('');
     setLoading(true);
     setError('');
 
     try {
-      const res = await fetch('/api/chat', {
+      // Auto-start Llama.cpp engine if needed
+      if (engine === 'llama.cpp') {
+          const statusRes = await fetch('/api/inference/status');
+          const statusData = await statusRes.json();
+          if (!statusData.running || statusData.model !== selectedModel.path) {
+              setMessages(prev => [...prev, { role: 'system', content: `Iniciando motor nativo para o modelo ${selectedModel.name.split('/').pop()}... Aguarde.` }]);
+              const startRes = await fetch('/api/inference/start', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ modelPath: selectedModel.path, ctx: ctxSize, ngl: gpuLayers })
+              });
+              const startData = await startRes.json();
+              if (!startData.success) throw new Error(startData.error || 'Falha ao iniciar motor nativo.');
+          }
+      }
+
+      // Prepare OpenAI format payload
+      const chatHistory = currentMessages
+          .filter(m => m.role !== 'system') // Filter out UI system messages like "Engine started"
+          .map(m => ({ role: m.role, content: m.content }));
+
+      if (systemPrompt) {
+          chatHistory.unshift({ role: 'system', content: systemPrompt });
+      }
+
+      const modelId = engine === 'llama.cpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
+
+      const startTime = Date.now();
+      const res = await fetch('/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          model: selectedModel?.name, 
-          prompt: input,
-          ollamaTag: selectedModel?.ollamaTag,
-          endpoint: customEndpoint,
-          options: {
-            temperature,
-            top_p: topP,
-            top_k: topK
-          },
-          system: systemPrompt || undefined
+          model: modelId,
+          messages: chatHistory,
+          temperature,
+          top_p: topP,
+          top_k: topK,
+          stream: false // Using static fetch for simplicity in this phase
         })
       });
       const data = await res.json();
       
       if (data.error) throw new Error(data.error);
-      const assistantResponse = data.response || data.content || JSON.stringify(data);
+      if (!res.ok && data.error) throw new Error(data.error);
 
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
+      const assistantResponse = data.choices?.[0]?.message?.content || JSON.stringify(data);
+      const endTime = Date.now();
+
+      let tps = 'N/A';
+      const durationSecs = (endTime - startTime) / 1000;
+      if (data.usage?.completion_tokens) {
+          tps = (data.usage.completion_tokens / durationSecs).toFixed(1);
+      }
+
+      setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: assistantResponse,
+          metrics: { tps, time: durationSecs.toFixed(1) }
+      }]);
     } catch (err: any) {
       setError(err.message || 'AI Server error.');
-      setMessages(prev => [...prev, { role: 'assistant', content: t('error') || 'Error connecting to the AI server.' }]);
+      setMessages(prev => [...prev, { role: 'system', content: 'SYSTEM ERROR: ' + (err.message || 'Error connecting to AI server.') }]);
     } finally {
       setLoading(false);
     }
@@ -149,30 +190,9 @@ export default function ModelTester() {
                  O Centraliza.ai gerenciará o servidor Llama.cpp de forma nativa para você usando o GGUF selecionado abaixo.
               </p>
 
-              <button
-                onClick={async () => {
-                  if (!selectedModel) return alert("Selecione um modelo primeiro.");
-                  setLoading(true);
-                  try {
-                    const res = await fetch('/api/inference/start', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ modelPath: selectedModel.path })
-                    });
-                    const data = await res.json();
-                    if (!data.success) throw new Error(data.error);
-                    setMessages([{ role: 'assistant', content: 'Native Engine started successfully! I am ready.' }]);
-                  } catch (e: any) {
-                    setError('Failed to start engine: ' + e.message);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                disabled={!selectedModel || loading}
-                className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl transition-colors shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-              >
-                START ENGINE
-              </button>
+              <p className="text-[9px] text-purple-300/50 font-medium leading-relaxed mb-6 font-mono uppercase tracking-widest">
+                Context: {ctxSize} | GPU Layers: {gpuLayers}
+              </p>
            </motion.div>
         )}
         
@@ -339,6 +359,25 @@ export default function ModelTester() {
                 </div>
 
                 <div className="xl:col-span-2 flex flex-col min-w-0">
+                  <div className="grid grid-cols-2 gap-8 mb-8 p-6 bg-purple-500/5 border border-purple-500/20 rounded-[2rem]">
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Zap size={14} /> Context Size</label>
+                        <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{ctxSize}</span>
+                      </div>
+                      <input type="range" min="1024" max="32768" step="1024" value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                      <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Memória da conversa. Valores altos gastam mais RAM.</p>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Server size={14} /> GPU Layers</label>
+                        <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{gpuLayers}</span>
+                      </div>
+                      <input type="range" min="0" max="99" step="1" value={gpuLayers} onChange={e => setGpuLayers(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                      <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Camadas descarregadas na Placa de Vídeo. 99 = Full GPU.</p>
+                    </div>
+                  </div>
+
                   <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
                     <MessageCircle size={14} className="text-blue-500" /> System Prompt (Comportamento Base)
                   </label>
@@ -364,7 +403,19 @@ export default function ModelTester() {
         </AnimatePresence>
 
         <div className="flex-1 overflow-y-auto p-10 md:p-16 space-y-12 scroll-smooth custom-scrollbar no-scrollbar bg-[radial-gradient(circle_at_top_right,var(--bg-input),transparent)]">
-          {messages.map((msg, i) => (
+          {messages.map((msg, i) => {
+            if (msg.role === 'system') {
+              return (
+                 <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center my-4">
+                    <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-3 backdrop-blur-md">
+                       <Zap size={14} className="fill-purple-500/50" />
+                       {msg.content}
+                    </div>
+                 </motion.div>
+              );
+            }
+
+            return (
             <motion.div 
               key={i} 
               initial={{ opacity: 0, y: 20 }}
@@ -377,19 +428,27 @@ export default function ModelTester() {
                 }`}>
                   {msg.role === 'user' ? <User size={24}  /> : <Bot size={24}  />}
                 </div>
-                <div className={`p-8 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] text-base md:text-lg leading-relaxed shadow-premium font-medium relative ${
-                  msg.role === 'user' 
-                    ? 'bg-blue-600 text-white rounded-tr-none border border-white/10' 
-                    : 'bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-tl-none backdrop-blur-3xl'
-                }`}>
-                   <div className={`absolute top-4 ${msg.role === 'user' ? 'left-6' : 'right-6'} opacity-10 pointer-events-none`}>
-                      {msg.role === 'user' ? <MessageCircle size={28}  /> : <Sparkles size={28}  />}
-                   </div>
-                   {msg.content}
+                <div className="flex flex-col gap-2 max-w-[80vw] lg:max-w-none">
+                  <div className={`p-8 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] text-base md:text-lg leading-relaxed shadow-premium font-medium relative whitespace-pre-wrap break-words ${
+                    msg.role === 'user'
+                      ? 'bg-blue-600 text-white rounded-tr-none border border-white/10'
+                      : 'bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-tl-none backdrop-blur-3xl'
+                  }`}>
+                     <div className={`absolute top-4 ${msg.role === 'user' ? 'left-6' : 'right-6'} opacity-10 pointer-events-none`}>
+                        {msg.role === 'user' ? <MessageCircle size={28}  /> : <Sparkles size={28}  />}
+                     </div>
+                     {msg.content}
+                  </div>
+                  {msg.metrics && (
+                     <div className={`flex items-center gap-4 text-[10px] uppercase tracking-widest font-black text-[var(--text-muted)] ${msg.role === 'user' ? 'justify-end' : 'justify-start pl-4'}`}>
+                        <span className="flex items-center gap-1"><Zap size={10} className="text-blue-500" /> {msg.metrics.tps} t/s</span>
+                        <span className="flex items-center gap-1 opacity-60">Tempo: {msg.metrics.time}s</span>
+                     </div>
+                  )}
                 </div>
               </div>
             </motion.div>
-          ))}
+          )})}
           {loading && (
              <motion.div 
                initial={{ opacity: 0 }}
