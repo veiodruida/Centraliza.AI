@@ -458,15 +458,31 @@ app.post('/v1/chat/completions', async (req, res) => {
             ? { model, messages, temperature, top_p, top_k, stream }
             : payload;
 
-        const response = await fetch(targetEndpoint, {
-            method: 'POST',
-            body: JSON.stringify(finalPayload),
-            headers: { 'Content-Type': 'application/json' }
-        });
+        let response;
+        let retryCount = 0;
 
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Upstream error: ${response.status} - ${errText}`);
+        while (retryCount < 5) {
+            response = await fetch(targetEndpoint, {
+                method: 'POST',
+                body: JSON.stringify(finalPayload),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                if (response.status === 503) {
+                    logger.info(`[API Gateway] 503 Received. Engine might still be loading or warming up. Retrying... (${retryCount+1}/5)`);
+                    await new Promise(r => setTimeout(r, 2000));
+                    retryCount++;
+                    continue;
+                }
+                const errText = await response.text();
+                throw new Error(`Upstream error: ${response.status} - ${errText}`);
+            }
+            break;
+        }
+
+        if (!response || !response.ok) {
+             throw new Error(`Upstream error: Target endpoint unreachable after retries.`);
         }
 
         if (stream) {
@@ -614,10 +630,32 @@ app.post('/api/inference/start', (req, res) => {
             }
         });
 
-        // Wait a small amount of time for the server to bind the port before declaring success
-        setTimeout(() => {
-            res.json({ success: true, port: currentLlamaPort, message: 'Engine starting...' });
-        }, 1500);
+        // Wait up to 60 seconds for the server to be responsive
+        let attempts = 0;
+        const maxAttempts = 30; // 30 * 2000ms = 60s
+        const checkHealth = async () => {
+             attempts++;
+             try {
+                 const healthRes = await import('node-fetch').then(({default: fetch}) => fetch(`http://localhost:${currentLlamaPort}/health`));
+                 const healthData = await healthRes.json();
+                 if (healthData.status === 'ok') {
+                      logger.info('[Llama.cpp] Engine is fully loaded and ready.');
+                      return res.json({ success: true, port: currentLlamaPort, message: 'Engine running.' });
+                 }
+                 throw new Error('Loading model');
+             } catch (err) {
+                 if (attempts >= maxAttempts) {
+                     logger.error('[Llama.cpp] Engine startup timeout.');
+                     return res.status(500).json({ error: 'Engine startup timeout. The model might be too large or took too long to load.' });
+                 }
+                 if (!activeLlamaProcess) return res.status(500).json({ error: 'Engine crashed during startup.' });
+                 setTimeout(checkHealth, 2000);
+             }
+        };
+
+        // Delay the first check to give spawn time
+        setTimeout(checkHealth, 1500);
+
     } catch (e) {
         logger.error('Failed to start llama-server', e);
         res.status(500).json({ error: 'Failed to start engine: ' + e.message });
