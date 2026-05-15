@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, MoreHorizontal, Settings2, SlidersHorizontal, FileText, UploadCloud } from 'lucide-react';
+import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, Settings2, SlidersHorizontal, FileText, UploadCloud } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
+  reasoning_content?: string;
   metrics?: { tps: string, time: string };
 }
 
@@ -32,6 +33,7 @@ export default function ModelTester() {
   const [selectedModel, setSelectedModel] = useState<any>(null);
   const [models, setModels] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [error, setError] = useState('');
   const [engine, setEngine] = useState<'ollama' | 'llama.cpp' | 'custom'>('ollama');
   const [customEndpoint, setCustomEndpoint] = useState('http://localhost:11434/api/generate');
@@ -71,6 +73,15 @@ export default function ModelTester() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleStop = () => {
+      if (abortController) {
+          abortController.abort();
+          setAbortController(null);
+          setLoading(false);
+          setMessages(prev => [...prev, { role: 'system', content: '[A requisição foi cancelada pelo utilizador.]' }]);
+      }
+  };
+
   const handleSend = async () => {
     if (!input.trim() || (!selectedModel && engine !== 'custom') || loading) return;
 
@@ -80,6 +91,9 @@ export default function ModelTester() {
     setInput('');
     setLoading(true);
     setError('');
+
+    const controller = new AbortController();
+    setAbortController(controller);
 
     try {
       // Auto-start Llama.cpp engine if needed
@@ -113,6 +127,7 @@ export default function ModelTester() {
       const res = await fetch('/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({ 
           model: modelId,
           messages: chatHistory,
@@ -127,7 +142,13 @@ export default function ModelTester() {
       if (data.error) throw new Error(data.error);
       if (!res.ok && data.error) throw new Error(data.error);
 
-      const assistantResponse = data.choices?.[0]?.message?.content || JSON.stringify(data);
+      // Fallback to JSON stringify ONLY if it really seems like an invalid response structure
+      const choice = data.choices?.[0];
+      const messageContent = choice?.message?.content !== undefined ? choice.message.content : '';
+      const reasoningContent = choice?.message?.reasoning_content || '';
+
+      const assistantResponse = (messageContent || reasoningContent) ? messageContent : JSON.stringify(data);
+
       const endTime = Date.now();
 
       let tps = 'N/A';
@@ -139,13 +160,19 @@ export default function ModelTester() {
       setMessages(prev => [...prev, {
           role: 'assistant',
           content: assistantResponse,
+          reasoning_content: reasoningContent,
           metrics: { tps, time: durationSecs.toFixed(1) }
       }]);
     } catch (err: any) {
-      setError(err.message || 'AI Server error.');
-      setMessages(prev => [...prev, { role: 'system', content: 'SYSTEM ERROR: ' + (err.message || 'Error connecting to AI server.') }]);
+      if (err.name === 'AbortError') {
+          console.log('Fetch aborted');
+      } else {
+          setError(err.message || 'AI Server error.');
+          setMessages(prev => [...prev, { role: 'system', content: 'SYSTEM ERROR: ' + (err.message || 'Error connecting to AI server.') }]);
+      }
     } finally {
       setLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -158,55 +185,20 @@ export default function ModelTester() {
       className="flex flex-col lg:flex-row absolute inset-0 bg-[var(--bg-base)] overflow-hidden"
     >
       {/* Sidebar */}
-      <div className="w-full lg:w-[26rem] xl:w-[30rem] lg:border-r border-b lg:border-b-0 border-[var(--border)] flex flex-col p-6 md:p-10 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20 overflow-y-auto max-h-[40vh] lg:max-h-full">
-        <h3 className="text-[var(--text-primary)] font-black text-xs md:text-xs uppercase tracking-widest mb-10 flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
-             <Server size={18} />
+      <div className="w-full lg:w-[24rem] xl:w-[26rem] lg:border-r border-b lg:border-b-0 border-[var(--border)] flex flex-col p-4 md:p-6 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20 overflow-y-auto max-h-[40vh] lg:max-h-full custom-scrollbar">
+        <h3 className="text-[var(--text-primary)] font-black text-[10px] md:text-xs uppercase tracking-widest mb-6 flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
+             <Server size={14} />
           </div>
           {t('nav_test')} ENGINE
         </h3>
 
-        {/* RAG Component */}
-        <div className="mb-10 bg-indigo-500/5 border border-indigo-500/20 p-5 rounded-[2rem] shadow-inner relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[30px] rounded-full pointer-events-none" />
-            <h4 className="text-[10px] text-indigo-400 font-black uppercase tracking-widest flex items-center gap-2 mb-3">
-               <FileText size={12} /> Local Knowledge (RAG)
-            </h4>
-            {!ragDoc ? (
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-500/30 rounded-[1.5rem] p-6 hover:bg-indigo-500/10 hover:border-indigo-500/50 transition-colors cursor-pointer group/upload">
-                   <UploadCloud size={24} className="text-indigo-400 mb-2 group-hover/upload:-translate-y-1 transition-transform" />
-                   <span className="text-[10px] text-[var(--text-muted)] font-bold text-center">Click to attach PDF/TXT</span>
-                   <input type="file" accept=".pdf,.txt" className="hidden" onChange={async (e) => {
-                       const file = e.target.files?.[0];
-                       if (!file) return;
-                       setRagUploading(true);
-                       const formData = new FormData();
-                       formData.append('document', file);
-                       try {
-                           await fetch('/api/documents/upload', { method: 'POST', body: formData });
-                           setRagDoc(file);
-                       } catch(err) { alert('Upload failed'); }
-                       setRagUploading(false);
-                   }} />
-                </label>
-            ) : (
-                <div className="flex items-center justify-between bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border)]">
-                   <span className="text-[11px] font-bold text-[var(--text-primary)] truncate max-w-[150px]">{ragDoc.name}</span>
-                   <button onClick={async () => {
-                       await fetch('/api/documents', { method: 'DELETE' });
-                       setRagDoc(null);
-                   }} className="text-red-400 hover:bg-red-400/20 p-1.5 rounded-lg transition-colors"><Trash2 size={12} /></button>
-                </div>
-            )}
-            {ragUploading && <p className="text-[9px] text-indigo-400 mt-2 text-center animate-pulse uppercase tracking-widest">Processing Document...</p>}
-        </div>
-
-        <div className="flex bg-[var(--bg-input)]/50 p-1.5 rounded-[1.5rem] border border-[var(--border)] mb-10 shadow-inner">
+        <div className="flex bg-[var(--bg-input)]/50 p-1.5 rounded-2xl border border-[var(--border)] mb-6 shadow-inner">
            {(['ollama', 'llama.cpp'] as const).map(e => (
              <button 
               key={e}
               onClick={() => setEngine(e)}
-              className={`flex-1 py-3 md:py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${
+              className={`flex-1 py-2 md:py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${
                 engine === e ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
              >
@@ -441,7 +433,7 @@ export default function ModelTester() {
           )}
         </AnimatePresence>
 
-        <div className="flex-1 overflow-y-auto p-10 md:p-16 space-y-12 scroll-smooth custom-scrollbar no-scrollbar bg-[radial-gradient(circle_at_top_right,var(--bg-input),transparent)]">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scroll-smooth custom-scrollbar no-scrollbar bg-[radial-gradient(circle_at_top_right,var(--bg-input),transparent)]">
           {messages.map((msg, i) => {
             if (msg.role === 'system') {
               return (
@@ -461,22 +453,32 @@ export default function ModelTester() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`flex gap-6 md:gap-8 max-w-5xl ${msg.role === 'user' ? 'flex-row-reverse text-right' : ''}`}>
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-[1.25rem] md:rounded-[1.5rem] shrink-0 flex items-center justify-center shadow-premium transition-all duration-500 hover:scale-110 ${
+              <div className={`flex gap-3 md:gap-4 max-w-[90%] md:max-w-4xl ${msg.role === 'user' ? 'flex-row-reverse text-right' : ''}`}>
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-[1.25rem] shrink-0 flex items-center justify-center shadow-premium transition-all duration-500 hover:scale-110 ${
                   msg.role === 'user' ? 'bg-[var(--bg-surface)] text-blue-500 border border-[var(--border)]' : 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white'
                 }`}>
-                  {msg.role === 'user' ? <User size={24}  /> : <Bot size={24}  />}
+                  {msg.role === 'user' ? <User size={18}  /> : <Bot size={18}  />}
                 </div>
-                <div className="flex flex-col gap-2 max-w-[80vw] lg:max-w-none">
-                  <div className={`p-8 md:p-10 rounded-[2.5rem] md:rounded-[3.5rem] text-base md:text-lg leading-relaxed shadow-premium font-medium relative whitespace-pre-wrap break-words ${
+                <div className="flex flex-col gap-2 min-w-0">
+                  <div className={`p-4 md:p-6 rounded-2xl md:rounded-[2rem] text-sm md:text-base leading-relaxed shadow-premium font-medium relative whitespace-pre-wrap break-words ${
                     msg.role === 'user'
                       ? 'bg-blue-600 text-white rounded-tr-none border border-white/10'
                       : 'bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-tl-none backdrop-blur-3xl'
                   }`}>
-                     <div className={`absolute top-4 ${msg.role === 'user' ? 'left-6' : 'right-6'} opacity-10 pointer-events-none`}>
-                        {msg.role === 'user' ? <MessageCircle size={28}  /> : <Sparkles size={28}  />}
+                     <div className={`absolute top-2 ${msg.role === 'user' ? 'left-3' : 'right-3'} opacity-10 pointer-events-none`}>
+                        {msg.role === 'user' ? <MessageCircle size={16}  /> : <Sparkles size={16}  />}
                      </div>
-                     {msg.content}
+                     {msg.reasoning_content && (
+                       <details className="mb-2">
+                         <summary className="text-[10px] md:text-[11px] text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-primary)] select-none">
+                           Processo de Raciocínio
+                         </summary>
+                         <div className="mt-2 p-2 bg-[var(--bg-input)] rounded-lg text-[11px] md:text-[12px] text-[var(--text-muted)] italic border border-[var(--border)] whitespace-pre-wrap font-mono">
+                           {msg.reasoning_content}
+                         </div>
+                       </details>
+                     )}
+                     <span className="block mt-1">{msg.content}</span>
                   </div>
                   {msg.metrics && (
                      <div className={`flex items-center gap-4 text-[10px] uppercase tracking-widest font-black text-[var(--text-muted)] ${msg.role === 'user' ? 'justify-end' : 'justify-start pl-4'}`}>
@@ -521,9 +523,44 @@ export default function ModelTester() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 md:p-8 lg:p-10 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)] shrink-0">
-          <div className="relative group max-w-6xl mx-auto flex gap-3 md:gap-6">
-            <div className="relative flex-1 min-w-0">
+        <div className="p-4 md:p-6 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)] shrink-0 flex flex-col items-center">
+          {ragDoc && (
+              <div className="w-full max-w-5xl mb-2 flex justify-start">
+                  <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg text-[10px] md:text-[11px] text-indigo-400 font-medium">
+                      <FileText size={12} />
+                      <span className="truncate max-w-[200px]">{ragDoc.name}</span>
+                      <button onClick={async () => {
+                          await fetch('/api/documents', { method: 'DELETE' });
+                          setRagDoc(null);
+                      }} className="ml-2 hover:text-indigo-200 transition-colors">
+                          <Trash2 size={12} />
+                      </button>
+                  </div>
+              </div>
+          )}
+          {ragUploading && (
+              <div className="w-full max-w-5xl mb-2 flex justify-start">
+                 <span className="text-[10px] text-indigo-400 animate-pulse uppercase tracking-widest font-black">Uploading Document...</span>
+              </div>
+          )}
+
+          <div className="relative group max-w-5xl w-full mx-auto flex gap-3 md:gap-4 items-center">
+            <div className="relative flex-1 min-w-0 flex items-center bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-full focus-within:ring-2 focus-within:ring-blue-600/50 transition-all shadow-premium">
+               <label className="p-3 md:p-4 text-[var(--text-muted)] hover:text-blue-500 transition-colors shrink-0 ml-1 cursor-pointer" title="Upload PDF/TXT for Knowledge Context">
+                 <UploadCloud size={20} />
+                 <input type="file" accept=".pdf,.txt" className="hidden" onChange={async (e) => {
+                       const file = e.target.files?.[0];
+                       if (!file) return;
+                       setRagUploading(true);
+                       const formData = new FormData();
+                       formData.append('document', file);
+                       try {
+                           await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                           setRagDoc(file);
+                       } catch(err) { alert('Upload failed'); }
+                       setRagUploading(false);
+                 }} />
+               </label>
                <input 
                  type="text" 
                  value={input}
@@ -531,20 +568,25 @@ export default function ModelTester() {
                  onChange={(e) => setInput(e.target.value)}
                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                  placeholder={selectedModel ? `Message ${selectedModel.name.split('/').pop()}...` : t('chat_selectToBegin')}
-                 className="w-full bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-[2rem] md:rounded-[3rem] py-4 md:py-6 lg:py-8 pl-6 md:pl-12 pr-12 md:pr-16 text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all text-sm md:text-lg lg:text-xl shadow-premium font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.1em] md:placeholder:tracking-[0.2em] placeholder:text-[10px] md:placeholder:text-xs truncate"
+                 className="w-full bg-transparent py-3 md:py-4 pl-2 pr-12 text-[var(--text-primary)] focus:outline-none text-sm md:text-base font-medium placeholder:text-[var(--text-muted)] placeholder:font-black placeholder:uppercase placeholder:tracking-widest placeholder:text-[10px] md:placeholder:text-xs truncate"
                />
-               <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden md:flex gap-4 text-[var(--text-muted)]">
-                  <button className="hover:text-blue-500 transition-colors"><Globe size={22} /></button>
-                  <button className="hover:text-blue-500 transition-colors"><MoreHorizontal size={22} /></button>
-               </div>
             </div>
-            <button 
-              onClick={handleSend}
-              disabled={loading || !input.trim()}
-              className="w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-blue-600 text-white rounded-[1.5rem] md:rounded-[2rem] lg:rounded-[2.5rem] shrink-0 flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
-            >
-              {loading ? <Loader2 size={24} className="animate-spin md:w-7 md:h-7 lg:w-8 lg:h-8" /> : <Send size={24} className="md:w-7 md:h-7 lg:w-8 lg:h-8" />}
-            </button>
+            {loading ? (
+                <button
+                  onClick={handleStop}
+                  className="w-12 h-12 md:w-14 md:h-14 bg-red-600/90 text-white rounded-full shrink-0 flex items-center justify-center hover:bg-red-500 transition-all shadow-premium active:scale-90"
+                >
+                  <div className="w-4 h-4 bg-white rounded-sm" />
+                </button>
+            ) : (
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim()}
+                  className="w-12 h-12 md:w-14 md:h-14 bg-blue-600 text-white rounded-full shrink-0 flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
+                >
+                  <Send size={20} className="ml-1" />
+                </button>
+            )}
           </div>
         </div>
       </div>
