@@ -499,12 +499,19 @@ app.post('/v1/chat/completions', async (req, res) => {
 
         let response;
         let retryCount = 0;
+        const controller = new AbortController();
+
+        req.on('close', () => {
+             logger.info('[API Gateway] Client disconnected, aborting upstream request.');
+             controller.abort();
+        });
 
         while (retryCount < 5) {
             response = await fetch(targetEndpoint, {
                 method: 'POST',
                 body: JSON.stringify(finalPayload),
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
             });
 
             if (!response.ok) {
@@ -555,7 +562,10 @@ app.post('/v1/chat/completions', async (req, res) => {
                                 model: model,
                                 choices: [{
                                     index: 0,
-                                    delta: { content: parsed.message?.content || '' },
+                                    delta: {
+                                        content: parsed.message?.content || '',
+                                        reasoning_content: parsed.message?.reasoning_content || ''
+                                    },
                                     finish_reason: parsed.done ? 'stop' : null
                                 }]
                             };
@@ -578,7 +588,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                             const parsed = JSON.parse(buffer);
                             const openAIChunk = {
                                 id: `chatcmpl-${Date.now()}`, object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model: model,
-                                choices: [{ index: 0, delta: { content: parsed.message?.content || '' }, finish_reason: parsed.done ? 'stop' : null }]
+                                choices: [{ index: 0, delta: { content: parsed.message?.content || '', reasoning_content: parsed.message?.reasoning_content || '' }, finish_reason: parsed.done ? 'stop' : null }]
                             };
                             res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
                             if (parsed.done) res.write('data: [DONE]\n\n');
@@ -596,6 +606,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                 res.json(data);
             } else {
                 // Convert Ollama static format to OpenAI static format
+                // In some models like DeepSeek on Ollama, reasoning is injected. Ensure we pass the message object directly
                 const openAIResponse = {
                     id: `chatcmpl-${Date.now()}`,
                     object: 'chat.completion',
@@ -603,7 +614,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                     model: model,
                     choices: [{
                         index: 0,
-                        message: data.message, // { role: "assistant", content: "..." }
+                        message: data.message, // { role: "assistant", content: "...", reasoning_content: "..." }
                         finish_reason: 'stop'
                     }],
                     usage: {
