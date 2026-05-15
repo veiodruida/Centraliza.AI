@@ -416,13 +416,413 @@ app.post('/api/centralize', async (req, res) => {
     }
 });
 
-app.post('/api/chat', async (req, res) => {
-    const { ollamaTag, prompt, endpoint = 'http://localhost:11434/api/generate' } = req.body;
+// --- API GATEWAY: OPENAI COMPATIBLE ---
+// Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
+app.post('/v1/chat/completions', async (req, res) => {
+    const { model, messages, temperature, top_p, top_k, stream = false } = req.body;
+
+    if (!model || !messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: 'Invalid payload. Model and messages array are required.' });
+    }
+
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+    // Proxy to Ollama by default, but if our native Llama.cpp engine is running for the requested model, we proxy to it.
+    // llama-server natively implements an OpenAI compatible /v1/chat/completions endpoint.
+    let targetEndpoint = 'http://localhost:11434/api/chat';
+    let isNativeLlama = false;
+
+    if (activeLlamaProcess && model === currentLlamaModel) {
+        targetEndpoint = `http://localhost:${currentLlamaPort}/v1/chat/completions`;
+        isNativeLlama = true;
+    }
+
+    const payload = {
+        model: model,
+        messages: messages, // Ollama natively supports the OpenAI role/content array format on /api/chat
+        stream: stream
+    };
+
+    const options = {};
+    if (temperature !== undefined) options.temperature = temperature;
+    if (top_p !== undefined) options.top_p = top_p;
+    if (top_k !== undefined) options.top_k = top_k;
+    if (Object.keys(options).length > 0) payload.options = options;
+
+    // --- RAG RETRIEVAL INJECTION ---
+    // If documents are loaded in memory, try to find matches against the last user message
+    if (globalDocuments.length > 0) {
+        const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
+        if (lastUserMessage && lastUserMessage.content) {
+            const queryWords = lastUserMessage.content.toLowerCase().split(' ').filter(w => w.length > 3);
+            let bestChunk = null;
+            let bestScore = 0;
+
+            // Simple Keyword Frequency (TF) Search
+            for (const doc of globalDocuments) {
+                 for (const chunk of doc.chunks) {
+                      let score = 0;
+                      const chunkLower = chunk.toLowerCase();
+                      for (const word of queryWords) {
+                           if (chunkLower.includes(word)) score++;
+                      }
+                      if (score > bestScore) {
+                           bestScore = score;
+                           bestChunk = chunk;
+                      }
+                 }
+            }
+
+            if (bestChunk && bestScore > 0) {
+                logger.info(`[RAG] Found context for query (Score: ${bestScore}). Injecting into system prompt.`);
+                const contextStr = `\n\n[CONTEXTO DE DOCUMENTO RECUPERADO]:\n"""\n${bestChunk}\n"""\nResponda baseando-se estritamente neste contexto.`;
+
+                // Inject the context into the system prompt or prepend it to the user message
+                let systemMessage = messages.find(m => m.role === 'system');
+                if (systemMessage) {
+                    systemMessage.content += contextStr;
+                } else {
+                    messages.unshift({ role: 'system', content: 'Você é um assistente útil.' + contextStr });
+                }
+            }
+        }
+    }
+
+    logger.info(`[API Gateway] Routing /v1/chat/completions for model: ${model} (Stream: ${stream})`);
+
+    try {
+        // If it's native llama, we don't need to wrap it in the Ollama format.
+        // We just pass the raw OpenAI request to llama-server.
+        const finalPayload = isNativeLlama
+            ? { model, messages, temperature, top_p, top_k, stream }
+            : payload;
+
+        let response;
+        let retryCount = 0;
+        const controller = new AbortController();
+
+        req.on('close', () => {
+             logger.info('[API Gateway] Client disconnected, aborting upstream request.');
+             controller.abort();
+        });
+
+        while (retryCount < 5) {
+            try {
+                response = await fetch(targetEndpoint, {
+                    method: 'POST',
+                    body: JSON.stringify(finalPayload),
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+            } catch (fetchErr) {
+                if (fetchErr.name === 'AbortError') {
+                    logger.info('[API Gateway] Upstream request aborted successfully.');
+                    return;
+                }
+                throw fetchErr;
+            }
+
+            if (!response.ok) {
+                if (response.status === 503) {
+                    logger.info(`[API Gateway] 503 Received. Engine might still be loading or warming up. Retrying... (${retryCount+1}/5)`);
+                    await new Promise(r => setTimeout(r, 2000));
+                    retryCount++;
+                    continue;
+                }
+                const errText = await response.text();
+                throw new Error(`Upstream error: ${response.status} - ${errText}`);
+            }
+            break;
+        }
+
+        if (!response || !response.ok) {
+             throw new Error(`Upstream error: Target endpoint unreachable after retries.`);
+        }
+
+        if (stream) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+
+            // Proxying the stream directly from Ollama
+            let buffer = '';
+            response.body.on('data', (chunk) => {
+                buffer += chunk.toString();
+                const lines = buffer.split('\n');
+
+                // Keep the last incomplete line in the buffer
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        if (isNativeLlama) {
+                            if (line.startsWith('data: ')) {
+                                res.write(`${line}\n\n`);
+                            }
+                        } else {
+                            const parsed = JSON.parse(line);
+                            // Convert Ollama stream format to OpenAI stream format
+                            const openAIChunk = {
+                                id: `chatcmpl-${Date.now()}`,
+                                object: 'chat.completion.chunk',
+                                created: Math.floor(Date.now() / 1000),
+                                model: model,
+                                choices: [{
+                                    index: 0,
+                                    delta: {
+                                        content: parsed.message?.content || '',
+                                        reasoning_content: parsed.message?.reasoning_content || ''
+                                    },
+                                    finish_reason: parsed.done ? 'stop' : null
+                                }]
+                            };
+                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                            if (parsed.done) res.write('data: [DONE]\n\n');
+                        }
+                    } catch (err) {
+                        logger.warn('Error parsing stream line: ' + line, err);
+                    }
+                }
+            });
+
+            response.body.on('end', () => {
+                // Process any remaining text in buffer just in case
+                if (buffer.trim()) {
+                    try {
+                        if (isNativeLlama) {
+                            if (buffer.startsWith('data: ')) res.write(`${buffer}\n\n`);
+                        } else {
+                            const parsed = JSON.parse(buffer);
+                            const openAIChunk = {
+                                id: `chatcmpl-${Date.now()}`, object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model: model,
+                                choices: [{ index: 0, delta: { content: parsed.message?.content || '', reasoning_content: parsed.message?.reasoning_content || '' }, finish_reason: parsed.done ? 'stop' : null }]
+                            };
+                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                            if (parsed.done) res.write('data: [DONE]\n\n');
+                        }
+                    } catch(e) {}
+                }
+                res.end();
+            });
+            response.body.on('error', () => res.end());
+
+        } else {
+            const data = await response.json();
+
+            if (isNativeLlama) {
+                res.json(data);
+            } else {
+                // Convert Ollama static format to OpenAI static format
+                // In some models like DeepSeek on Ollama, reasoning is injected. Ensure we pass the message object directly
+                const openAIResponse = {
+                    id: `chatcmpl-${Date.now()}`,
+                    object: 'chat.completion',
+                    created: Math.floor(Date.now() / 1000),
+                    model: model,
+                    choices: [{
+                        index: 0,
+                        message: data.message, // { role: "assistant", content: "...", reasoning_content: "..." }
+                        finish_reason: 'stop'
+                    }],
+                    usage: {
+                        prompt_tokens: data.prompt_eval_count || 0,
+                        completion_tokens: data.eval_count || 0,
+                        total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+                    }
+                };
+                res.json(openAIResponse);
+            }
+        }
+    } catch (e) {
+        logger.error('[API Gateway] Error routing completion request', e);
+        if (e.name !== 'AbortError') {
+            res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
+        }
+    }
+});
+
+// --- RAG (RETRIEVAL-AUGMENTED GENERATION) SYSTEM ---
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
+
+// Basic in-memory document store
+let globalDocuments = [];
+
+app.post('/api/documents/upload', upload.single('document'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    // Check if limit of 5 documents has been reached
+    if (globalDocuments.length >= 5) {
+        return res.status(400).json({ error: 'Maximum limit of 5 documents reached. Please remove some files first.' });
+    }
+
+    try {
+        logger.info(`[RAG] Processing document: ${req.file.originalname}`);
+        let extractedText = '';
+
+        if (req.file.mimetype === 'application/pdf') {
+            const data = await pdfParse(req.file.buffer);
+            extractedText = data.text;
+        } else if (req.file.mimetype === 'text/plain') {
+            extractedText = req.file.buffer.toString('utf8');
+        } else if (req.file.originalname.endsWith('.docx')) {
+            const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+            extractedText = result.value;
+        } else {
+            return res.status(400).json({ error: 'Unsupported file type. Use PDF, TXT or DOCX.' });
+        }
+
+        // Chunking the text (Basic naive chunking by ~1000 characters)
+        const cleanText = extractedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+        const chunkSize = 1000;
+        const chunks = [];
+        for (let i = 0; i < cleanText.length; i += chunkSize) {
+            chunks.push(cleanText.substring(i, i + chunkSize));
+        }
+
+        globalDocuments.push({
+            filename: req.file.originalname,
+            chunks: chunks,
+            uploadedAt: Date.now()
+        });
+
+        logger.info(`[RAG] Document indexed into ${chunks.length} chunks.`);
+        res.json({ success: true, message: `Document ${req.file.originalname} processed.`, chunks: chunks.length, document: { filename: req.file.originalname, chunks: chunks.length, id: globalDocuments[globalDocuments.length-1].uploadedAt } });
+    } catch (e) {
+        logger.error('[RAG] Error processing document', e);
+        res.status(500).json({ error: 'Failed to process document: ' + e.message });
+    }
+});
+
+app.delete('/api/documents/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    globalDocuments = globalDocuments.filter(d => d.uploadedAt !== id);
+    logger.info(`[RAG] Document ${id} cleared from memory.`);
+    res.json({ success: true, message: 'Document removed.' });
+});
+
+app.delete('/api/documents', (req, res) => {
+    globalDocuments = [];
+    logger.info('[RAG] Document memory cleared.');
+    res.json({ success: true, message: 'All documents cleared from memory.' });
+});
+
+app.get('/api/documents', (req, res) => {
+    res.json(globalDocuments.map(d => ({ filename: d.filename, chunks: d.chunks.length, id: d.uploadedAt })));
+});
+
+
+// --- NATIVE INFERENCE ENGINE STATE ---
+let activeLlamaProcess = null;
+let currentLlamaPort = 8080;
+let currentLlamaModel = null;
+
+app.post('/api/inference/start', (req, res) => {
+    const { modelPath, ngl = 0, ctx = 2048 } = req.body;
+    if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
+
+    if (activeLlamaProcess) {
+        // If the exact same model is already running, skip spawn and just return ready
+        if (currentLlamaModel === modelPath) {
+             logger.info('[Llama.cpp] Engine already running with this model.');
+             return res.json({ success: true, port: currentLlamaPort, message: 'Engine already running.' });
+        }
+
+        logger.info('[Llama.cpp] Terminating old engine to load new model.');
+        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
+        else activeLlamaProcess.kill('SIGKILL');
+        activeLlamaProcess = null;
+    }
+
+    const isWindows = os.platform() === 'win32';
+    const binaryName = isWindows ? 'llama-server.exe' : 'llama-server';
+    const args = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--port', String(currentLlamaPort)];
+
+    try {
+        const proc = spawn(binaryName, args, { stdio: 'pipe' });
+        activeLlamaProcess = proc;
+
+        proc.stdout.on('data', d => logger.info(`[Llama.cpp] ${d.toString().trim()}`));
+        proc.stderr.on('data', d => logger.info(`[Llama.cpp ERR] ${d.toString().trim()}`));
+
+        proc.on('error', (err) => {
+            logger.error('[Llama.cpp] Spawn error. Binary missing?', err);
+            if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) activeLlamaProcess = null;
+        });
+
+        currentLlamaModel = modelPath;
+
+        proc.on('close', () => {
+            logger.info('[Llama.cpp] Engine stopped.');
+            if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) {
+                 activeLlamaProcess = null;
+                 currentLlamaModel = null;
+            }
+        });
+
+        // Wait up to 60 seconds for the server to be responsive
+        let attempts = 0;
+        const maxAttempts = 30; // 30 * 2000ms = 60s
+        const checkHealth = async () => {
+             attempts++;
+             try {
+                 const healthRes = await import('node-fetch').then(({default: fetch}) => fetch(`http://localhost:${currentLlamaPort}/health`));
+                 const healthData = await healthRes.json();
+                 if (healthData.status === 'ok') {
+                      logger.info('[Llama.cpp] Engine is fully loaded and ready.');
+                      return res.json({ success: true, port: currentLlamaPort, message: 'Engine running.' });
+                 }
+                 throw new Error('Loading model');
+             } catch (err) {
+                 if (attempts >= maxAttempts) {
+                     logger.error('[Llama.cpp] Engine startup timeout.');
+                     return res.status(500).json({ error: 'Engine startup timeout. The model might be too large or took too long to load.' });
+                 }
+                 if (!activeLlamaProcess) return res.status(500).json({ error: 'Engine crashed during startup.' });
+                 setTimeout(checkHealth, 2000);
+             }
+        };
+
+        // Delay the first check to give spawn time
+        setTimeout(checkHealth, 1500);
+
+    } catch (e) {
+        logger.error('Failed to start llama-server', e);
+        res.status(500).json({ error: 'Failed to start engine: ' + e.message });
+    }
+});
+
+app.post('/api/inference/stop', (req, res) => {
+    if (activeLlamaProcess) {
+        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
+        else activeLlamaProcess.kill('SIGKILL');
+        activeLlamaProcess = null;
+        res.json({ success: true, message: 'Engine stopped.' });
+    } else {
+        res.json({ success: true, message: 'No engine running.' });
+    }
+});
+
+app.get('/api/inference/status', (req, res) => {
+    res.json({ running: !!activeLlamaProcess, port: currentLlamaPort, model: currentLlamaModel });
+});
+
+app.post('/api/chat', async (req, res) => {
+    const { ollamaTag, prompt, endpoint = 'http://localhost:11434/api/generate', options, system } = req.body;
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+    // Prepare the payload based on provided parameters
+    const payload = { model: ollamaTag, prompt, stream: false };
+    if (options) Object.assign(payload, { options });
+    if (system) Object.assign(payload, { system });
+
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
-            body: JSON.stringify({ model: ollamaTag, prompt, stream: false }),
+            body: JSON.stringify(payload),
             headers: { 'Content-Type': 'application/json' }
         });
         const data = await response.json();
