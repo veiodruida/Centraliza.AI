@@ -48,7 +48,7 @@ export default function ModelTester() {
   const [gpuLayers, setGpuLayers] = useState(99);
 
   // RAG State
-  const [ragDoc, setRagDoc] = useState<File | null>(null);
+  const [ragDocs, setRagDocs] = useState<{filename: string, id: number}[]>([]);
   const [ragUploading, setRagUploading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -524,18 +524,20 @@ export default function ModelTester() {
         </div>
 
         <div className="p-4 md:p-6 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)] shrink-0 flex flex-col items-center">
-          {ragDoc && (
-              <div className="w-full max-w-5xl mb-2 flex justify-start">
-                  <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg text-[10px] md:text-[11px] text-indigo-400 font-medium">
-                      <FileText size={12} />
-                      <span className="truncate max-w-[200px]">{ragDoc.name}</span>
-                      <button onClick={async () => {
-                          await fetch('/api/documents', { method: 'DELETE' });
-                          setRagDoc(null);
-                      }} className="ml-2 hover:text-indigo-200 transition-colors">
-                          <Trash2 size={12} />
-                      </button>
-                  </div>
+          {ragDocs.length > 0 && (
+              <div className="w-full max-w-5xl mb-2 flex justify-start gap-2 flex-wrap">
+                  {ragDocs.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg text-[10px] md:text-[11px] text-indigo-400 font-medium">
+                          <FileText size={12} />
+                          <span className="truncate max-w-[150px]">{doc.filename}</span>
+                          <button onClick={async () => {
+                              await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
+                              setRagDocs(prev => prev.filter(d => d.id !== doc.id));
+                          }} className="ml-2 hover:text-indigo-200 transition-colors">
+                              <Trash2 size={12} />
+                          </button>
+                      </div>
+                  ))}
               </div>
           )}
           {ragUploading && (
@@ -546,17 +548,22 @@ export default function ModelTester() {
 
           <div className="relative group max-w-5xl w-full mx-auto flex gap-3 md:gap-4 items-center">
             <div className="relative flex-1 min-w-0 flex items-center bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-full focus-within:ring-2 focus-within:ring-blue-600/50 transition-all shadow-premium">
-               <label className="p-3 md:p-4 text-[var(--text-muted)] hover:text-blue-500 transition-colors shrink-0 ml-1 cursor-pointer" title="Upload PDF/TXT for Knowledge Context">
+               <label className={`p-3 md:p-4 transition-colors shrink-0 ml-1 cursor-pointer ${ragDocs.length >= 5 ? 'text-red-400 opacity-50' : 'text-[var(--text-muted)] hover:text-blue-500'}`} title={ragDocs.length >= 5 ? "Limit of 5 documents reached" : "Upload PDF/TXT/DOCX for Knowledge Context"}>
                  <UploadCloud size={20} />
-                 <input type="file" accept=".pdf,.txt" className="hidden" onChange={async (e) => {
+                 <input type="file" accept=".pdf,.txt,.docx" disabled={ragDocs.length >= 5} className="hidden" onChange={async (e) => {
                        const file = e.target.files?.[0];
                        if (!file) return;
                        setRagUploading(true);
                        const formData = new FormData();
                        formData.append('document', file);
                        try {
-                           await fetch('/api/documents/upload', { method: 'POST', body: formData });
-                           setRagDoc(file);
+                           const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                           const data = await res.json();
+                           if (data.success && data.document) {
+                               setRagDocs(prev => [...prev, data.document]);
+                           } else {
+                               alert(data.error || 'Upload failed');
+                           }
                        } catch(err) { alert('Upload failed'); }
                        setRagUploading(false);
                  }} />

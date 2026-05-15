@@ -507,12 +507,20 @@ app.post('/v1/chat/completions', async (req, res) => {
         });
 
         while (retryCount < 5) {
-            response = await fetch(targetEndpoint, {
-                method: 'POST',
-                body: JSON.stringify(finalPayload),
-                headers: { 'Content-Type': 'application/json' },
-                signal: controller.signal
-            });
+            try {
+                response = await fetch(targetEndpoint, {
+                    method: 'POST',
+                    body: JSON.stringify(finalPayload),
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+            } catch (fetchErr) {
+                if (fetchErr.name === 'AbortError') {
+                    logger.info('[API Gateway] Upstream request aborted successfully.');
+                    return;
+                }
+                throw fetchErr;
+            }
 
             if (!response.ok) {
                 if (response.status === 503) {
@@ -628,13 +636,16 @@ app.post('/v1/chat/completions', async (req, res) => {
         }
     } catch (e) {
         logger.error('[API Gateway] Error routing completion request', e);
-        res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
+        if (e.name !== 'AbortError') {
+            res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
+        }
     }
 });
 
 // --- RAG (RETRIEVAL-AUGMENTED GENERATION) SYSTEM ---
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
 
 // Basic in-memory document store
@@ -642,6 +653,11 @@ let globalDocuments = [];
 
 app.post('/api/documents/upload', upload.single('document'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    // Check if limit of 5 documents has been reached
+    if (globalDocuments.length >= 5) {
+        return res.status(400).json({ error: 'Maximum limit of 5 documents reached. Please remove some files first.' });
+    }
 
     try {
         logger.info(`[RAG] Processing document: ${req.file.originalname}`);
@@ -652,8 +668,11 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
             extractedText = data.text;
         } else if (req.file.mimetype === 'text/plain') {
             extractedText = req.file.buffer.toString('utf8');
+        } else if (req.file.originalname.endsWith('.docx')) {
+            const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+            extractedText = result.value;
         } else {
-            return res.status(400).json({ error: 'Unsupported file type. Use PDF or TXT.' });
+            return res.status(400).json({ error: 'Unsupported file type. Use PDF, TXT or DOCX.' });
         }
 
         // Chunking the text (Basic naive chunking by ~1000 characters)
@@ -671,11 +690,18 @@ app.post('/api/documents/upload', upload.single('document'), async (req, res) =>
         });
 
         logger.info(`[RAG] Document indexed into ${chunks.length} chunks.`);
-        res.json({ success: true, message: `Document ${req.file.originalname} processed.`, chunks: chunks.length });
+        res.json({ success: true, message: `Document ${req.file.originalname} processed.`, chunks: chunks.length, document: { filename: req.file.originalname, chunks: chunks.length, id: globalDocuments[globalDocuments.length-1].uploadedAt } });
     } catch (e) {
         logger.error('[RAG] Error processing document', e);
         res.status(500).json({ error: 'Failed to process document: ' + e.message });
     }
+});
+
+app.delete('/api/documents/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    globalDocuments = globalDocuments.filter(d => d.uploadedAt !== id);
+    logger.info(`[RAG] Document ${id} cleared from memory.`);
+    res.json({ success: true, message: 'Document removed.' });
 });
 
 app.delete('/api/documents', (req, res) => {
@@ -685,7 +711,7 @@ app.delete('/api/documents', (req, res) => {
 });
 
 app.get('/api/documents', (req, res) => {
-    res.json(globalDocuments.map(d => ({ filename: d.filename, chunks: d.chunks.length })));
+    res.json(globalDocuments.map(d => ({ filename: d.filename, chunks: d.chunks.length, id: d.uploadedAt })));
 });
 
 
