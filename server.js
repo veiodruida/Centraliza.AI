@@ -425,7 +425,7 @@ app.post('/v1/chat/completions', async (req, res) => {
         return res.status(400).json({ error: 'Invalid payload. Model and messages array are required.' });
     }
 
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    // Using Node's native fetch API which safely handles AbortController
 
     // Proxy to Ollama by default, but if our native Llama.cpp engine is running for the requested model, we proxy to it.
     // llama-server natively implements an OpenAI compatible /v1/chat/completions endpoint.
@@ -517,6 +517,7 @@ app.post('/v1/chat/completions', async (req, res) => {
             } catch (fetchErr) {
                 if (fetchErr.name === 'AbortError') {
                     logger.info('[API Gateway] Upstream request aborted successfully.');
+                    res.end(); // close response
                     return;
                 }
                 throw fetchErr;
@@ -605,9 +606,19 @@ app.post('/v1/chat/completions', async (req, res) => {
                 }
                 res.end();
             });
-            response.body.on('error', () => res.end());
+            response.body.on('error', (err) => {
+                 logger.warn('Stream response body error: ', err);
+                 res.end();
+            });
 
         } else {
+            // Attach an error listener to prevent unhandled 'error' events if the stream is aborted mid-JSON parsing
+            if (response.body) {
+                 response.body.on('error', (err) => {
+                      logger.warn('Non-streaming response body error: ', err);
+                 });
+            }
+
             const data = await response.json();
 
             if (isNativeLlama) {
