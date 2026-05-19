@@ -33,6 +33,9 @@ if %errorlevel% neq 0 (
 )
 
 echo [3/4] Compilando a interface (Build)...
+echo Limpando cache antigo da interface...
+if exist dist rmdir /s /q dist
+
 call npm run build
 if %errorlevel% neq 0 (
     echo [ERRO] O build falhou! Verifique os erros acima.
