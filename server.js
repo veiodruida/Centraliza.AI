@@ -455,10 +455,10 @@ app.post('/v1/chat/completions', async (req, res) => {
         const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
         if (lastUserMessage && lastUserMessage.content) {
             const queryWords = lastUserMessage.content.toLowerCase().split(' ').filter(w => w.length > 3);
-            let bestChunk = null;
-            let bestScore = 0;
 
-            // Simple Keyword Frequency (TF) Search
+            // Collect and score all chunks across all documents
+            const scoredChunks = [];
+
             for (const doc of globalDocuments) {
                  for (const chunk of doc.chunks) {
                       let score = 0;
@@ -466,23 +466,38 @@ app.post('/v1/chat/completions', async (req, res) => {
                       for (const word of queryWords) {
                            if (chunkLower.includes(word)) score++;
                       }
-                      if (score > bestScore) {
-                           bestScore = score;
-                           bestChunk = chunk;
-                      }
+                      scoredChunks.push({ score, chunk, filename: doc.filename });
                  }
             }
 
-            if (bestChunk && bestScore > 0) {
-                logger.info(`[RAG] Found context for query (Score: ${bestScore}). Injecting into system prompt.`);
-                const contextStr = `\n\n[CONTEXTO DE DOCUMENTO RECUPERADO]:\n"""\n${bestChunk}\n"""\nResponda baseando-se estritamente neste contexto.`;
+            // Sort by highest score first
+            scoredChunks.sort((a, b) => b.score - a.score);
 
-                // Inject the context into the system prompt or prepend it to the user message
+            let injectedContext = '';
+
+            // If we have some relevance, take top 3 chunks
+            if (scoredChunks[0] && scoredChunks[0].score > 0) {
+                 const topChunks = scoredChunks.slice(0, 3);
+                 injectedContext = topChunks.map(tc => `Ficheiro: ${tc.filename}\nTrecho: ${tc.chunk}`).join('\n\n---\n\n');
+                 logger.info(`[RAG] Found relevant context (Highest Score: ${scoredChunks[0].score}). Injecting top ${topChunks.length} chunks.`);
+            } else {
+                 // Fallback: the user might have asked a generic question like "what is in the files?" or "read my files"
+                 // Since there are no keyword matches, we just inject the first chunk of every uploaded document
+                 // so the model is aware of their names and beginning content.
+                 const fallbackChunks = globalDocuments.map(doc => `Ficheiro: ${doc.filename}\nTrecho Inicial: ${doc.chunks[0] || ''}`);
+                 injectedContext = fallbackChunks.join('\n\n---\n\n');
+                 logger.info(`[RAG] No direct keyword match found. Injecting fallback context (first chunk of each of the ${globalDocuments.length} files).`);
+            }
+
+            if (injectedContext) {
+                const contextStr = `\n\n[DOCUMENTOS DE REFERÊNCIA ANEXADOS PELO UTILIZADOR]:\n"""\n${injectedContext}\n"""\nUse os documentos anexados acima para responder às perguntas quando possível. Se questionado sobre que ficheiros foram anexados, liste-os baseando-se nos cabeçalhos "Ficheiro:".`;
+
+                // Inject the context into the system prompt
                 let systemMessage = messages.find(m => m.role === 'system');
                 if (systemMessage) {
                     systemMessage.content += contextStr;
                 } else {
-                    messages.unshift({ role: 'system', content: 'Você é um assistente útil.' + contextStr });
+                    messages.unshift({ role: 'system', content: 'Você é um assistente útil e atencioso.' + contextStr });
                 }
             }
         }
@@ -545,49 +560,54 @@ app.post('/v1/chat/completions', async (req, res) => {
             res.setHeader('Cache-Control', 'no-cache');
             res.setHeader('Connection', 'keep-alive');
 
-            // Proxying the stream directly from Ollama
+            // Proxying the stream directly from Ollama using Node native fetch ReadableStream
             let buffer = '';
-            response.body.on('data', (chunk) => {
-                buffer += chunk.toString();
-                const lines = buffer.split('\n');
 
-                // Keep the last incomplete line in the buffer
-                buffer = lines.pop();
+            try {
+                for await (const chunk of response.body) {
+                    buffer += chunk.toString();
+                    const lines = buffer.split('\n');
 
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        if (isNativeLlama) {
-                            if (line.startsWith('data: ')) {
-                                res.write(`${line}\n\n`);
+                    // Keep the last incomplete line in the buffer
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            if (isNativeLlama) {
+                                if (line.startsWith('data: ')) {
+                                    res.write(`${line}\n\n`);
+                                }
+                            } else {
+                                const parsed = JSON.parse(line);
+                                // Convert Ollama stream format to OpenAI stream format
+                                const openAIChunk = {
+                                    id: `chatcmpl-${Date.now()}`,
+                                    object: 'chat.completion.chunk',
+                                    created: Math.floor(Date.now() / 1000),
+                                    model: model,
+                                    choices: [{
+                                        index: 0,
+                                        delta: {
+                                            content: parsed.message?.content || '',
+                                            reasoning_content: parsed.message?.reasoning_content || ''
+                                        },
+                                        finish_reason: parsed.done ? 'stop' : null
+                                    }]
+                                };
+                                res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                                if (parsed.done) res.write('data: [DONE]\n\n');
                             }
-                        } else {
-                            const parsed = JSON.parse(line);
-                            // Convert Ollama stream format to OpenAI stream format
-                            const openAIChunk = {
-                                id: `chatcmpl-${Date.now()}`,
-                                object: 'chat.completion.chunk',
-                                created: Math.floor(Date.now() / 1000),
-                                model: model,
-                                choices: [{
-                                    index: 0,
-                                    delta: {
-                                        content: parsed.message?.content || '',
-                                        reasoning_content: parsed.message?.reasoning_content || ''
-                                    },
-                                    finish_reason: parsed.done ? 'stop' : null
-                                }]
-                            };
-                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
-                            if (parsed.done) res.write('data: [DONE]\n\n');
+                        } catch (err) {
+                            logger.warn('Error parsing stream line: ' + line, err);
                         }
-                    } catch (err) {
-                        logger.warn('Error parsing stream line: ' + line, err);
                     }
                 }
-            });
-
-            response.body.on('end', () => {
+            } catch (err) {
+                 if (err.name !== 'AbortError') {
+                      logger.warn('Stream response body error: ', err);
+                 }
+            } finally {
                 // Process any remaining text in buffer just in case
                 if (buffer.trim()) {
                     try {
@@ -605,20 +625,9 @@ app.post('/v1/chat/completions', async (req, res) => {
                     } catch(e) {}
                 }
                 res.end();
-            });
-            response.body.on('error', (err) => {
-                 logger.warn('Stream response body error: ', err);
-                 res.end();
-            });
-
-        } else {
-            // Attach an error listener to prevent unhandled 'error' events if the stream is aborted mid-JSON parsing
-            if (response.body) {
-                 response.body.on('error', (err) => {
-                      logger.warn('Non-streaming response body error: ', err);
-                 });
             }
 
+        } else {
             const data = await response.json();
 
             if (isNativeLlama) {
