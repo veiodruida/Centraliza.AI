@@ -550,21 +550,32 @@ export default function ModelTester() {
             <div className="relative flex-1 min-w-0 flex items-center bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-full focus-within:ring-2 focus-within:ring-blue-600/50 transition-all shadow-premium">
                <label className={`p-3 md:p-4 transition-colors shrink-0 ml-1 cursor-pointer ${ragDocs.length >= 5 ? 'text-red-400 opacity-50' : 'text-[var(--text-muted)] hover:text-blue-500'}`} title={ragDocs.length >= 5 ? "Limit of 5 documents reached" : "Upload PDF/TXT/DOCX for Knowledge Context"}>
                  <UploadCloud size={20} />
-                 <input type="file" accept=".pdf,.txt,.docx" disabled={ragDocs.length >= 5} className="hidden" onChange={async (e) => {
-                       const file = e.target.files?.[0];
-                       if (!file) return;
+                 <input type="file" accept=".pdf,.txt,.docx" multiple disabled={ragDocs.length >= 5} className="hidden" onChange={async (e) => {
+                       if (!e.target.files || e.target.files.length === 0) return;
+                       const files = Array.from(e.target.files);
                        setRagUploading(true);
-                       const formData = new FormData();
-                       formData.append('document', file);
-                       try {
-                           const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
-                           const data = await res.json();
-                           if (data.success && data.document) {
-                               setRagDocs(prev => [...prev, data.document]);
-                           } else {
-                               alert(data.error || 'Upload failed');
-                           }
-                       } catch(err) { alert('Upload failed'); }
+
+                       for (const file of files) {
+                           // Recheck limit before uploading next file in the loop
+                           if (ragDocs.length >= 5) break;
+
+                           const formData = new FormData();
+                           formData.append('document', file);
+                           try {
+                               const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                               const data = await res.json();
+                               if (data.success && data.document) {
+                                   setRagDocs(prev => {
+                                      if (prev.length >= 5) return prev;
+                                      return [...prev, data.document];
+                                   });
+                               } else {
+                                   alert(data.error || `Upload failed for ${file.name}`);
+                               }
+                           } catch(err) { alert(`Upload failed for ${file.name}`); }
+                       }
+                       // Clear the input so the same files can be selected again if deleted
+                       e.target.value = '';
                        setRagUploading(false);
                  }} />
                </label>
