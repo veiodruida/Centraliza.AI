@@ -28,6 +28,14 @@ const logger = {
     }
 };
 
+process.on('uncaughtException', (err) => {
+    logger.error('UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error('UNHANDLED REJECTION:', reason);
+});
+
 // --- CACHING SYSTEM ---
 const cache = {
     store: new Map(),
@@ -419,7 +427,7 @@ app.post('/api/centralize', async (req, res) => {
 // --- API GATEWAY: OPENAI COMPATIBLE ---
 // Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
 app.post('/v1/chat/completions', async (req, res) => {
-    const { model, messages, temperature, top_p, top_k, stream = false } = req.body;
+    const { model, messages, temperature, top_p, top_k, num_ctx, stream = false } = req.body;
 
     if (!model || !messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: 'Invalid payload. Model and messages array are required.' });
@@ -447,44 +455,25 @@ app.post('/v1/chat/completions', async (req, res) => {
     if (temperature !== undefined) options.temperature = temperature;
     if (top_p !== undefined) options.top_p = top_p;
     if (top_k !== undefined) options.top_k = top_k;
+    if (num_ctx !== undefined) options.num_ctx = num_ctx;
     if (Object.keys(options).length > 0) payload.options = options;
 
     // --- RAG RETRIEVAL INJECTION ---
-    // If documents are loaded in memory, try to find matches against the last user message
+    // If documents are loaded in memory, inject their full content as context.
     if (globalDocuments.length > 0) {
-        const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
-        if (lastUserMessage && lastUserMessage.content) {
-            const queryWords = lastUserMessage.content.toLowerCase().split(' ').filter(w => w.length > 3);
-            let bestChunk = null;
-            let bestScore = 0;
-
-            // Simple Keyword Frequency (TF) Search
-            for (const doc of globalDocuments) {
-                 for (const chunk of doc.chunks) {
-                      let score = 0;
-                      const chunkLower = chunk.toLowerCase();
-                      for (const word of queryWords) {
-                           if (chunkLower.includes(word)) score++;
-                      }
-                      if (score > bestScore) {
-                           bestScore = score;
-                           bestChunk = chunk;
-                      }
-                 }
-            }
-
-            if (bestChunk && bestScore > 0) {
-                logger.info(`[RAG] Found context for query (Score: ${bestScore}). Injecting into system prompt.`);
-                const contextStr = `\n\n[CONTEXTO DE DOCUMENTO RECUPERADO]:\n"""\n${bestChunk}\n"""\nResponda baseando-se estritamente neste contexto.`;
-
-                // Inject the context into the system prompt or prepend it to the user message
-                let systemMessage = messages.find(m => m.role === 'system');
-                if (systemMessage) {
-                    systemMessage.content += contextStr;
-                } else {
-                    messages.unshift({ role: 'system', content: 'Você é um assistente útil.' + contextStr });
-                }
-            }
+        logger.info(`[RAG] Found ${globalDocuments.length} documents in memory. Injecting all content as context.`);
+        
+        // Concatenate all chunks from all documents into a single string, identifying each file
+        const allContent = globalDocuments.map(doc => `--- CONTEÚDO DO FICHEIRO: ${doc.filename} ---\n\n${doc.chunks.join('\n\n')}`).join('\n\n---\n\n');
+    
+        const contextStr = `O utilizador anexou ${globalDocuments.length} documento(s). O conteúdo completo está abaixo. Use esta informação como a fonte primária e única de verdade para responder ao pedido do utilizador.\n\n[CONTEXTO DOS DOCUMENTOS ANEXADOS]:\n"""\n${allContent}\n"""\n\nBaseado estritamente no contexto acima, responda ao pedido do utilizador.`;
+    
+        // Inject the context into the system prompt or create a new one.
+        let systemMessage = messages.find(m => m.role === 'system');
+        if (systemMessage) {
+            systemMessage.content = contextStr + '\n\n' + systemMessage.content;
+        } else {
+            messages.unshift({ role: 'system', content: contextStr });
         }
     }
 
@@ -501,9 +490,11 @@ app.post('/v1/chat/completions', async (req, res) => {
         let retryCount = 0;
         const controller = new AbortController();
 
-        req.on('close', () => {
-             logger.info('[API Gateway] Client disconnected, aborting upstream request.');
-             controller.abort();
+        res.on('close', () => {
+             if (!res.writableEnded) {
+                 logger.info('[API Gateway] Client disconnected prematurely, aborting upstream request.');
+                 controller.abort();
+             }
         });
 
         while (retryCount < 5) {
@@ -517,7 +508,7 @@ app.post('/v1/chat/completions', async (req, res) => {
             } catch (fetchErr) {
                 if (fetchErr.name === 'AbortError') {
                     logger.info('[API Gateway] Upstream request aborted successfully.');
-                    res.end(); // close response
+                    if (!res.headersSent) res.end(); // close response
                     return;
                 }
                 throw fetchErr;
@@ -547,48 +538,48 @@ app.post('/v1/chat/completions', async (req, res) => {
 
             // Proxying the stream directly from Ollama
             let buffer = '';
-            response.body.on('data', (chunk) => {
-                buffer += chunk.toString();
-                const lines = buffer.split('\n');
+            const decoder = new TextDecoder();
+            try {
+                for await (const chunk of response.body) {
+                    buffer += decoder.decode(chunk, { stream: true });
+                    const lines = buffer.split('\n');
 
-                // Keep the last incomplete line in the buffer
-                buffer = lines.pop();
+                    // Keep the last incomplete line in the buffer
+                    buffer = lines.pop();
 
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        if (isNativeLlama) {
-                            if (line.startsWith('data: ')) {
-                                res.write(`${line}\n\n`);
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            if (isNativeLlama) {
+                                if (line.startsWith('data: ')) {
+                                    res.write(`${line}\n\n`);
+                                }
+                            } else {
+                                const parsed = JSON.parse(line);
+                                // Convert Ollama stream format to OpenAI stream format
+                                const openAIChunk = {
+                                    id: `chatcmpl-${Date.now()}`,
+                                    object: 'chat.completion.chunk',
+                                    created: Math.floor(Date.now() / 1000),
+                                    model: model,
+                                    choices: [{
+                                        index: 0,
+                                        delta: {
+                                            content: parsed.message?.content || '',
+                                            reasoning_content: parsed.message?.reasoning_content || ''
+                                        },
+                                        finish_reason: parsed.done ? 'stop' : null
+                                    }]
+                                };
+                                res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
+                                if (parsed.done) res.write('data: [DONE]\n\n');
                             }
-                        } else {
-                            const parsed = JSON.parse(line);
-                            // Convert Ollama stream format to OpenAI stream format
-                            const openAIChunk = {
-                                id: `chatcmpl-${Date.now()}`,
-                                object: 'chat.completion.chunk',
-                                created: Math.floor(Date.now() / 1000),
-                                model: model,
-                                choices: [{
-                                    index: 0,
-                                    delta: {
-                                        content: parsed.message?.content || '',
-                                        reasoning_content: parsed.message?.reasoning_content || ''
-                                    },
-                                    finish_reason: parsed.done ? 'stop' : null
-                                }]
-                            };
-                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
-                            if (parsed.done) res.write('data: [DONE]\n\n');
+                        } catch (err) {
+                            logger.warn('Error parsing stream line: ' + line, err);
                         }
-                    } catch (err) {
-                        logger.warn('Error parsing stream line: ' + line, err);
                     }
                 }
-            });
-
-            response.body.on('end', () => {
-                // Process any remaining text in buffer just in case
+                
                 if (buffer.trim()) {
                     try {
                         if (isNativeLlama) {
@@ -605,44 +596,44 @@ app.post('/v1/chat/completions', async (req, res) => {
                     } catch(e) {}
                 }
                 res.end();
-            });
-            response.body.on('error', (err) => {
-                 logger.warn('Stream response body error: ', err);
-                 res.end();
-            });
-
-        } else {
-            // Attach an error listener to prevent unhandled 'error' events if the stream is aborted mid-JSON parsing
-            if (response.body) {
-                 response.body.on('error', (err) => {
-                      logger.warn('Non-streaming response body error: ', err);
-                 });
+            } catch (err) {
+                logger.warn('Stream response body error: ', err);
+                res.end();
             }
 
-            const data = await response.json();
+        } else {
+            const rawText = await response.text();
+            if (!rawText.trim()) {
+                throw new Error('O motor de IA retornou uma resposta vazia. O modelo pode ter falhado internamente (ex: falta de VRAM para o contexto) ou a conexão foi interrompida.');
+            }
+            try {
+                const data = JSON.parse(rawText);
 
-            if (isNativeLlama) {
-                res.json(data);
-            } else {
-                // Convert Ollama static format to OpenAI static format
-                // In some models like DeepSeek on Ollama, reasoning is injected. Ensure we pass the message object directly
-                const openAIResponse = {
-                    id: `chatcmpl-${Date.now()}`,
-                    object: 'chat.completion',
-                    created: Math.floor(Date.now() / 1000),
-                    model: model,
-                    choices: [{
-                        index: 0,
-                        message: data.message, // { role: "assistant", content: "...", reasoning_content: "..." }
-                        finish_reason: 'stop'
-                    }],
-                    usage: {
-                        prompt_tokens: data.prompt_eval_count || 0,
-                        completion_tokens: data.eval_count || 0,
-                        total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
-                    }
-                };
-                res.json(openAIResponse);
+                if (isNativeLlama) {
+                    res.json(data);
+                } else {
+                    // Convert Ollama static format to OpenAI static format
+                    // In some models like DeepSeek on Ollama, reasoning is injected. Ensure we pass the message object directly
+                    const openAIResponse = {
+                        id: `chatcmpl-${Date.now()}`,
+                        object: 'chat.completion',
+                        created: Math.floor(Date.now() / 1000),
+                        model: model,
+                        choices: [{
+                            index: 0,
+                            message: data.message || { role: 'assistant', content: '' },
+                            finish_reason: 'stop'
+                        }],
+                        usage: {
+                            prompt_tokens: data.prompt_eval_count || 0,
+                            completion_tokens: data.eval_count || 0,
+                            total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+                        }
+                    };
+                    res.json(openAIResponse);
+                }
+            } catch (err) {
+                throw new Error(`Invalid JSON from AI engine. Raw response: ${rawText.substring(0, 200)}`);
             }
         }
     } catch (e) {
@@ -730,19 +721,20 @@ app.get('/api/documents', (req, res) => {
 let activeLlamaProcess = null;
 let currentLlamaPort = 8080;
 let currentLlamaModel = null;
+let currentLlamaCtx = 2048;
 
 app.post('/api/inference/start', (req, res) => {
     const { modelPath, ngl = 0, ctx = 2048 } = req.body;
     if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
 
     if (activeLlamaProcess) {
-        // If the exact same model is already running, skip spawn and just return ready
-        if (currentLlamaModel === modelPath) {
-             logger.info('[Llama.cpp] Engine already running with this model.');
+        // If the exact same model and context size are already running, skip spawn and just return ready
+        if (currentLlamaModel === modelPath && currentLlamaCtx === ctx) {
+             logger.info('[Llama.cpp] Engine already running with this model and ctx.');
              return res.json({ success: true, port: currentLlamaPort, message: 'Engine already running.' });
         }
 
-        logger.info('[Llama.cpp] Terminating old engine to load new model.');
+        logger.info('[Llama.cpp] Terminating old engine to load new model or context size.');
         if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
         else activeLlamaProcess.kill('SIGKILL');
         activeLlamaProcess = null;
@@ -765,12 +757,14 @@ app.post('/api/inference/start', (req, res) => {
         });
 
         currentLlamaModel = modelPath;
+        currentLlamaCtx = ctx;
 
         proc.on('close', () => {
             logger.info('[Llama.cpp] Engine stopped.');
             if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) {
                  activeLlamaProcess = null;
                  currentLlamaModel = null;
+                 currentLlamaCtx = 2048;
             }
         });
 
@@ -818,7 +812,7 @@ app.post('/api/inference/stop', (req, res) => {
 });
 
 app.get('/api/inference/status', (req, res) => {
-    res.json({ running: !!activeLlamaProcess, port: currentLlamaPort, model: currentLlamaModel });
+    res.json({ running: !!activeLlamaProcess, port: currentLlamaPort, model: currentLlamaModel, ctx: currentLlamaCtx });
 });
 
 app.post('/api/chat', async (req, res) => {
