@@ -99,15 +99,21 @@ export default function ModelTester() {
       // Auto-start Llama.cpp engine if needed
       if (engine === 'llama.cpp') {
           const statusRes = await fetch('/api/inference/status');
-          const statusData = await statusRes.json();
-          if (!statusData.running || statusData.model !== selectedModel.path) {
-              setMessages(prev => [...prev, { role: 'system', content: `Iniciando motor nativo para o modelo ${selectedModel.name.split('/').pop()}... Aguarde.` }]);
+          const statusText = await statusRes.text();
+          let statusData: any = { running: false, model: null, ctx: null };
+          try { statusData = JSON.parse(statusText); } catch(e) { console.warn('Status response:', statusText); }
+          
+          if (!statusData.running || statusData.model !== selectedModel.path || statusData.ctx !== ctxSize) {
+              setMessages(prev => [...prev, { role: 'system', content: `Iniciando motor nativo para o modelo ${selectedModel.name.split('/').pop()} com contexto de ${ctxSize}... Aguarde.` }]);
               const startRes = await fetch('/api/inference/start', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ modelPath: selectedModel.path, ctx: ctxSize, ngl: gpuLayers })
               });
-              const startData = await startRes.json();
+              const startText = await startRes.text();
+              let startData;
+              try { startData = JSON.parse(startText); } catch(e) { throw new Error(`Falha ao iniciar motor. Resposta bruta: ${startText.substring(0, 100)}`); }
+              
               if (!startData.success) throw new Error(startData.error || 'Falha ao iniciar motor nativo.');
           }
       }
@@ -134,20 +140,35 @@ export default function ModelTester() {
           temperature,
           top_p: topP,
           top_k: topK,
+          num_ctx: ctxSize,
           stream: false // Using static fetch for simplicity in this phase
         })
       });
-      const data = await res.json();
+      
+      const rawText = await res.text();
+      let data;
+      try {
+          data = JSON.parse(rawText);
+      } catch(err) {
+          throw new Error(`Resposta inválida do servidor (Status ${res.status}): ${rawText.substring(0, 200)}`);
+      }
       
       if (data.error) throw new Error(data.error);
       if (!res.ok && data.error) throw new Error(data.error);
 
       // Fallback to JSON stringify ONLY if it really seems like an invalid response structure
       const choice = data.choices?.[0];
-      const messageContent = choice?.message?.content !== undefined ? choice.message.content : '';
-      const reasoningContent = choice?.message?.reasoning_content || '';
+      let messageContent = choice?.message?.content !== undefined ? choice.message.content : '';
+      let reasoningContent = choice?.message?.reasoning_content || '';
 
-      const assistantResponse = (messageContent || reasoningContent) ? messageContent : JSON.stringify(data);
+      // If the main content is empty but reasoning exists, assume the model put the answer in the wrong field.
+      // We move the reasoning to the main content and clear the reasoning field to avoid duplication in the UI.
+      if (!messageContent.trim() && reasoningContent.trim()) {
+          messageContent = reasoningContent;
+          reasoningContent = '';
+      }
+
+      const assistantResponse = messageContent ? messageContent : JSON.stringify(data);
 
       const endTime = Date.now();
 
@@ -550,21 +571,23 @@ export default function ModelTester() {
             <div className="relative flex-1 min-w-0 flex items-center bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-full focus-within:ring-2 focus-within:ring-blue-600/50 transition-all shadow-premium">
                <label className={`p-3 md:p-4 transition-colors shrink-0 ml-1 cursor-pointer ${ragDocs.length >= 5 ? 'text-red-400 opacity-50' : 'text-[var(--text-muted)] hover:text-blue-500'}`} title={ragDocs.length >= 5 ? "Limit of 5 documents reached" : "Upload PDF/TXT/DOCX for Knowledge Context"}>
                  <UploadCloud size={20} />
-                 <input type="file" accept=".pdf,.txt,.docx" disabled={ragDocs.length >= 5} className="hidden" onChange={async (e) => {
-                       const file = e.target.files?.[0];
-                       if (!file) return;
+                 <input type="file" multiple accept=".pdf,.txt,.docx" disabled={ragDocs.length >= 5} className="hidden" onChange={async (e) => {
+                       const files = Array.from(e.target.files || []);
+                       if (!files.length) return;
                        setRagUploading(true);
-                       const formData = new FormData();
-                       formData.append('document', file);
-                       try {
-                           const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
-                           const data = await res.json();
-                           if (data.success && data.document) {
-                               setRagDocs(prev => [...prev, data.document]);
-                           } else {
-                               alert(data.error || 'Upload failed');
-                           }
-                       } catch(err) { alert('Upload failed'); }
+                       for (const file of files) {
+                           const formData = new FormData();
+                           formData.append('document', file);
+                           try {
+                               const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                               const data = await res.json();
+                               if (data.success && data.document) {
+                                   setRagDocs(prev => prev.length >= 5 ? prev : [...prev, data.document]);
+                               } else {
+                                   alert(data.error || 'Upload failed');
+                               }
+                           } catch(err) { alert('Upload failed'); }
+                       }
                        setRagUploading(false);
                  }} />
                </label>
@@ -600,6 +623,3 @@ export default function ModelTester() {
     </motion.div>
   );
 }
-
-
-
