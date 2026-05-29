@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, HardDrive, Search, Cpu, MessageSquare, Settings as SettingsIcon, Puzzle, Activity, Zap, Shield, Menu, X, ArrowRight, Info, Box, Terminal } from 'lucide-react';
+import { LayoutGrid, HardDrive, Search, Cpu, MessageSquare, Settings as SettingsIcon, Puzzle, Activity, Zap, Shield, Menu, X, ArrowRight, Info, Box, Terminal, Code2 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MyModels from './pages/MyModels';
@@ -9,6 +9,7 @@ import HardwareLab from './pages/HardwareLab';
 import Settings from './pages/Settings';
 import Extensions from './pages/Extensions';
 import Centralization from './pages/Centralization';
+import Coder from './pages/Coder';
 
 import { useApp } from './context/AppContext';
 import DiskUsageGraph from './components/DiskUsageGraph';
@@ -31,6 +32,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     { icon: Search, label: t('nav_hub'), path: '/explore' },
     { icon: Cpu, label: t('nav_hardware'), path: '/hardware' },
     { icon: MessageSquare, label: t('nav_test'), path: '/test' },
+    { icon: Code2, label: t('coder_title') || 'Coder', path: '/coder' },
     { icon: Puzzle, label: t('nav_extensions'), path: '/extensions' },
     { icon: SettingsIcon, label: t('nav_settings'), path: '/settings' },
   ], [t]);
@@ -271,6 +273,7 @@ function AppContent() {
                 <Route path="/explore" element={<ExploreStore />} />
                 <Route path="/hardware" element={<HardwareLab />} />
                 <Route path="/test" element={<ModelTester />} />
+                <Route path="/coder" element={<Coder />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/extensions" element={<Extensions />} />
               </Routes>
@@ -290,5 +293,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
-

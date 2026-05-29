@@ -98,7 +98,8 @@ async function getOllamaMap() {
 }
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Performance Middleware: Logging
 app.use((req, res, next) => {
@@ -125,7 +126,8 @@ let config = {
         path.join(os.homedir(), '.cache', 'huggingface', 'hub'),
     ],
     comfyDir: 'C:\\ComfyUI_windows_portable',
-    sectionOrder: ['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']
+    sectionOrder: ['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone'],
+    activeRouterModel: null
 };
 if (fs.existsSync(CONFIG_FILE)) {
     try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) { logger.error('Failed to read config', e); }
@@ -231,6 +233,16 @@ app.post('/api/config', (req, res) => {
     Object.assign(config, req.body);
     saveConfig();
     res.json({ success: true, config });
+});
+
+app.post('/api/active-model', (req, res) => {
+    const { model } = req.body;
+    config.activeRouterModel = model;
+    saveConfig();
+    res.json({ success: true, activeModel: model });
+});
+app.get('/api/active-model', (req, res) => {
+    res.json({ activeModel: config.activeRouterModel });
 });
 
 app.post('/api/auto-detect', (req, res) => {
@@ -367,27 +379,57 @@ app.get('/api/system-info', async (req, res) => {
 });
 
 app.get('/api/models', async (req, res) => {
-    const cached = cache.get('models-list');
-    if (cached) return res.json(cached);
+    const { filter } = req.query;
+    let deduped = cache.get('models-list');
 
-    const modelsList = [];
-    const ollamaMap = await getOllamaMap();
-    for (const dir of config.scanDirectories) if (fs.existsSync(dir)) await scanDirectory(dir, modelsList, ollamaMap);
+    if (!deduped) {
+        const modelsList = [];
+        const ollamaMap = await getOllamaMap();
+        for (const dir of config.scanDirectories) if (fs.existsSync(dir)) await scanDirectory(dir, modelsList, ollamaMap);
 
-    const seenOllamaTags = new Set();
-    const seenPaths = new Set();
-    const deduped = [];
-    for (const m of modelsList) {
-        if (m.ollamaTag) {
-            if (seenOllamaTags.has(m.ollamaTag)) continue;
-            seenOllamaTags.add(m.ollamaTag);
-        } else {
-            if (seenPaths.has(m.path)) continue;
-            seenPaths.add(m.path);
+        const seenOllamaTags = new Set();
+        const seenPaths = new Set();
+        deduped = [];
+        for (const m of modelsList) {
+            if (m.ollamaTag) {
+                if (seenOllamaTags.has(m.ollamaTag)) continue;
+                seenOllamaTags.add(m.ollamaTag);
+            } else {
+                if (seenPaths.has(m.path)) continue;
+                seenPaths.add(m.path);
+            }
+
+            // --- Auto-Classificação de Capacidades ---
+            const nameForCheck = (m.ollamaTag || m.name || '').toLowerCase();
+            
+            // Heurística aprimorada para focar APENAS em modelos com capacidade de Tool Calling/Agentes
+            const isCapableCoder = nameForCheck.includes('coder') || 
+                                   nameForCheck.includes('deepseek') || 
+                                   nameForCheck.includes('qwen') || 
+                                   nameForCheck.includes('llama-3') || 
+                                   nameForCheck.includes('phind') ||
+                                   nameForCheck.includes('mistral') ||
+                                   nameForCheck.includes('mixtral');
+
+            m.isCoder = isCapableCoder && m.source !== 'ComfyUI' && 
+                        !nameForCheck.includes('embed') &&
+                        !nameForCheck.includes('tts') &&
+                        !nameForCheck.includes('whisper') &&
+                        !nameForCheck.includes('sdxl') &&
+                        !nameForCheck.includes('flux');
+
+            // Modelos Multimodais (Visão)
+            m.hasVision = nameForCheck.includes('vision') || nameForCheck.includes('llava') || 
+                          nameForCheck.includes('pixtral') || nameForCheck.includes('minicpm-v') ||
+                          nameForCheck.includes('vl');
+
+            deduped.push(m);
         }
-        deduped.push(m);
+        cache.set('models-list', deduped, 10000); // 10s cache
     }
-    cache.set('models-list', deduped, 10000); // 10s cache
+
+    if (filter === 'coder') return res.json(deduped.filter(m => m.isCoder));
+
     res.json(deduped);
 });
 
@@ -427,36 +469,35 @@ app.post('/api/centralize', async (req, res) => {
 // --- API GATEWAY: OPENAI COMPATIBLE ---
 // Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
 app.post('/v1/chat/completions', async (req, res) => {
-    const { model, messages, temperature, top_p, top_k, num_ctx, stream = false } = req.body;
+    const { model, messages, stream = false, endpoint } = req.body;
 
     if (!model || !messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: 'Invalid payload. Model and messages array are required.' });
     }
 
-    // Using Node's native fetch API which safely handles AbortController
-
-    // Proxy to Ollama by default, but if our native Llama.cpp engine is running for the requested model, we proxy to it.
-    // llama-server natively implements an OpenAI compatible /v1/chat/completions endpoint.
-    let targetEndpoint = 'http://localhost:11434/api/chat';
-    let isNativeLlama = false;
-
-    if (activeLlamaProcess && model === currentLlamaModel) {
-        targetEndpoint = `http://localhost:${currentLlamaPort}/v1/chat/completions`;
-        isNativeLlama = true;
+    let targetModel = model;
+    if (model === 'centraliza-router') {
+        if (!config.activeRouterModel) {
+            return res.status(400).json({ error: 'Centraliza.AI: Nenhum modelo foi selecionado para o roteador. Por favor, abra o Dashboard e selecione um modelo na aba "Coder".' });
+        }
+        targetModel = config.activeRouterModel;
     }
 
-    const payload = {
-        model: model,
-        messages: messages, // Ollama natively supports the OpenAI role/content array format on /api/chat
-        stream: stream
-    };
+    // Default to Ollama's Native OpenAI compatible endpoint instead of legacy /api/chat
+    let targetEndpoint = endpoint;
+    if (!targetEndpoint || targetEndpoint === 'http://127.0.0.1:11434/api/chat' || targetEndpoint === 'http://127.0.0.1:11434/api/generate') {
+        targetEndpoint = 'http://127.0.0.1:11434/v1/chat/completions';
+    }
 
-    const options = {};
-    if (temperature !== undefined) options.temperature = temperature;
-    if (top_p !== undefined) options.top_p = top_p;
-    if (top_k !== undefined) options.top_k = top_k;
-    if (num_ctx !== undefined) options.num_ctx = num_ctx;
-    if (Object.keys(options).length > 0) payload.options = options;
+    if (activeLlamaProcess && targetModel === currentLlamaModel) {
+        targetEndpoint = `http://127.0.0.1:${currentLlamaPort}/v1/chat/completions`;
+    } else if (targetModel.includes(path.sep) || targetModel.includes('/') || targetModel.toLowerCase().endsWith('.gguf')) {
+        return res.status(400).json({ 
+            error: `Centraliza.AI: O motor de IA não está a correr para este modelo local.\nPor favor, inicie o motor usando o botão "Iniciar Motor" na aba do Centraliza Coder.` 
+        });
+    }
+
+    const finalMessages = [...messages];
 
     // --- RAG RETRIEVAL INJECTION ---
     // If documents are loaded in memory, inject their full content as context.
@@ -469,23 +510,25 @@ app.post('/v1/chat/completions', async (req, res) => {
         const contextStr = `O utilizador anexou ${globalDocuments.length} documento(s). O conteúdo completo está abaixo. Use esta informação como a fonte primária e única de verdade para responder ao pedido do utilizador.\n\n[CONTEXTO DOS DOCUMENTOS ANEXADOS]:\n"""\n${allContent}\n"""\n\nBaseado estritamente no contexto acima, responda ao pedido do utilizador.`;
     
         // Inject the context into the system prompt or create a new one.
-        let systemMessage = messages.find(m => m.role === 'system');
+        let systemMessage = finalMessages.find(m => m.role === 'system');
         if (systemMessage) {
             systemMessage.content = contextStr + '\n\n' + systemMessage.content;
         } else {
-            messages.unshift({ role: 'system', content: contextStr });
+            finalMessages.unshift({ role: 'system', content: contextStr });
         }
     }
 
-    logger.info(`[API Gateway] Routing /v1/chat/completions for model: ${model} (Stream: ${stream})`);
+    // Preserve all original OpenAI properties (tools, temperature, etc) but replace model and messages
+    const finalPayload = {
+        ...req.body,
+        model: targetModel,
+        messages: finalMessages
+    };
+    delete finalPayload.endpoint; // Remove internal routing param
+
+    logger.info(`[API Gateway] Transparent routing to ${targetEndpoint} for model: ${targetModel} (Stream: ${stream})`);
 
     try {
-        // If it's native llama, we don't need to wrap it in the Ollama format.
-        // We just pass the raw OpenAI request to llama-server.
-        const finalPayload = isNativeLlama
-            ? { model, messages, temperature, top_p, top_k, stream }
-            : payload;
-
         let response;
         let retryCount = 0;
         const controller = new AbortController();
@@ -511,7 +554,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                     if (!res.headersSent) res.end(); // close response
                     return;
                 }
-                throw fetchErr;
+                throw new Error(`Falha ao conectar com o motor em ${targetEndpoint}. Certifique-se de que a IA está a correr. Detalhes: ${fetchErr.message}`);
             }
 
             if (!response.ok) {
@@ -527,114 +570,28 @@ app.post('/v1/chat/completions', async (req, res) => {
             break;
         }
 
-        if (!response || !response.ok) {
-             throw new Error(`Upstream error: Target endpoint unreachable after retries.`);
-        }
+        if (!response || !response.ok) throw new Error(`Upstream error: Target endpoint unreachable.`);
 
         if (stream) {
             res.setHeader('Content-Type', 'text/event-stream');
             res.setHeader('Cache-Control', 'no-cache');
             res.setHeader('Connection', 'keep-alive');
 
-            // Proxying the stream directly from Ollama
-            let buffer = '';
             const decoder = new TextDecoder();
             try {
                 for await (const chunk of response.body) {
-                    buffer += decoder.decode(chunk, { stream: true });
-                    const lines = buffer.split('\n');
-
-                    // Keep the last incomplete line in the buffer
-                    buffer = lines.pop();
-
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        try {
-                            if (isNativeLlama) {
-                                if (line.startsWith('data: ')) {
-                                    res.write(`${line}\n\n`);
-                                }
-                            } else {
-                                const parsed = JSON.parse(line);
-                                // Convert Ollama stream format to OpenAI stream format
-                                const openAIChunk = {
-                                    id: `chatcmpl-${Date.now()}`,
-                                    object: 'chat.completion.chunk',
-                                    created: Math.floor(Date.now() / 1000),
-                                    model: model,
-                                    choices: [{
-                                        index: 0,
-                                        delta: {
-                                            content: parsed.message?.content || '',
-                                            reasoning_content: parsed.message?.reasoning_content || ''
-                                        },
-                                        finish_reason: parsed.done ? 'stop' : null
-                                    }]
-                                };
-                                res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
-                                if (parsed.done) res.write('data: [DONE]\n\n');
-                            }
-                        } catch (err) {
-                            logger.warn('Error parsing stream line: ' + line, err);
-                        }
-                    }
-                }
-                
-                if (buffer.trim()) {
-                    try {
-                        if (isNativeLlama) {
-                            if (buffer.startsWith('data: ')) res.write(`${buffer}\n\n`);
-                        } else {
-                            const parsed = JSON.parse(buffer);
-                            const openAIChunk = {
-                                id: `chatcmpl-${Date.now()}`, object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model: model,
-                                choices: [{ index: 0, delta: { content: parsed.message?.content || '', reasoning_content: parsed.message?.reasoning_content || '' }, finish_reason: parsed.done ? 'stop' : null }]
-                            };
-                            res.write(`data: ${JSON.stringify(openAIChunk)}\n\n`);
-                            if (parsed.done) res.write('data: [DONE]\n\n');
-                        }
-                    } catch(e) {}
+                    res.write(decoder.decode(chunk, { stream: true }));
                 }
                 res.end();
             } catch (err) {
                 logger.warn('Stream response body error: ', err);
                 res.end();
             }
-
         } else {
             const rawText = await response.text();
-            if (!rawText.trim()) {
-                throw new Error('O motor de IA retornou uma resposta vazia. O modelo pode ter falhado internamente (ex: falta de VRAM para o contexto) ou a conexão foi interrompida.');
-            }
-            try {
-                const data = JSON.parse(rawText);
-
-                if (isNativeLlama) {
-                    res.json(data);
-                } else {
-                    // Convert Ollama static format to OpenAI static format
-                    // In some models like DeepSeek on Ollama, reasoning is injected. Ensure we pass the message object directly
-                    const openAIResponse = {
-                        id: `chatcmpl-${Date.now()}`,
-                        object: 'chat.completion',
-                        created: Math.floor(Date.now() / 1000),
-                        model: model,
-                        choices: [{
-                            index: 0,
-                            message: data.message || { role: 'assistant', content: '' },
-                            finish_reason: 'stop'
-                        }],
-                        usage: {
-                            prompt_tokens: data.prompt_eval_count || 0,
-                            completion_tokens: data.eval_count || 0,
-                            total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
-                        }
-                    };
-                    res.json(openAIResponse);
-                }
-            } catch (err) {
-                throw new Error(`Invalid JSON from AI engine. Raw response: ${rawText.substring(0, 200)}`);
-            }
+            if (!rawText.trim()) throw new Error('O motor de IA retornou uma resposta vazia.');
+            res.setHeader('Content-Type', 'application/json');
+            res.send(rawText);
         }
     } catch (e) {
         logger.error('[API Gateway] Error routing completion request', e);
@@ -774,7 +731,7 @@ app.post('/api/inference/start', (req, res) => {
         const checkHealth = async () => {
              attempts++;
              try {
-                 const healthRes = await import('node-fetch').then(({default: fetch}) => fetch(`http://localhost:${currentLlamaPort}/health`));
+                 const healthRes = await import('node-fetch').then(({default: fetch}) => fetch(`http://127.0.0.1:${currentLlamaPort}/health`));
                  const healthData = await healthRes.json();
                  if (healthData.status === 'ok') {
                       logger.info('[Llama.cpp] Engine is fully loaded and ready.');
@@ -816,7 +773,7 @@ app.get('/api/inference/status', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-    const { ollamaTag, prompt, endpoint = 'http://localhost:11434/api/generate', options, system } = req.body;
+    const { ollamaTag, prompt, endpoint = 'http://127.0.0.1:11434/api/generate', options, system } = req.body;
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
     // Prepare the payload based on provided parameters
@@ -1122,6 +1079,140 @@ app.post('/api/open-folder', (req, res) => {
         setTimeout(() => { exec(psFocus); }, 1000);
     } else exec(`open -R "${folderPath}"`);
     res.json({ success: true });
+});
+
+// --- CENTRALIZA CODER (AUTO-SYNC SYSTEM) ---
+app.post('/api/coder/sync', async (req, res) => {
+    const dataDir = path.join(__dirname, 'data');
+    const coderDir = path.join(dataDir, 'free-claude-code');
+    const repoUrl = 'https://github.com/Alishahryar1/free-claude-code.git';
+
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    logger.info('[Coder Sync] Starting synchronization process.');
+    io.emit('coder-sync-progress', { status: 'Iniciando sincronização...', progress: 10 });
+
+    const runCmd = (cmd, cwd, silentError = false) => new Promise((resolve, reject) => {
+        exec(cmd, { cwd }, (err, stdout, stderr) => {
+            if (err) {
+                if (!silentError) {
+                    logger.error(`[Coder Sync] Cmd Failed: ${cmd}`, err);
+                }
+                reject(err);
+            } else resolve(stdout);
+        });
+    });
+
+    try {
+        if (fs.existsSync(path.join(coderDir, '.git'))) {
+            io.emit('coder-sync-progress', { status: 'Buscando atualizações no GitHub...', progress: 30 });
+            await runCmd('git pull', coderDir);
+        } else {
+            io.emit('coder-sync-progress', { status: 'Clonando repositório...', progress: 30 });
+            await runCmd(`git clone ${repoUrl} free-claude-code`, dataDir);
+        }
+
+        io.emit('coder-sync-progress', { status: 'Instalando dependências (npm install)...', progress: 60 });
+        await runCmd('npm install', coderDir);
+
+        io.emit('coder-sync-progress', { status: 'Configurando ambiente do agente (Python/uv)...', progress: 85 });
+        
+        const isWin = os.platform() === 'win32';
+        const setupCmd = isWin 
+            ? 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1'
+            : 'bash scripts/install.sh';
+            
+        // Usando as ferramentas de setup próprias do repositório (uv) em vez de comandos do Node
+        await runCmd(setupCmd, coderDir, true).catch((err) => {
+            logger.warn('[Coder Sync] O script de instalação oficial falhou ou não existe. Ignorando...', err.message);
+        });
+
+        io.emit('coder-sync-progress', { status: 'Pronto!', progress: 100 });
+        res.json({ success: true, message: 'Centraliza Coder synced successfully.' });
+    } catch (error) {
+        logger.error('[Coder Sync] Critical Error:', error);
+        io.emit('coder-sync-progress', { status: 'Erro: ' + error.message, progress: -1 });
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/coder/status', (req, res) => {
+    const coderDir = path.join(__dirname, 'data', 'free-claude-code');
+    const isInstalled = fs.existsSync(path.join(coderDir, 'package.json')) || fs.existsSync(path.join(coderDir, '.git'));
+    let version = 'unknown';
+    if (isInstalled) {
+        try { version = JSON.parse(fs.readFileSync(path.join(coderDir, 'package.json'))).version || '1.0.0'; } catch(e) {}
+    }
+    res.json({ installed: isInstalled, path: coderDir, version });
+});
+
+// --- VS CODE / EDITOR INTEGRATION ---
+app.post('/api/coder/setup-continue', (req, res) => {
+    try {
+        const continueDir = path.join(os.homedir(), '.continue');
+        const configPath = path.join(continueDir, 'config.json');
+        
+        if (!fs.existsSync(continueDir)) {
+            fs.mkdirSync(continueDir, { recursive: true });
+        }
+
+        let config = {};
+        if (fs.existsSync(configPath)) {
+            try { config = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (e) {}
+        }
+        
+        if (!config.models) config.models = [];
+        
+        const centralizaModel = {
+            title: "Centraliza.ai Gateway",
+            provider: "openai",
+            model: "centraliza-router",
+            apiBase: "http://localhost:4000/v1",
+            apiKey: "centraliza-local"
+        };
+
+        // Remove uma configuração antiga do Gateway caso já exista, para evitar duplicações
+        config.models = config.models.filter(m => m.title !== "Centraliza.ai Gateway");
+        config.models.push(centralizaModel);
+
+        // Configurando o modelo dedicado para autocompletar código em linha (Tab Autocomplete)
+        config.tabAutocompleteModel = {
+            title: "Centraliza.ai Autocomplete",
+            provider: "openai",
+            model: "centraliza-router",
+            apiBase: "http://localhost:4000/v1",
+            apiKey: "centraliza-local"
+        };
+
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        logger.info('[VS Code] Continue.dev configurado com sucesso via automação.');
+        
+        res.json({ 
+            success: true, 
+            message: 'Continue.dev configurado com sucesso! Abra o VS Code para usar.',
+            installUri: 'vscode:extension/Continue.continue'
+        });
+    } catch (err) {
+        logger.error('[VS Code] Erro ao configurar Continue.dev', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/coder/setup-roo', (req, res) => {
+    // O Roo Code usa a globalStorage do VS Code que não é segura de editar por fora.
+    // Portanto, enviamos o helper com a URL de deep-link e as variáveis exatas para UI exibir.
+    res.json({
+        success: true,
+        installUri: 'vscode:extension/RooPlay.roo-cline',
+        instructions: {
+            apiProvider: 'OpenAI Compatible',
+            baseUrl: 'http://localhost:4000/v1',
+            apiKey: 'centraliza-local',
+            modelId: 'centraliza-router'
+        }
+    });
 });
 
 const distPath = path.join(__dirname, 'frontend', 'dist');
