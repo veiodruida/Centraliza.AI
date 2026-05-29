@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Terminal, GitBranch, Code2, Play, Square, Loader2, CheckCircle2, Box, Settings2, Zap, Server } from 'lucide-react';
+import { Terminal, GitBranch, Code2, Play, Square, Loader2, CheckCircle2, Box, Settings2, Zap, Server, AlertTriangle, Activity, X } from 'lucide-react';
 
 export default function Coder() {
     const { t } = useApp();
@@ -13,6 +13,9 @@ export default function Coder() {
     const [showSettings, setShowSettings] = useState(false);
     const [ctxSize, setCtxSize] = useState(32768);
     const [gpuLayers, setGpuLayers] = useState(99);
+    const [logs, setLogs] = useState<{level: string, msg: string, time: string}[]>([]);
+    const [showTerminal, setShowTerminal] = useState(false);
+    const logsEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // 1. Traz SÓ a lista limpa filtrada no backend
@@ -35,6 +38,26 @@ export default function Coder() {
             .then(r => r.json())
             .then(setCoderStatus);
     }, []);
+
+    useEffect(() => {
+        const es = new EventSource('/api/logs/stream');
+        es.onmessage = (event) => {
+            try {
+                const log = JSON.parse(event.data);
+                setLogs(prev => {
+                    const newLogs = [...prev, log];
+                    return newLogs.length > 200 ? newLogs.slice(newLogs.length - 200) : newLogs;
+                });
+            } catch (e) {}
+        };
+        return () => es.close();
+    }, []);
+
+    useEffect(() => {
+        if (showTerminal) {
+            logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [logs, showTerminal]);
 
     const handleModelChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selected = e.target.value;
@@ -110,6 +133,8 @@ export default function Coder() {
     const needsEngine = activeModel.toLowerCase().endsWith('.gguf') || activeModel.includes('\\') || activeModel.includes('/');
     const isEngineRunningForActiveModel = engineStatus.running && engineStatus.model === activeModel;
 
+    const recentAlerts = logs.filter(l => l.level === 'WARN' || l.level === 'ERROR').slice(-2);
+
     return (
         <div className="p-6 md:p-12 max-w-[100rem] mx-auto space-y-8 animate-fade-in">
             <header className="mb-8">
@@ -119,6 +144,20 @@ export default function Coder() {
                 </h1>
                 <p className="text-[var(--text-secondary)] text-lg mt-2">{t('coder_subtitle' as any)}</p>
             </header>
+
+            {recentAlerts.length > 0 && !showTerminal && (
+                <div className="space-y-3 mb-8">
+                    {recentAlerts.map((alert, i) => (
+                        <div key={i} className={`flex items-start gap-3 p-4 rounded-2xl border backdrop-blur-md animate-fade-in ${alert.level === 'ERROR' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'}`}>
+                            <AlertTriangle size={20} className="shrink-0 mt-0.5" />
+                            <div>
+                                <div className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">{alert.level} • {new Date(alert.time).toLocaleTimeString()}</div>
+                                <div className="text-sm font-medium">{alert.msg}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Cérebro (IA Local) */}
@@ -266,6 +305,34 @@ export default function Coder() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Terminal / Logs de Eventos */}
+            <div className="mt-12 pt-8 border-t border-[var(--border)]">
+                <button onClick={() => setShowTerminal(!showTerminal)} className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all ${showTerminal ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-blue-500 hover:border-blue-500/30'}`}>
+                    <Activity size={18} /> {showTerminal ? 'Ocultar Terminal de Logs' : 'Ver Terminal de Logs ao Vivo'}
+                </button>
+
+                {showTerminal && (
+                    <div className="mt-6 bg-[#0A0A0A] border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-96 animate-fade-in relative z-20">
+                        <div className="flex items-center justify-between px-6 py-3 bg-[#111] border-b border-gray-800">
+                            <div className="flex items-center gap-3 text-gray-400 text-[10px] font-black uppercase tracking-widest">
+                                <Terminal size={14} /> Server Logs Stream
+                            </div>
+                            <button onClick={() => setShowTerminal(false)} className="text-gray-500 hover:text-white transition-colors"><X size={16} /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 font-mono text-[11px] md:text-xs leading-relaxed custom-scrollbar">
+                            {logs.map((log, i) => (
+                                <div key={i} className={`mb-2 ${log.level === 'ERROR' ? 'text-red-400' : log.level === 'WARN' ? 'text-yellow-400' : 'text-gray-400'}`}>
+                                    <span className="opacity-40 mr-3">[{new Date(log.time).toLocaleTimeString()}]</span>
+                                    <span className="font-black mr-3">[{log.level}]</span>
+                                    {log.msg}
+                                </div>
+                            ))}
+                            <div ref={logsEndRef} />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
