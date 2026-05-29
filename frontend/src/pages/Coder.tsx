@@ -11,7 +11,7 @@ export default function Coder() {
     const [coderStatus, setCoderStatus] = useState({ installed: false, version: 'unknown' });
     const [isSyncing, setIsSyncing] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-    const [ctxSize, setCtxSize] = useState(8192);
+    const [ctxSize, setCtxSize] = useState(32768);
     const [gpuLayers, setGpuLayers] = useState(99);
 
     useEffect(() => {
@@ -163,8 +163,8 @@ export default function Coder() {
                                     <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Zap size={14} /> Context Size</label>
                                     <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{ctxSize}</span>
                                 </div>
-                                <input type="range" min="1024" max="32768" step="1024" value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
-                                <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Tamanho da memória de contexto. Agentes de código precisam de valores altos (recomendado 8192+).</p>
+                        <input type="range" min="1024" max="131072" step="4096" value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                        <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Memória de contexto (Max: 131k). Valores altos aumentam o raciocínio do agente, mas consomem muita RAM/VRAM.</p>
                             </div>
                             <div>
                                 <div className="flex justify-between items-center mb-4">
