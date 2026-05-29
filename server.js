@@ -1319,7 +1319,6 @@ app.get('/api/coder/status', (req, res) => {
 app.post('/api/coder/setup-continue', (req, res) => {
     try {
         const continueDir = path.join(os.homedir(), '.continue');
-        const configPath = path.join(continueDir, 'config.json');
         const configJsonPath = path.join(continueDir, 'config.json');
         const configYamlPath = path.join(continueDir, 'config.yaml');
         const configYmlPath = path.join(continueDir, 'config.yml');
@@ -1339,27 +1338,13 @@ app.post('/api/coder/setup-continue', (req, res) => {
             fs.mkdirSync(continueDir, { recursive: true });
         }
 
-        let config = {};
-        if (fs.existsSync(configPath)) {
-            try { config = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (e) {}
-        }
-        
-        if (!config.models) config.models = [];
-        
-        const centralizaModel = {
-            title: "Centraliza.ai Gateway",
-            provider: "openai",
-            model: "centraliza-router",
-            apiBase: "http://localhost:4000/v1",
-            apiKey: "centraliza-local"
-        };
         if (isYaml) {
             let yamlContent = fs.readFileSync(targetConfigPath, 'utf8');
             
             // Insere o modelo no array "models:" se não existir
             if (!yamlContent.includes('Centraliza.ai Gateway')) {
                 const modelsRegex = /^models:\s*$/m;
-                const newModelYaml = `\n  - title: Centraliza.ai Gateway\n    provider: openai\n    model: centraliza-router\n    apiBase: http://localhost:4000/v1\n    apiKey: centraliza-local`;
+                const newModelYaml = `\n  - name: Centraliza.ai Gateway\n    provider: openai\n    model: centraliza-router\n    apiBase: http://localhost:4000/v1\n    apiKey: centraliza-local`;
                 if (modelsRegex.test(yamlContent)) {
                     yamlContent = yamlContent.replace(modelsRegex, `models:${newModelYaml}`);
                 } else {
@@ -1367,12 +1352,9 @@ app.post('/api/coder/setup-continue', (req, res) => {
                 }
             }
 
-        // Remove uma configuração antiga do Gateway caso já exista, para evitar duplicações
-        config.models = config.models.filter(m => m.title !== "Centraliza.ai Gateway");
-        config.models.push(centralizaModel);
             // Substitui ou adiciona o modelo de Autocomplete (Tab)
             const tabRegex = /^tabAutocompleteModel:\s*\n(?:^[ \t]+.*\n?|^\s*\n)*/m;
-            const newTabModelYaml = `tabAutocompleteModel:\n  title: Centraliza.ai Autocomplete\n  provider: openai\n  model: centraliza-router\n  apiBase: http://localhost:4000/v1\n  apiKey: centraliza-local\n`;
+            const newTabModelYaml = `tabAutocompleteModel:\n  name: Centraliza.ai Autocomplete\n  provider: openai\n  model: centraliza-router\n  apiBase: http://localhost:4000/v1\n  apiKey: centraliza-local\n`;
             
             if (tabRegex.test(yamlContent)) {
                 yamlContent = yamlContent.replace(tabRegex, newTabModelYaml);
@@ -1397,18 +1379,9 @@ app.post('/api/coder/setup-continue', (req, res) => {
                 apiKey: "centraliza-local"
             };
 
-        // Configurando o modelo dedicado para autocompletar código em linha (Tab Autocomplete)
-        config.tabAutocompleteModel = {
-            title: "Centraliza.ai Autocomplete",
-            provider: "openai",
-            model: "centraliza-router",
-            apiBase: "http://localhost:4000/v1",
-            apiKey: "centraliza-local"
-        };
             config.models = config.models.filter(m => m.title !== "Centraliza.ai Gateway");
             config.models.push(centralizaModel);
 
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
             config.tabAutocompleteModel = {
                 title: "Centraliza.ai Autocomplete",
                 provider: "openai",
