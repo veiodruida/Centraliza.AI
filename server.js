@@ -402,14 +402,17 @@ app.get('/api/models', async (req, res) => {
             // --- Auto-Classificação de Capacidades ---
             const nameForCheck = (m.ollamaTag || m.name || '').toLowerCase();
             
+            // Excluir modelos de raciocínio puro (DeepSeek-R1) que não suportam tools
+            const isReasoner = nameForCheck.includes('-r1') || nameForCheck.includes('deepseek-r1') || nameForCheck.includes('reasoning');
+
             // Heurística aprimorada para focar APENAS em modelos com capacidade de Tool Calling/Agentes
-            const isCapableCoder = nameForCheck.includes('coder') || 
-                                   nameForCheck.includes('deepseek') || 
+            const isCapableCoder = (nameForCheck.includes('coder') || 
+                                   (nameForCheck.includes('deepseek') && !isReasoner) || 
                                    nameForCheck.includes('qwen') || 
                                    nameForCheck.includes('llama-3') || 
                                    nameForCheck.includes('phind') ||
                                    nameForCheck.includes('mistral') ||
-                                   nameForCheck.includes('mixtral');
+                                   nameForCheck.includes('mixtral')) && !isReasoner;
 
             m.isCoder = isCapableCoder && m.source !== 'ComfyUI' && 
                         !nameForCheck.includes('embed') &&
@@ -619,6 +622,16 @@ app.post('/v1/chat/completions', async (req, res) => {
                         continue;
                     }
                     const errText = await response.text();
+                    
+                    // Fallback: Se o modelo não suportar tools, removemos e tentamos novamente
+                    if (response.status === 400 && errText.includes('does not support tools')) {
+                        logger.warn(`[API Gateway] O modelo não suporta tools nativamente. Removendo tools e tentando novamente...`);
+                        delete finalPayload.tools;
+                        delete finalPayload.tool_choice;
+                        retryCount++;
+                        continue;
+                    }
+                    
                     throw new Error(`Upstream error: ${response.status} - ${errText}`);
                 }
                 break;
