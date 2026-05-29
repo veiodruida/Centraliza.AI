@@ -466,6 +466,49 @@ app.post('/api/centralize', async (req, res) => {
     }
 });
 
+// --- MIDDLEWARE TOOLS (WEB SEARCH) ---
+async function performWebSearch(query) {
+    try {
+        logger.info(`[Web Search] Buscando na web por: "${query}"`);
+        const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de limite
+        
+        const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+            headers: { 
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        const text = await res.text();
+        const snippets = [];
+        const regex = /<a class="result__snippet[^>]*>(.*?)<\/a>/gi;
+        let match;
+        while ((match = regex.exec(text)) !== null && snippets.length < 5) {
+            snippets.push(match[1].replace(/<\/?[^>]+(>|$)/g, "").trim());
+        }
+        if (snippets.length === 0) {
+             if (text.toLowerCase().includes('robot') || text.toLowerCase().includes('captcha')) {
+                 return "A busca falhou pois o motor de busca bloqueou o pedido (Anti-Bot/Captcha). Diga ao utilizador que não conseguiu pesquisar na internet.";
+             }
+             return "Nenhum resultado de busca encontrado para esta query.";
+        }
+        return snippets.map((s, i) => `[Resultado ${i+1}]: ${s}`).join("\n\n");
+    } catch (e) {
+        logger.error('[Web Search] Falha', e);
+        if (e.name === 'AbortError') return "A busca falhou por Timeout (demorou mais de 15 segundos). Diga ao utilizador que o serviço de pesquisa está temporariamente indisponível.";
+        return "Erro ao realizar a busca na internet: " + e.message;
+    }
+}
+
+const WEB_SEARCH_TOOL = { type: 'function', function: { name: 'centraliza_web_search', description: 'Pesquisa informações atuais na internet (DuckDuckGo). Use para fatos recentes, notícias ou documentações.', parameters: { type: 'object', properties: { query: { type: 'string', description: 'Termo de busca exato' } }, required: ['query'] } } };
+
 // --- API GATEWAY: OPENAI COMPATIBLE ---
 // Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
 app.post('/v1/chat/completions', async (req, res) => {
@@ -524,6 +567,10 @@ app.post('/v1/chat/completions', async (req, res) => {
         model: targetModel,
         messages: finalMessages
     };
+    
+    if (finalPayload.tools) finalPayload.tools = [...finalPayload.tools, WEB_SEARCH_TOOL];
+    else finalPayload.tools = [WEB_SEARCH_TOOL];
+
     delete finalPayload.endpoint; // Remove internal routing param
 
     logger.info(`[API Gateway] Transparent routing to ${targetEndpoint} for model: ${targetModel} (Stream: ${stream})`);
@@ -540,58 +587,168 @@ app.post('/v1/chat/completions', async (req, res) => {
              }
         });
 
-        while (retryCount < 5) {
-            try {
-                response = await fetch(targetEndpoint, {
-                    method: 'POST',
-                    body: JSON.stringify(finalPayload),
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: controller.signal
-                });
-            } catch (fetchErr) {
-                if (fetchErr.name === 'AbortError') {
-                    logger.info('[API Gateway] Upstream request aborted successfully.');
-                    if (!res.headersSent) res.end(); // close response
-                    return;
+        let maxIterations = 3;
+        let currentIteration = 0;
+        let streamFinished = false;
+
+        while (currentIteration < maxIterations && !streamFinished) {
+            currentIteration++;
+            
+            while (retryCount < 5) {
+                try {
+                    response = await fetch(targetEndpoint, {
+                        method: 'POST',
+                        body: JSON.stringify(finalPayload),
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: controller.signal
+                    });
+                } catch (fetchErr) {
+                    if (fetchErr.name === 'AbortError') {
+                        logger.info('[API Gateway] Upstream request aborted successfully.');
+                        if (!res.headersSent) res.end();
+                        return;
+                    }
+                    throw new Error(`Falha ao conectar com o motor em ${targetEndpoint}. Certifique-se de que a IA está a correr. Detalhes: ${fetchErr.message}`);
                 }
-                throw new Error(`Falha ao conectar com o motor em ${targetEndpoint}. Certifique-se de que a IA está a correr. Detalhes: ${fetchErr.message}`);
+
+                if (!response.ok) {
+                    if (response.status === 503) {
+                        logger.info(`[API Gateway] 503 Received. Engine might still be loading or warming up. Retrying... (${retryCount+1}/5)`);
+                        await new Promise(r => setTimeout(r, 2000));
+                        retryCount++;
+                        continue;
+                    }
+                    const errText = await response.text();
+                    throw new Error(`Upstream error: ${response.status} - ${errText}`);
+                }
+                break;
             }
 
-            if (!response.ok) {
-                if (response.status === 503) {
-                    logger.info(`[API Gateway] 503 Received. Engine might still be loading or warming up. Retrying... (${retryCount+1}/5)`);
-                    await new Promise(r => setTimeout(r, 2000));
-                    retryCount++;
-                    continue;
+            if (!response || !response.ok) throw new Error(`Upstream error: Target endpoint unreachable.`);
+
+            if (stream) {
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                let interceptingTool = false;
+                let interceptedToolName = '';
+                let interceptedToolArgs = '';
+                let interceptedToolId = '';
+                let chunkCache = [];
+                let passThrough = false;
+                let headersSentToClient = false;
+                
+                const sendHeaders = () => {
+                    if (!headersSentToClient) {
+                        res.setHeader('Content-Type', 'text/event-stream');
+                        res.setHeader('Cache-Control', 'no-cache');
+                        res.setHeader('Connection', 'keep-alive');
+                        headersSentToClient = true;
+                    }
+                };
+                
+                try {
+                    for await (const chunk of response.body) {
+                        buffer += decoder.decode(chunk, { stream: true });
+                        let parts = buffer.split('\n\n');
+                        buffer = parts.pop(); 
+                        
+                        for (const part of parts) {
+                            if (part.trim() === 'data: [DONE]') {
+                                chunkCache.push(part + '\n\n');
+                                if (passThrough) res.write(part + '\n\n');
+                                continue;
+                            }
+                            if (!part.startsWith('data: ')) continue;
+                            
+                            const dataStr = part.replace(/^data: /, '');
+                            let dataObj;
+                            try { dataObj = JSON.parse(dataStr); } catch(e) { continue; }
+                            
+                            const delta = dataObj.choices?.[0]?.delta;
+                            if (delta?.tool_calls?.length > 0) {
+                                const tc = delta.tool_calls[0];
+                                if (tc.function?.name) {
+                                    if (tc.function.name === 'centraliza_web_search') {
+                                        interceptingTool = true;
+                                        interceptedToolName = tc.function.name;
+                                        interceptedToolId = tc.id || `call_${Date.now()}`;
+                                    } else {
+                                        passThrough = true;
+                                        sendHeaders();
+                                        chunkCache.forEach(c => res.write(c));
+                                        chunkCache = [];
+                                    }
+                                }
+                                if (interceptingTool && tc.function?.arguments) interceptedToolArgs += tc.function.arguments;
+                            } else if (delta?.content) {
+                                if (!interceptingTool && !passThrough) {
+                                    passThrough = true;
+                                    sendHeaders();
+                                    chunkCache.forEach(c => res.write(c));
+                                    chunkCache = [];
+                                }
+                            }
+                            
+                            if (interceptingTool) chunkCache.push(part + '\n\n');
+                            else if (passThrough) res.write(part + '\n\n');
+                            else chunkCache.push(part + '\n\n');
+                        }
+                    }
+                    
+                    if (interceptingTool && interceptedToolName === 'centraliza_web_search') {
+                        let query = '';
+                        try { query = JSON.parse(interceptedToolArgs).query; } catch(e) { query = interceptedToolArgs; }
+                        
+                        const searchResults = await performWebSearch(query);
+                        
+                        finalPayload.messages.push({ role: 'assistant', content: '', tool_calls: [{ id: interceptedToolId, type: 'function', function: { name: 'centraliza_web_search', arguments: interceptedToolArgs } }] });
+                        finalPayload.messages.push({ role: 'tool', tool_call_id: interceptedToolId, name: 'centraliza_web_search', content: searchResults });
+                        
+                        retryCount = 0; 
+                        continue; 
+                    } else {
+                        if (!headersSentToClient) sendHeaders();
+                        if (!passThrough) chunkCache.forEach(c => res.write(c));
+                        res.end();
+                        streamFinished = true;
+                    }
+                } catch (err) {
+                    logger.warn('Stream response body error: ', err);
+                    if (headersSentToClient) res.end();
+                    else throw err;
+                    streamFinished = true;
                 }
-                const errText = await response.text();
-                throw new Error(`Upstream error: ${response.status} - ${errText}`);
-            }
-            break;
-        }
-
-        if (!response || !response.ok) throw new Error(`Upstream error: Target endpoint unreachable.`);
-
-        if (stream) {
-            res.setHeader('Content-Type', 'text/event-stream');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Connection', 'keep-alive');
-
-            const decoder = new TextDecoder();
-            try {
-                for await (const chunk of response.body) {
-                    res.write(decoder.decode(chunk, { stream: true }));
+            } else {
+                const rawText = await response.text();
+                if (!rawText.trim()) throw new Error('O motor de IA retornou uma resposta vazia.');
+                
+                try {
+                    const dataObj = JSON.parse(rawText);
+                    const tc = dataObj.choices?.[0]?.message?.tool_calls?.[0];
+                    
+                    if (tc && tc.function?.name === 'centraliza_web_search') {
+                        let query = '';
+                        try { query = JSON.parse(tc.function.arguments).query; } catch(e) { query = tc.function.arguments; }
+                        
+                        const searchResults = await performWebSearch(query);
+                        
+                        finalPayload.messages.push(dataObj.choices[0].message);
+                        finalPayload.messages.push({ role: 'tool', tool_call_id: tc.id, name: 'centraliza_web_search', content: searchResults });
+                        
+                        retryCount = 0;
+                        continue;
+                    } else {
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(rawText);
+                        streamFinished = true;
+                    }
+                } catch (e) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(rawText);
+                    streamFinished = true;
                 }
-                res.end();
-            } catch (err) {
-                logger.warn('Stream response body error: ', err);
-                res.end();
             }
-        } else {
-            const rawText = await response.text();
-            if (!rawText.trim()) throw new Error('O motor de IA retornou uma resposta vazia.');
-            res.setHeader('Content-Type', 'application/json');
-            res.send(rawText);
         }
     } catch (e) {
         logger.error('[API Gateway] Error routing completion request', e);
@@ -1082,7 +1239,7 @@ app.post('/api/open-folder', (req, res) => {
 });
 
 // --- CENTRALIZA CODER (AUTO-SYNC SYSTEM) ---
-app.post('/api/coder/sync', async (req, res) => {
+async function syncCoder(isAuto = false) {
     const dataDir = path.join(__dirname, 'data');
     const coderDir = path.join(dataDir, 'free-claude-code');
     const repoUrl = 'https://github.com/Alishahryar1/free-claude-code.git';
@@ -1091,8 +1248,8 @@ app.post('/api/coder/sync', async (req, res) => {
         fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    logger.info('[Coder Sync] Starting synchronization process.');
-    io.emit('coder-sync-progress', { status: 'Iniciando sincronização...', progress: 10 });
+    logger.info(`[Coder Sync] Starting ${isAuto ? 'automatic ' : ''}synchronization process.`);
+    if (!isAuto) io.emit('coder-sync-progress', { status: 'Iniciando sincronização...', progress: 10 });
 
     const runCmd = (cmd, cwd, silentError = false) => new Promise((resolve, reject) => {
         exec(cmd, { cwd }, (err, stdout, stderr) => {
@@ -1107,17 +1264,17 @@ app.post('/api/coder/sync', async (req, res) => {
 
     try {
         if (fs.existsSync(path.join(coderDir, '.git'))) {
-            io.emit('coder-sync-progress', { status: 'Buscando atualizações no GitHub...', progress: 30 });
+            if (!isAuto) io.emit('coder-sync-progress', { status: 'Buscando atualizações no GitHub...', progress: 30 });
             await runCmd('git pull', coderDir);
         } else {
-            io.emit('coder-sync-progress', { status: 'Clonando repositório...', progress: 30 });
+            if (!isAuto) io.emit('coder-sync-progress', { status: 'Clonando repositório...', progress: 30 });
             await runCmd(`git clone ${repoUrl} free-claude-code`, dataDir);
         }
 
-        io.emit('coder-sync-progress', { status: 'Instalando dependências (npm install)...', progress: 60 });
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Instalando dependências (npm install)...', progress: 60 });
         await runCmd('npm install', coderDir);
 
-        io.emit('coder-sync-progress', { status: 'Configurando ambiente do agente (Python/uv)...', progress: 85 });
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Configurando ambiente do agente (Python/uv)...', progress: 85 });
         
         const isWin = os.platform() === 'win32';
         const setupCmd = isWin 
@@ -1129,11 +1286,21 @@ app.post('/api/coder/sync', async (req, res) => {
             logger.warn('[Coder Sync] O script de instalação oficial falhou ou não existe. Ignorando...', err.message);
         });
 
-        io.emit('coder-sync-progress', { status: 'Pronto!', progress: 100 });
-        res.json({ success: true, message: 'Centraliza Coder synced successfully.' });
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Pronto!', progress: 100 });
+        logger.info(`[Coder Sync] ${isAuto ? 'Auto-' : ''}Sync completed successfully.`);
+        return { success: true, message: 'Centraliza Coder synced successfully.' };
     } catch (error) {
         logger.error('[Coder Sync] Critical Error:', error);
-        io.emit('coder-sync-progress', { status: 'Erro: ' + error.message, progress: -1 });
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Erro: ' + error.message, progress: -1 });
+        throw error;
+    }
+}
+
+app.post('/api/coder/sync', async (req, res) => {
+    try {
+        const result = await syncCoder(false);
+        res.json(result);
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
@@ -1153,7 +1320,21 @@ app.post('/api/coder/setup-continue', (req, res) => {
     try {
         const continueDir = path.join(os.homedir(), '.continue');
         const configPath = path.join(continueDir, 'config.json');
+        const configJsonPath = path.join(continueDir, 'config.json');
+        const configYamlPath = path.join(continueDir, 'config.yaml');
+        const configYmlPath = path.join(continueDir, 'config.yml');
         
+        let targetConfigPath = configJsonPath;
+        let isYaml = false;
+
+        if (fs.existsSync(configYamlPath)) {
+            targetConfigPath = configYamlPath;
+            isYaml = true;
+        } else if (fs.existsSync(configYmlPath)) {
+            targetConfigPath = configYmlPath;
+            isYaml = true;
+        }
+
         if (!fs.existsSync(continueDir)) {
             fs.mkdirSync(continueDir, { recursive: true });
         }
@@ -1172,10 +1353,49 @@ app.post('/api/coder/setup-continue', (req, res) => {
             apiBase: "http://localhost:4000/v1",
             apiKey: "centraliza-local"
         };
+        if (isYaml) {
+            let yamlContent = fs.readFileSync(targetConfigPath, 'utf8');
+            
+            // Insere o modelo no array "models:" se não existir
+            if (!yamlContent.includes('Centraliza.ai Gateway')) {
+                const modelsRegex = /^models:\s*$/m;
+                const newModelYaml = `\n  - title: Centraliza.ai Gateway\n    provider: openai\n    model: centraliza-router\n    apiBase: http://localhost:4000/v1\n    apiKey: centraliza-local`;
+                if (modelsRegex.test(yamlContent)) {
+                    yamlContent = yamlContent.replace(modelsRegex, `models:${newModelYaml}`);
+                } else {
+                    yamlContent += `\nmodels:${newModelYaml}`;
+                }
+            }
 
         // Remove uma configuração antiga do Gateway caso já exista, para evitar duplicações
         config.models = config.models.filter(m => m.title !== "Centraliza.ai Gateway");
         config.models.push(centralizaModel);
+            // Substitui ou adiciona o modelo de Autocomplete (Tab)
+            const tabRegex = /^tabAutocompleteModel:\s*\n(?:^[ \t]+.*\n?|^\s*\n)*/m;
+            const newTabModelYaml = `tabAutocompleteModel:\n  title: Centraliza.ai Autocomplete\n  provider: openai\n  model: centraliza-router\n  apiBase: http://localhost:4000/v1\n  apiKey: centraliza-local\n`;
+            
+            if (tabRegex.test(yamlContent)) {
+                yamlContent = yamlContent.replace(tabRegex, newTabModelYaml);
+            } else {
+                yamlContent += `\n${newTabModelYaml}`;
+            }
+            
+            fs.writeFileSync(targetConfigPath, yamlContent);
+        } else {
+            let config = {};
+            if (fs.existsSync(targetConfigPath)) {
+                try { config = JSON.parse(fs.readFileSync(targetConfigPath, 'utf8')); } catch (e) {}
+            }
+            
+            if (!config.models) config.models = [];
+            
+            const centralizaModel = {
+                title: "Centraliza.ai Gateway",
+                provider: "openai",
+                model: "centraliza-router",
+                apiBase: "http://localhost:4000/v1",
+                apiKey: "centraliza-local"
+            };
 
         // Configurando o modelo dedicado para autocompletar código em linha (Tab Autocomplete)
         config.tabAutocompleteModel = {
@@ -1185,8 +1405,20 @@ app.post('/api/coder/setup-continue', (req, res) => {
             apiBase: "http://localhost:4000/v1",
             apiKey: "centraliza-local"
         };
+            config.models = config.models.filter(m => m.title !== "Centraliza.ai Gateway");
+            config.models.push(centralizaModel);
 
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+            config.tabAutocompleteModel = {
+                title: "Centraliza.ai Autocomplete",
+                provider: "openai",
+                model: "centraliza-router",
+                apiBase: "http://localhost:4000/v1",
+                apiKey: "centraliza-local"
+            };
+
+            fs.writeFileSync(targetConfigPath, JSON.stringify(config, null, 2));
+        }
         logger.info('[VS Code] Continue.dev configurado com sucesso via automação.');
         
         res.json({ 
@@ -1240,6 +1472,9 @@ io.on('connection', (socket) => {
 });
 
 if (require.main === module) {
-    server.listen(4000, () => logger.info('Centraliza.ai on http://localhost:4000'));
+    server.listen(4000, () => {
+        logger.info('Centraliza.ai on http://localhost:4000');
+        syncCoder(true).catch(() => {}); // Auto-sync invisível ao iniciar
+    });
 }
 module.exports = { app, server };
