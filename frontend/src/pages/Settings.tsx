@@ -104,7 +104,7 @@ export default function Settings() {
     >
       <header className="mb-16 flex justify-between items-end flex-wrap gap-10">
         <div className="space-y-4">
-          <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase flex items-center gap-6">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase flex items-center gap-4 md:gap-6 break-words">
             {t('nav_settings')}
             <div className="w-16 h-1 w-px bg-blue-500/20 rotate-12" />
           </h2>
@@ -209,12 +209,12 @@ export default function Settings() {
               </div>
            </div>
            
-           <div className="flex gap-4 relative z-10">
+           <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <input 
                 type="text" 
                 value={config.centralDir || ''}
                 onChange={(e) => setConfig({ ...config, centralDir: e.target.value })}
-                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-lg focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                className="flex-1 w-full min-w-0 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-4 py-3 md:px-8 md:py-5 text-sm md:text-lg focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner truncate"
               />
               <button onClick={() => pickFolder('centralDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-blue-600 hover:text-white hover:border-blue-600 text-[var(--text-primary)] px-8 rounded-[1.5rem] transition-all shadow-premium active:scale-95" title={t('search')}>
                  <FolderOpen size={24} />
@@ -240,12 +240,12 @@ export default function Settings() {
                  <span className="text-[11px] font-black text-emerald-500 uppercase tracking-widest mt-1 block">Generative Art Bridge</span>
               </div>
            </div>
-           <div className="flex gap-4 relative z-10">
+           <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <input 
                 type="text" 
                 value={config.comfyDir || ''}
                 onChange={(e) => setConfig({ ...config, comfyDir: e.target.value })}
-                className="flex-1 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-8 py-5 text-lg focus:outline-none focus:ring-4 focus:ring-emerald-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner"
+                className="flex-1 w-full min-w-0 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] px-4 py-3 md:px-8 md:py-5 text-sm md:text-lg focus:outline-none focus:ring-4 focus:ring-emerald-600/10 text-[var(--text-primary)] font-mono font-bold shadow-inner truncate"
               />
               <button onClick={() => pickFolder('comfyDir')} className="bg-[var(--bg-input)] border border-[var(--border)] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-[var(--text-primary)] px-8 rounded-[1.5rem] transition-all shadow-premium active:scale-95" title={t('search')}>
                  <FolderOpen size={24} />
@@ -279,8 +279,8 @@ export default function Settings() {
                  </div>
               ) : (
                 config && config.scanDirectories.map((path: string) => (
-                  <div key={path} className="flex items-center justify-between bg-[var(--bg-input)]/30 border border-[var(--border)]/50 rounded-[2rem] p-8 group hover:border-[var(--text-secondary)] hover:bg-[var(--bg-input)]/50 transition-all shadow-sm">
-                     <span className="text-lg font-mono text-[var(--text-primary)] font-bold">{path}</span>
+                  <div key={path} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[var(--bg-input)]/30 border border-[var(--border)]/50 rounded-[2rem] p-6 md:p-8 group hover:border-[var(--text-secondary)] hover:bg-[var(--bg-input)]/50 transition-all shadow-sm gap-4">
+                     <span className="text-sm md:text-lg font-mono text-[var(--text-primary)] font-bold break-all">{path}</span>
                      <button onClick={() => removePath(path)} className="text-[var(--text-muted)] hover:text-red-500 transition-all p-4 hover:bg-red-500/10 rounded-2xl active:scale-90 shrink-0">
                         <Trash2 size={24} />
                      </button>
@@ -296,7 +296,7 @@ export default function Settings() {
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
                   placeholder={t('search') + "..."}
-                  className="w-full bg-transparent border-none rounded-[2rem] py-5 pl-8 pr-16 text-lg focus:outline-none text-[var(--text-primary)] font-mono font-bold"
+                  className="w-full min-w-0 bg-transparent border-none rounded-[2rem] py-3 md:py-5 pl-5 md:pl-8 pr-12 md:pr-16 text-sm md:text-lg focus:outline-none text-[var(--text-primary)] font-mono font-bold truncate"
                  />
                  <button onClick={() => pickFolder('scan')} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 active:scale-90">
                     <FolderOpen size={24} />
@@ -308,13 +308,13 @@ export default function Settings() {
            </div>
         </motion.div>
 
-        <div className="fixed bottom-12 right-12 z-50">
+        <div className="fixed bottom-6 md:bottom-12 right-6 md:right-12 z-50">
            <button 
              onClick={handleSave}
              disabled={saving}
-             className="bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black text-sm uppercase tracking-widest px-20 py-8 rounded-[3rem] transition-all shadow-premium flex items-center gap-6 active:scale-95 disabled:opacity-50"
+             className="bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black text-xs md:text-sm uppercase tracking-widest px-8 md:px-20 py-4 md:py-8 rounded-[2rem] md:rounded-[3rem] transition-all shadow-premium flex items-center gap-3 md:gap-6 active:scale-95 disabled:opacity-50"
            >
-              {saving ? <RefreshCw size={28} className="animate-spin" /> : <Save size={28} />}
+              {saving ? <RefreshCw size={24} className="animate-spin md:w-7 md:h-7" /> : <Save size={24} className="md:w-7 md:h-7" />}
               {t('settings_save')}
            </button>
         </div>
@@ -322,6 +322,3 @@ export default function Settings() {
     </motion.div>
   );
 }
-
-
-

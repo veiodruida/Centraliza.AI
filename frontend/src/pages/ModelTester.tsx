@@ -104,13 +104,15 @@ export default function ModelTester() {
   const handleSend = async () => {
     if ((!input.trim() && !image) || (!selectedModel && engine !== 'custom') || loading) return;
 
+    const userMsgText = input.trim();
+
     const userMsg: Message = { 
         role: 'user', 
         content: image ? [
-            { type: 'text', text: input.trim() },
+            { type: 'text', text: userMsgText },
             { type: 'image_url', image_url: { url: image } }
-        ] : input,
-        text_content: input,
+        ] : userMsgText,
+        text_content: userMsgText,
         image_url: image as string
     };
     const currentMessages = [...messages, userMsg];
@@ -124,6 +126,39 @@ export default function ModelTester() {
     setAbortController(controller);
 
     try {
+      const isAnalyze = userMsgText.startsWith('/analyze ');
+      if (isAnalyze) {
+          const question = userMsgText.replace('/analyze ', '');
+          setMessages(prev => [...prev, { role: 'system', content: `Iniciando análise profunda (Map-Reduce) do documento. Isso dividirá o arquivo em pedaços pequenos para economizar memória VRAM. Pode demorar alguns instantes...`, text_content: `Iniciando análise profunda (Map-Reduce)...` }]);
+          
+          const modelId = engine === 'llama.cpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
+          
+          const res = await fetch('/api/documents/analyze', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                  userQuestion: question,
+                  modelId: modelId,
+                  engineType: engine,
+                  ctxSize: ctxSize
+              })
+          });
+          
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || 'Erro ao analisar documento.');
+          
+          setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: `*(Análise Completa de ${data.chunksProcessed} partes)*\n\n${data.answer}`,
+              text_content: `*(Análise Completa de ${data.chunksProcessed} partes)*\n\n${data.answer}`
+          }]);
+          
+          setLoading(false);
+          setAbortController(null);
+          return;
+      }
+
       // Auto-start Llama.cpp engine if needed
       if (engine === 'llama.cpp') {
           const statusRes = await fetch('/api/inference/status');
@@ -146,10 +181,33 @@ export default function ModelTester() {
           }
       }
 
-      // Prepare OpenAI format payload
-      const chatHistory = currentMessages
-          .filter(m => m.role !== 'system') // Filter out UI system messages like "Engine started"
-          .map(m => ({ role: m.role, content: m.content }));
+      // Prepare OpenAI format payload com Auto-Compaction (Sliding Window)
+      // Estima a contagem de tokens (1 token ≈ 4 caracteres em média)
+      const estimateTokens = (text: string) => Math.ceil((text || '').length / 4);
+      
+      // Reserva 20% do contexto para a resposta da IA (margem de segurança)
+      const MAX_TOKENS_FOR_HISTORY = Math.floor(ctxSize * 0.8);
+      let currentTokenCount = systemPrompt ? estimateTokens(systemPrompt) : 0;
+      
+      const prunedMessages = [];
+      const filterSystem = currentMessages.filter(m => m.role !== 'system');
+      
+      // Adiciona as mensagens de trás para frente (da mais recente para a mais antiga)
+      for (let i = filterSystem.length - 1; i >= 0; i--) {
+          const msg = filterSystem[i];
+          const contentStr = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+          const msgTokens = estimateTokens(contentStr);
+          
+          if (currentTokenCount + msgTokens > MAX_TOKENS_FOR_HISTORY) {
+              console.warn('Contexto cheio! Mensagens antigas foram ocultadas desta requisição para evitar erro 400.');
+              break;
+          }
+          
+          currentTokenCount += msgTokens;
+          prunedMessages.unshift({ role: msg.role, content: msg.content });
+      }
+      
+      const chatHistory = prunedMessages;
 
       if (systemPrompt) {
           chatHistory.unshift({ role: 'system', content: systemPrompt });
@@ -341,7 +399,7 @@ export default function ModelTester() {
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent)]" />
                    <Terminal size={64} className="group-hover:scale-110 transition-transform duration-700" />
                 </div>
-                <h2 className="text-5xl md:text-7xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tighter leading-none">{t('dash_ready')}</h2>
+              <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tighter leading-none">{t('dash_ready')}</h2>
                 <p className="text-[var(--text-secondary)] max-w-md text-xl font-medium leading-relaxed opacity-80">{t('chat_selectToBegin') || 'Select a model and engine to start a local conversation.'}</p>
                 <div className="mt-12 flex gap-4">
                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" />
@@ -358,7 +416,7 @@ export default function ModelTester() {
                  <Bot size={32} />
               </div>
               <div className="hidden sm:block">
-                 <div className="text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-[12rem] sm:max-w-xs md:max-w-lg lg:max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
                  <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                     <span className="text-xs text-emerald-500 font-black uppercase tracking-widest">{engine} engine active</span>
@@ -623,22 +681,27 @@ export default function ModelTester() {
                <SlashCommands 
                  input={input} 
                  onSelect={(cmd) => {
-                    if (cmd === '/clear') setMessages([{ role: 'assistant', content: t('chat_welcome') || 'Hello!', text_content: t('chat_welcome') || 'Hello!' }]);
-                    else if (cmd === '/gsd') { setSystemPrompt("Você é um programador de elite. Forneça apenas código, sem explicações. Pense passo a passo mas mostre apenas a solução final."); setShowSettings(true); }
-                    else if (cmd === '/compact') setMessages(prev => prev.slice(-4));
-                    else if (cmd === '/attach') document.querySelector<HTMLInputElement>('input[accept=".pdf,.txt,.docx"]')?.click();
+                if (cmd === '/clear') { setMessages([{ role: 'assistant', content: t('chat_welcome') || 'Hello!', text_content: t('chat_welcome') || 'Hello!' }]); setInput(''); }
+                else if (cmd === '/gsd') { setSystemPrompt("Você é um programador de elite. Forneça apenas código, sem explicações. Pense passo a passo mas mostre apenas a solução final."); setShowSettings(true); setInput(''); }
+                else if (cmd === '/compact') { setMessages(prev => prev.slice(-4)); setInput(''); }
+                else if (cmd === '/attach') { document.querySelector<HTMLInputElement>('input[accept=".pdf,.txt,.docx"]')?.click(); setInput(''); }
                     else if (cmd === '/info') {
                         const infoMsg = `🧠 **Modelo Ativo:** ${selectedModel?.name || 'Nenhum'}\n⚙️ **Motor:** ${engine}\n⚡ **Contexto Atual:** ${ctxSize} tokens`;
                         setMessages(prev => [...prev, { role: 'system', content: infoMsg, text_content: infoMsg }]);
+                    setInput('');
                     }
                     else if (cmd === '/ajuda') {
-                        const helpMsg = `**Comandos Disponíveis:**\n- **/gsd**: Modo programador de elite\n- **/clear**: Limpa o chat\n- **/compact**: Limpa mensagens antigas para poupar VRAM\n- **/attach**: Anexar documentos (RAG)\n- **/info**: Status do modelo e motor\n- **/context**: Ajustar tamanho de contexto (Tokens)`;
+                    const helpMsg = `**Comandos Disponíveis:**\n- **/gsd**: Modo programador de elite\n- **/clear**: Limpa o chat\n- **/compact**: Limpa mensagens antigas para poupar VRAM\n- **/attach**: Anexar documentos (RAG)\n- **/analyze**: Analisar arquivo grande com Map-Reduce\n- **/info**: Status do modelo e motor\n- **/context**: Ajustar tamanho de contexto (Tokens)`;
                         setMessages(prev => [...prev, { role: 'system', content: helpMsg, text_content: helpMsg }]);
+                    setInput('');
+                }
+                else if (cmd === '/analyze') {
+                    setInput('/analyze ');
                     }
                     else if (cmd === '/context') {
                         setShowSettings(true);
-                    }
                     setInput('');
+                    }
                  }} 
                />
                <label className="p-3 md:p-4 transition-colors shrink-0 cursor-pointer text-[var(--text-muted)] hover:text-blue-500" title="Anexar Imagem para Modelos de Visão">
