@@ -127,7 +127,8 @@ let config = {
     ],
     comfyDir: 'C:\\ComfyUI_windows_portable',
     sectionOrder: ['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone'],
-    activeRouterModel: null
+    activeRouterModel: null,
+    vramShieldLimit: 32768
 };
 if (fs.existsSync(CONFIG_FILE)) {
     try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) { logger.error('Failed to read config', e); }
@@ -564,6 +565,83 @@ app.post('/v1/chat/completions', async (req, res) => {
         }
     }
 
+    // --- VRAM SHIELD: SMART COMPACTION FOR AGENTS (CODER) ---
+    // Protege a placa de vídeo limitando estritamente os payloads gigantes gerados por ferramentas
+    
+    // CORREÇÃO CRÍTICA DO ESTOURO DE CONTEXTO:
+    // Agentes (como Claude Code/Roo) enviam max_tokens gigantes (ex: 64000) esperando modelos na nuvem.
+    // O Gateway deve limitar-se SEMPRE ao teto físico real (vramShieldLimit) para proteger o motor.
+    const hardwareLimit = config.vramShieldLimit || 32768;
+    const requestCtx = req.body.num_ctx ? Math.min(req.body.num_ctx, hardwareLimit) : hardwareLimit;
+    
+    // CORREÇÃO CRÍTICA: Código e JSON possuem muito mais tokens por caractere que texto normal.
+    // 1 token ≈ 2.5 a 3 caracteres (em vez de 4). Usaremos 2.5 para garantia total.
+    // Reservamos 25% do contexto (Tools/Funções consomem milhares de tokens na sintaxe do backend)
+    const SAFE_TOKEN_LIMIT = Math.floor(requestCtx * 0.75); 
+    const CHAR_LIMIT = Math.floor(SAFE_TOKEN_LIMIT * 2.5);
+    
+    // Nenhuma leitura de arquivo individual deve ocupar mais de 50% do payload
+    const INDIVIDUAL_MSG_LIMIT = Math.floor(CHAR_LIMIT * 0.50);
+
+    // 1. Trunca respostas individuais gigantes (Ex: Agente tentou ler um arquivo de 50.000 linhas)
+    finalMessages.forEach(msg => {
+        if (typeof msg.content === 'string' && msg.content.length > INDIVIDUAL_MSG_LIMIT && msg.role !== 'system') {
+            logger.warn(`[API Gateway] Mensagem gigante de ${msg.content.length} chars detectada no papel '${msg.role}'. Aplicando truncamento tático.`);
+            msg.content = msg.content.substring(0, INDIVIDUAL_MSG_LIMIT) + "\n\n... [SYSTEM WARNING: CONTENT TRUNCATED DUE TO VRAM LIMITS. THE FILE IS TOO LARGE. DO NOT TRY TO READ IT ALL AT ONCE. USE TERMINAL TOOLS LIKE 'grep', 'sed', 'head', 'tail', OR READ SPECIFIC LINE RANGES TO ANALYZE THIS FILE IN SMALLER CHUNKS.]";
+        } else if (Array.isArray(msg.content)) {
+            // Caso o payload venha num array (ex: multimodal)
+            msg.content.forEach(item => {
+                if (item.type === 'text' && item.text && item.text.length > INDIVIDUAL_MSG_LIMIT) {
+                    item.text = item.text.substring(0, INDIVIDUAL_MSG_LIMIT) + "\n\n... [SYSTEM WARNING: CONTENT TRUNCATED DUE TO VRAM LIMITS. READ IN SMALLER CHUNKS.]";
+                }
+            });
+        }
+    });
+
+    // 2. Sliding Window: Se o histórico total da conversa ainda ultrapassar o limite, apagamos as mensagens do meio
+    let currentChars = 0;
+    const systemMsgs = finalMessages.filter(m => m.role === 'system');
+    const nonSystemMsgs = finalMessages.filter(m => m.role !== 'system');
+    
+    systemMsgs.forEach(m => currentChars += (typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content).length));
+    
+    const compactedMessages = [];
+    
+    // Adicionamos as mensagens de trás para frente (garantindo que o agente se lembre da ação mais recente)
+    for (let i = nonSystemMsgs.length - 1; i >= 0; i--) {
+        const msg = nonSystemMsgs[i];
+        const msgLen = typeof msg.content === 'string' ? msg.content.length : JSON.stringify(msg.content).length;
+        
+        if (currentChars + msgLen > CHAR_LIMIT) {
+            // Correção da Falha da Última Mensagem:
+            // Se o histórico de mensagens antigas for removido, mas a ÚLTIMA AÇÃO do agente SOZINHA 
+            // for maior que a margem, nós a cortamos à força (em vez de descartá-la inteira).
+            if (compactedMessages.length === 0) {
+                 logger.warn(`[API Gateway] Apenas a última mensagem já excede a VRAM restante. Truncando agressivamente.`);
+                 const allowedLen = Math.max(0, CHAR_LIMIT - currentChars - 500); // 500 chars margem de erro
+                 if (typeof msg.content === 'string') {
+                     msg.content = msg.content.substring(0, allowedLen) + "\n\n... [SYSTEM WARNING: EXTREME TRUNCATION APPLIED. YOUR LAST TOOL OUTPUT WAS IMMENSE.]";
+                 } else if (Array.isArray(msg.content)) {
+                     const textItem = msg.content.find(x => x.type === 'text');
+                     if (textItem && textItem.text) {
+                         textItem.text = textItem.text.substring(0, allowedLen) + "\n\n... [SYSTEM WARNING: EXTREME TRUNCATION APPLIED.]";
+                     }
+                 }
+                 compactedMessages.unshift(msg);
+            } else {
+                 logger.warn(`[API Gateway] Histórico antigo do agente descartado para caber no contexto.`);
+            }
+            break; // Atingiu o teto
+        }
+        currentChars += msgLen;
+        compactedMessages.unshift(msg);
+    }
+    
+    // Reescreve a payload da requisição com as mensagens compactadas
+    finalMessages.length = 0;
+    finalMessages.push(...systemMsgs, ...compactedMessages);
+    // --- END VRAM SHIELD ---
+
     // Preserve all original OpenAI properties (tools, temperature, etc) but replace model and messages
     const finalPayload = {
         ...req.body,
@@ -594,8 +672,11 @@ app.post('/v1/chat/completions', async (req, res) => {
         let currentIteration = 0;
         let streamFinished = false;
 
+        logger.info(`[API Gateway] [AUDIT] Iniciando fluxo de geração. Prevenção de loop ativada: Máximo de ${maxIterations} iterações.`);
+
         while (currentIteration < maxIterations && !streamFinished) {
             currentIteration++;
+            logger.info(`[API Gateway] [AUDIT] Iteração ${currentIteration}/${maxIterations} em andamento.`);
             
             while (retryCount < 5) {
                 try {
@@ -687,6 +768,9 @@ app.post('/v1/chat/completions', async (req, res) => {
                                         interceptedToolName = tc.function.name;
                                         interceptedToolId = tc.id || `call_${Date.now()}`;
                                     } else {
+                                        if (!passThrough) {
+                                            logger.info(`[API Gateway] [AUDIT] Repassando pedido de ferramenta '${tc.function.name}' para o Agente Cliente (ex: Roo Code) executar.`);
+                                        }
                                         passThrough = true;
                                         sendHeaders();
                                         chunkCache.forEach(c => res.write(c));
@@ -713,6 +797,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                         let query = '';
                         try { query = JSON.parse(interceptedToolArgs).query; } catch(e) { query = interceptedToolArgs; }
                         
+                        logger.info(`[API Gateway] [AUDIT] Ferramenta '${interceptedToolName}' acionada. Resolvendo e aguardando resposta...`);
                         const searchResults = await performWebSearch(query);
                         
                         finalPayload.messages.push({ role: 'assistant', content: '', tool_calls: [{ id: interceptedToolId, type: 'function', function: { name: 'centraliza_web_search', arguments: interceptedToolArgs } }] });
@@ -720,6 +805,18 @@ app.post('/v1/chat/completions', async (req, res) => {
                         
                         retryCount = 0; 
                         continue; 
+                        if (currentIteration >= maxIterations) {
+                            logger.warn(`[API Gateway] [AUDIT] Limite de segurança atingido (${maxIterations}/${maxIterations})! Quebrando o loop do modelo para evitar execuções infinitas.`);
+                            if (!headersSentToClient) sendHeaders();
+                            res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: "\n\n*[AVISO DO SISTEMA: O modelo atingiu o limite máximo de execuções encadeadas de ferramentas. O loop foi interrompido para sua proteção.]*" } }] })}\n\n`);
+                            res.write('data: [DONE]\n\n');
+                            res.end();
+                            streamFinished = true;
+                        } else {
+                            logger.info(`[API Gateway] [AUDIT] Retornando contexto da ferramenta para o motor (Próximo loop).`);
+                            retryCount = 0; 
+                            continue; 
+                        }
                     } else {
                         if (!headersSentToClient) sendHeaders();
                         if (!passThrough) chunkCache.forEach(c => res.write(c));
@@ -744,6 +841,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                         let query = '';
                         try { query = JSON.parse(tc.function.arguments).query; } catch(e) { query = tc.function.arguments; }
                         
+                        logger.info(`[API Gateway] [AUDIT] Ferramenta '${tc.function.name}' executada (non-stream).`);
                         const searchResults = await performWebSearch(query);
                         
                         finalPayload.messages.push(dataObj.choices[0].message);
@@ -751,6 +849,17 @@ app.post('/v1/chat/completions', async (req, res) => {
                         
                         retryCount = 0;
                         continue;
+                        if (currentIteration >= maxIterations) {
+                            logger.warn(`[API Gateway] [AUDIT] Limite de segurança de ${maxIterations} iterações atingido! Parando o agente (non-stream).`);
+                            dataObj.choices[0].message.content = (dataObj.choices[0].message.content || '') + "\n\n*[AVISO DO SISTEMA: Loop interrompido. Limite máximo de chamadas de ferramenta alcançado.]*";
+                            delete dataObj.choices[0].message.tool_calls;
+                            res.setHeader('Content-Type', 'application/json');
+                            res.send(JSON.stringify(dataObj));
+                            streamFinished = true;
+                        } else {
+                            retryCount = 0;
+                            continue;
+                        }
                     } else {
                         res.setHeader('Content-Type', 'application/json');
                         res.send(rawText);
@@ -962,6 +1071,88 @@ app.post('/api/chat', async (req, res) => {
     } catch (e) { 
         logger.error('Chat error', e);
         res.status(500).json({ error: 'AI Server error: ' + e.message }); 
+    }
+});
+
+// --- MAP-REDUCE CAPABILITY ---
+app.post('/api/documents/analyze', async (req, res) => {
+    const { userQuestion, modelId, engineType, ctxSize = 8192 } = req.body;
+    
+    if (globalDocuments.length === 0) {
+        return res.status(400).json({ error: 'Nenhum documento em memória. Por favor, anexe um arquivo primeiro usando o clip de papel.' });
+    }
+
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const longText = globalDocuments.map(doc => doc.chunks.join('\n\n')).join('\n\n---\n\n');
+
+    // O tamanho do pedaço é calculado para usar 50% do contexto da IA disponível (em caracteres, multiplicando tokens por 4)
+    const CHUNK_SIZE = Math.floor((ctxSize * 0.5) * 4);
+    const chunks = [];
+    for (let i = 0; i < longText.length; i += CHUNK_SIZE) {
+        chunks.push(longText.slice(i, i + CHUNK_SIZE));
+    }
+
+    logger.info(`[Map-Reduce] Inciando análise. Documento tem ${chunks.length} pedaços. Modelo: ${modelId}, Motor: ${engineType}`);
+    
+    try {
+        const summaries = [];
+        const isLlama = engineType === 'llama.cpp';
+        const url = isLlama ? `http://127.0.0.1:${currentLlamaPort}/completion` : 'http://127.0.0.1:11434/api/generate';
+
+        for (const [index, chunk] of chunks.entries()) {
+            logger.info(`[Map-Reduce] Lendo parte ${index + 1}/${chunks.length}...`);
+            const mapPrompt = `Você é um assistente de IA extraindo dados essenciais de partes de um texto. Resuma o seguinte texto de forma concisa e preserve fatos importantes.\n\nTEXTO:\n${chunk}\n\nRESUMO:`;
+
+            const payload = isLlama ? {
+                prompt: mapPrompt,
+                n_predict: Math.floor(ctxSize * 0.15),
+                stream: false
+            } : {
+                model: modelId,
+                prompt: mapPrompt,
+                stream: false,
+                options: { num_ctx: Math.floor(ctxSize * 0.6) }
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error(`Erro no motor (${response.status})`);
+            const data = await response.json();
+            summaries.push(isLlama ? data.content : data.response);
+        }
+
+        logger.info(`[Map-Reduce] Sintetizando ${summaries.length} resumos...`);
+        const combinedSummaries = summaries.join('\n\n---\n\n');
+        const finalPrompt = `Use os resumos abaixo extraídos do documento para responder detalhadamente à pergunta do usuário.\n\nRESUMOS DO DOCUMENTO:\n${combinedSummaries}\n\nPERGUNTA: ${userQuestion}\n\nRESPOSTA:`;
+
+        const finalPayload = isLlama ? {
+            prompt: finalPrompt,
+            n_predict: Math.floor(ctxSize * 0.25),
+            stream: false
+        } : {
+            model: modelId,
+            prompt: finalPrompt,
+            stream: false,
+            options: { num_ctx: ctxSize }
+        };
+
+        const finalResponse = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalPayload)
+        });
+
+        const finalData = await finalResponse.json();
+        const finalAnswer = isLlama ? finalData.content : finalData.response;
+        
+        res.json({ success: true, answer: finalAnswer, chunksProcessed: chunks.length });
+    } catch (error) {
+        logger.error('[Map-Reduce] Falha:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 

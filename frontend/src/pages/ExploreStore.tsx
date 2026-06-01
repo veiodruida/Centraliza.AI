@@ -235,13 +235,13 @@ export default function ExploreStore() {
       <header className="mb-16">
         <div className="flex justify-between items-start mb-12 gap-10 flex-wrap">
           <div className="space-y-4 flex-1">
-            <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase flex items-center gap-6">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase flex items-center gap-4 md:gap-6 break-words">
               {t('hub_title')}
               <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             </h2>
             <p className="text-[var(--text-secondary)] text-lg md:text-2xl font-medium max-w-2xl opacity-80 leading-relaxed">{t('hub_subtitle')}</p>
           </div>
-          <div className="card-premium py-6 px-10 flex items-center gap-10 shadow-premium backdrop-blur-3xl shrink-0">
+          <div className="card-premium py-4 px-6 md:py-6 md:px-10 flex items-center gap-6 md:gap-10 shadow-premium backdrop-blur-3xl shrink-0 flex-wrap">
              <div className="flex flex-col">
                 <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_gpu')}</span>
                 <span className="text-lg font-black text-[var(--text-primary)] tracking-tighter uppercase">{sysInfo?.gpuName || 'Detecting...'}</span>
@@ -264,7 +264,7 @@ export default function ExploreStore() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('hub_search')} 
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-5 pl-16 pr-8 text-base text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all shadow-xl font-medium"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all shadow-xl font-medium"
             />
           </div>
           
@@ -349,7 +349,7 @@ export default function ExploreStore() {
                   <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
                   <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{model.parameter_count}</span>
                 </div>
-                <h4 className="text-2xl md:text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors tracking-tighter uppercase break-words">{model.name.split('/').pop()}</h4>
+                <h4 className="text-xl md:text-2xl lg:text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors tracking-tighter uppercase break-words line-clamp-3">{model.name.split('/').pop()}</h4>
                 <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-8 line-clamp-2 opacity-70">{model.use_case}</p>
                 
                 <div className="flex gap-4 mb-8">
@@ -438,7 +438,7 @@ export default function ExploreStore() {
                             <span className="w-1.5 h-1.5 rounded-full bg-[var(--border)]"></span>
                             <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">{selectedModel.parameter_count}</span>
                          </div>
-                         <h3 className="text-4xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.9] uppercase">{selectedModel.name.split('/').pop()}</h3>
+                         <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.9] uppercase break-words">{selectedModel.name.split('/').pop()}</h3>
                       </div>
                    </div>
 
@@ -521,7 +521,7 @@ export default function ExploreStore() {
          <div className="w-24 h-24 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 text-blue-500 shadow-premium group-hover:rotate-12 transition-transform duration-700">
             <Monitor size={48} />
          </div>
-         <h3 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] mb-6 tracking-tighter uppercase leading-none">Add Custom Models</h3>
+         <h3 className="text-2xl sm:text-4xl md:text-6xl font-black text-[var(--text-primary)] mb-6 tracking-tighter uppercase leading-none break-words">Add Custom Models</h3>
          <p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-14 font-medium opacity-80 leading-relaxed">
             Can't find a specific DeepSeek or Llama version? Enter a HuggingFace URL to scan and add it to your local registry.
          </p>
@@ -539,9 +539,3 @@ export default function ExploreStore() {
     </motion.div>
   );
 }
-
-
-
-
-
-

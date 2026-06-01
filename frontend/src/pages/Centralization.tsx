@@ -120,7 +120,7 @@ export default function Centralization() {
     >
       <header className="mb-16 flex justify-between items-start flex-wrap gap-10">
         <div className="space-y-4">
-            <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-6 uppercase">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 md:gap-6 uppercase break-words">
              {t('central_title')}
              <ShieldCheck size={40} className="text-emerald-500" />
             </h2>
@@ -154,7 +154,7 @@ export default function Centralization() {
               <HelpTooltip text={t('central_spaceSavedHelp')} />
             </h3>
             <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-6xl md:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{(spaceSaved / (1024**3)).toFixed(1)}</p>
+               <p className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-all">{(spaceSaved / (1024**3)).toFixed(1)}</p>
                <span className="text-2xl font-black text-blue-500 uppercase tracking-widest">GB</span>
             </div>
             <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Recovered Storage Potential</p>
@@ -166,7 +166,7 @@ export default function Centralization() {
               <HelpTooltip text={t('central_standaloneHelp')} />
             </h3>
             <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-6xl md:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none">{standaloneCount}</p>
+               <p className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-all">{standaloneCount}</p>
                <span className="text-2xl font-black text-purple-500 uppercase tracking-widest">MODS</span>
             </div>
             <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Pending Centralization</p>
@@ -307,16 +307,16 @@ export default function Centralization() {
          </div>
       </div>
 
-      <section className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black p-12 md:p-24 rounded-[4rem] text-center relative overflow-hidden shadow-premium">
+      <section className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black p-6 sm:p-12 md:p-24 rounded-[2rem] md:rounded-[4rem] text-center relative overflow-hidden shadow-premium">
          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
          <div className="absolute -bottom-20 -right-20 w-[30rem] h-[30rem] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
          
          <div className="relative z-10 space-y-10">
-            <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto text-emerald-400 shadow-2xl backdrop-blur-3xl border border-white/10">
-               <ShieldCheck size={56} />
+            <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto text-emerald-400 shadow-2xl backdrop-blur-3xl border border-white/10 shrink-0">
+               <ShieldCheck className="w-8 h-8 md:w-14 md:h-14" />
             </div>
             <div className="space-y-4">
-              <h3 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
+              <h3 className="text-2xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9] break-words">
                  {t('central_sanityCheck')}
               </h3>
               <p className="text-blue-100/70 max-w-2xl mx-auto text-lg md:text-2xl leading-relaxed font-medium">
@@ -339,10 +339,3 @@ export default function Centralization() {
     </motion.div>
   );
 }
-
-
-
-
-
-
-

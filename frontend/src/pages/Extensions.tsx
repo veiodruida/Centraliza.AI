@@ -56,7 +56,7 @@ export default function Extensions() {
   return (
     <div className="p-6 md:p-10 space-y-8 text-[var(--text-primary)]">
       <div>
-        <h1 className="text-3xl font-black uppercase tracking-widest">Extensões & Integrações</h1>
+        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest break-words">Extensões & Integrações</h1>
         <p className="text-[var(--text-muted)] mt-2">
           Conecte o Centraliza.ai ao seu editor de código favorito com apenas um clique.
         </p>
@@ -105,7 +105,7 @@ export default function Extensions() {
           </button>
           <h3 className="text-lg font-bold text-purple-400 mb-4 pr-12">Configuração do Roo Code</h3>
           <p className="text-sm text-[var(--text-secondary)] mb-4">Cole os valores abaixo nas configurações do provedor de API dentro da extensão:</p>
-          <ul className="space-y-3 text-sm font-mono bg-[var(--bg-input)] p-4 rounded-xl border border-[var(--border)]">
+          <ul className="space-y-3 text-sm font-mono bg-[var(--bg-input)] p-4 rounded-xl border border-[var(--border)] break-all">
             <li><strong className="text-purple-300">API Provider:</strong> {rooInstructions.apiProvider}</li>
             <li><strong className="text-purple-300">Base URL:</strong> {rooInstructions.baseUrl}</li>
             <li><strong className="text-purple-300">API Key:</strong> {rooInstructions.apiKey}</li>
