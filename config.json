@@ -21,5 +21,5 @@
     "Hugging Face",
     "Standalone"
   ],
-  "activeRouterModel": "qwen2.5-coder:14b"
+  "activeRouterModel": "C:\\Users\\veio_\\.cache\\huggingface\\hub\\models--unsloth--Qwen3.6-27B-GGUF\\snapshots\\82d411acf4a06cfb8d9b073a5211bf410bfc29bf\\Qwen3.6-27B-Q3_K_S.gguf"
 }

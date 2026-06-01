@@ -181,7 +181,7 @@ export default function MyModels() {
           <header className="border-b border-[var(--border)] pb-12 mb-12 flex justify-between items-start flex-wrap gap-10">
              <div className="space-y-6 min-w-0 flex-1">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-3xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-all">{viewingModel.name}</h2>
+                  <h2 className="text-2xl sm:text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-all">{viewingModel.name}</h2>
                   <HelpTooltip text="Model details and management" />
                 </div>
                 <div className="flex gap-3 flex-wrap">
@@ -270,7 +270,7 @@ export default function MyModels() {
     >
       <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end mb-16 gap-8">
         <div className="space-y-4">
-          <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-6 uppercase">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 md:gap-6 uppercase break-words">
             {t('models_title')}
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
           </h2>
@@ -286,7 +286,7 @@ export default function MyModels() {
               placeholder={t('models_search')} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
-              className="w-full md:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-5 pl-16 pr-8 text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-xl transition-all font-medium" 
+              className="w-full md:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-xl transition-all font-medium" 
              />
           </div>
           <button onClick={fetchModels} className="bg-[var(--bg-surface)] hover:bg-[var(--bg-input)] text-[var(--text-primary)] p-5 rounded-2xl border border-[var(--border)] transition-all shadow-xl active:scale-95">
@@ -438,11 +438,3 @@ export default function MyModels() {
     </motion.div>
   );
 }
-
-
-
-
-
-
-
-

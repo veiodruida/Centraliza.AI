@@ -138,7 +138,7 @@ export default function Coder() {
     return (
         <div className="p-6 md:p-12 max-w-[100rem] mx-auto space-y-8 animate-fade-in">
             <header className="mb-8">
-                <h1 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase flex items-center gap-4">
+                <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase flex items-center gap-3 sm:gap-4 break-words">
                     <Terminal className="text-blue-500" size={40} />
                     {t('coder_title' as any)}
                 </h1>
@@ -184,7 +184,7 @@ export default function Coder() {
                         <select 
                             value={activeModel} 
                             onChange={handleModelChange}
-                            className="w-full p-4 bg-[var(--bg-input)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-blue-500 text-[var(--text-primary)] transition-all outline-none"
+                            className="w-full p-3 md:p-4 text-sm md:text-base bg-[var(--bg-input)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-blue-500 text-[var(--text-primary)] transition-all outline-none"
                         >
                             <option value="">Selecione o modelo...</option>
                             {models.map(m => (
@@ -321,7 +321,7 @@ export default function Coder() {
                             </div>
                             <button onClick={() => setShowTerminal(false)} className="text-gray-500 hover:text-white transition-colors"><X size={16} /></button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-6 font-mono text-[11px] md:text-xs leading-relaxed custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 font-mono text-[11px] md:text-xs leading-relaxed custom-scrollbar break-all">
                             {logs.map((log, i) => (
                                 <div key={i} className={`mb-2 ${log.level === 'ERROR' ? 'text-red-400' : log.level === 'WARN' ? 'text-yellow-400' : 'text-gray-400'}`}>
                                     <span className="opacity-40 mr-3">[{new Date(log.time).toLocaleTimeString()}]</span>
