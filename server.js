@@ -10,21 +10,41 @@ const checkDiskSpace = require('check-disk-space').default;
 
 // --- LOGGING SYSTEM ---
 const LOG_FILE = path.join(__dirname, 'server.log');
+const logClients = new Set();
+
+const DEBUG_PAYLOAD_FILE = path.join(__dirname, 'debug_payload.log');
+const logDebugPayload = (label, data) => {
+    try {
+        const entry = `\n[${new Date().toISOString()}] === ${label} ===\n${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}\n`;
+        fs.appendFileSync(DEBUG_PAYLOAD_FILE, entry);
+    } catch(e) {}
+};
+
+const broadcastLog = (level, msg) => {
+    const logEntry = JSON.stringify({ level, msg, time: new Date().toISOString() });
+    logClients.forEach(client => {
+        if (!client.writableEnded) client.write(`data: ${logEntry}\n\n`);
+    });
+};
+
 const logger = {
     info: (msg) => {
         const entry = `[${new Date().toISOString()}] [INFO] ${msg}`;
         console.log(entry);
         fs.appendFileSync(LOG_FILE, entry + '\n');
+        broadcastLog('INFO', msg);
     },
     error: (msg, err) => {
         const entry = `[${new Date().toISOString()}] [ERROR] ${msg} ${err ? (err.message || err) : ''}`;
         console.error(entry);
         fs.appendFileSync(LOG_FILE, entry + '\n');
+        broadcastLog('ERROR', `${msg} ${err ? (err.message || err) : ''}`);
     },
     warn: (msg) => {
         const entry = `[${new Date().toISOString()}] [WARN] ${msg}`;
         console.warn(entry);
         fs.appendFileSync(LOG_FILE, entry + '\n');
+        broadcastLog('WARN', msg);
     }
 };
 
@@ -106,11 +126,21 @@ app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
         const duration = Date.now() - start;
-        if (req.path.startsWith('/api')) {
+        if (req.path.startsWith('/api') || req.path.startsWith('/v1')) {
             logger.info(`${req.method} ${req.path} ${res.statusCode} - ${duration}ms`);
         }
     });
     next();
+});
+
+app.get('/api/logs/stream', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+    
+    logClients.add(res);
+    req.on('close', () => logClients.delete(res));
 });
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');
@@ -516,6 +546,7 @@ const WEB_SEARCH_TOOL = { type: 'function', function: { name: 'centraliza_web_se
 // --- API GATEWAY: OPENAI COMPATIBLE ---
 // Allows Centraliza.ai to act as a drop-in replacement for OpenAI API clients (like Continue.dev, AutoGen, etc)
 app.post('/v1/chat/completions', async (req, res) => {
+    logDebugPayload('INCOMING REQUEST', { url: req.originalUrl, body: req.body });
     const { model, messages, stream = false, endpoint } = req.body;
 
     if (!model || !messages || !Array.isArray(messages)) {
@@ -572,13 +603,17 @@ app.post('/v1/chat/completions', async (req, res) => {
     // Agentes (como Claude Code/Roo) enviam max_tokens gigantes (ex: 64000) esperando modelos na nuvem.
     // O Gateway deve limitar-se SEMPRE ao teto físico real (vramShieldLimit) para proteger o motor.
     const hardwareLimit = config.vramShieldLimit || 32768;
-    const requestCtx = req.body.num_ctx ? Math.min(req.body.num_ctx, hardwareLimit) : hardwareLimit;
+    let realCtxLimit = hardwareLimit;
+    // Se for o motor nativo Llama.cpp a correr, alinhamos estritamente ao contexto alocado no boot (Evita Crashes)
+    if (activeLlamaProcess && targetModel === currentLlamaModel) {
+        realCtxLimit = Math.min(hardwareLimit, currentLlamaCtx);
+    }
+    const requestCtx = req.body.num_ctx ? Math.min(req.body.num_ctx, realCtxLimit) : realCtxLimit;
     
     // CORREÇÃO CRÍTICA: Código e JSON possuem muito mais tokens por caractere que texto normal.
-    // 1 token ≈ 2.5 a 3 caracteres (em vez de 4). Usaremos 2.5 para garantia total.
-    // Reservamos 25% do contexto (Tools/Funções consomem milhares de tokens na sintaxe do backend)
-    const SAFE_TOKEN_LIMIT = Math.floor(requestCtx * 0.75); 
-    const CHAR_LIMIT = Math.floor(SAFE_TOKEN_LIMIT * 2.5);
+    // Agentes enviam prompts gigantes. Aumentamos a folga para 0.85 e usamos rácio mais permissivo (3.5).
+    const SAFE_TOKEN_LIMIT = Math.floor(requestCtx * 0.85); 
+    const CHAR_LIMIT = Math.floor(SAFE_TOKEN_LIMIT * 3.5);
     
     // Nenhuma leitura de arquivo individual deve ocupar mais de 50% do payload
     const INDIVIDUAL_MSG_LIMIT = Math.floor(CHAR_LIMIT * 0.50);
@@ -618,7 +653,7 @@ app.post('/v1/chat/completions', async (req, res) => {
             // for maior que a margem, nós a cortamos à força (em vez de descartá-la inteira).
             if (compactedMessages.length === 0) {
                  logger.warn(`[API Gateway] Apenas a última mensagem já excede a VRAM restante. Truncando agressivamente.`);
-                 const allowedLen = Math.max(0, CHAR_LIMIT - currentChars - 500); // 500 chars margem de erro
+                 const allowedLen = Math.max(4000, CHAR_LIMIT - currentChars - 500); // Garante 4000 chars mínimos
                  if (typeof msg.content === 'string') {
                      msg.content = msg.content.substring(0, allowedLen) + "\n\n... [SYSTEM WARNING: EXTREME TRUNCATION APPLIED. YOUR LAST TOOL OUTPUT WAS IMMENSE.]";
                  } else if (Array.isArray(msg.content)) {
@@ -649,12 +684,16 @@ app.post('/v1/chat/completions', async (req, res) => {
         messages: finalMessages
     };
     
-    if (finalPayload.tools) finalPayload.tools = [...finalPayload.tools, WEB_SEARCH_TOOL];
-    else finalPayload.tools = [WEB_SEARCH_TOOL];
+    // Se o cliente (ex: Roo Code) já fornecer as suas próprias tools, NÃO INJETAMOS o web search.
+    // Isso previne confusão no Agente Autónomo e protege a fluidez do Streaming (SSE).
+    if (!finalPayload.tools || finalPayload.tools.length === 0) {
+        finalPayload.tools = [WEB_SEARCH_TOOL];
+    }
 
     delete finalPayload.endpoint; // Remove internal routing param
 
     logger.info(`[API Gateway] Transparent routing to ${targetEndpoint} for model: ${targetModel} (Stream: ${stream})`);
+    logDebugPayload('OUTGOING PAYLOAD TO ENGINE', { endpoint: targetEndpoint, payload: finalPayload });
 
     try {
         let response;
@@ -672,6 +711,18 @@ app.post('/v1/chat/completions', async (req, res) => {
         let currentIteration = 0;
         let streamFinished = false;
 
+        // Moved outside the loop to persist across agent iterations
+        let headersSentToClient = false;
+        const sendHeaders = () => {
+            if (!res.headersSent && !headersSentToClient) {
+                res.setHeader('Content-Type', 'text/event-stream');
+                res.setHeader('Cache-Control', 'no-cache');
+                res.setHeader('Connection', 'keep-alive');
+                res.flushHeaders(); // Evita que o NodeJS bloqueie os headers no buffer
+                headersSentToClient = true;
+            }
+        };
+
         logger.info(`[API Gateway] [AUDIT] Iniciando fluxo de geração. Prevenção de loop ativada: Máximo de ${maxIterations} iterações.`);
 
         while (currentIteration < maxIterations && !streamFinished) {
@@ -687,12 +738,16 @@ app.post('/v1/chat/completions', async (req, res) => {
                         signal: controller.signal
                     });
                 } catch (fetchErr) {
+                    logDebugPayload('FETCH ERROR', { attempt: retryCount+1, error: fetchErr.message });
                     if (fetchErr.name === 'AbortError') {
                         logger.info('[API Gateway] Upstream request aborted successfully.');
                         if (!res.headersSent) res.end();
                         return;
                     }
-                    throw new Error(`Falha ao conectar com o motor em ${targetEndpoint}. Certifique-se de que a IA está a correr. Detalhes: ${fetchErr.message}`);
+                    logger.warn(`[API Gateway] Falha ao conectar com motor (${retryCount+1}/5): ${fetchErr.message}`);
+                    await new Promise(r => setTimeout(r, 2000));
+                    retryCount++;
+                    continue;
                 }
 
                 if (!response.ok) {
@@ -704,21 +759,30 @@ app.post('/v1/chat/completions', async (req, res) => {
                     }
                     const errText = await response.text();
                     
-                    // Fallback: Se o modelo não suportar tools, removemos e tentamos novamente
-                    if (response.status === 400 && errText.includes('does not support tools')) {
-                        logger.warn(`[API Gateway] O modelo não suporta tools nativamente. Removendo tools e tentando novamente...`);
+                    // Fallback: Modelos podem rejeitar tools retornando diversos erros (invalid_request, not supported)
+                    if (response.status === 400 && (errText.toLowerCase().includes('tool') || errText.toLowerCase().includes('function') || errText.toLowerCase().includes('invalid'))) {
+                        // Se o erro for puramente sobre tamanho de contexto, não retiramos tools para tentar novamente
+                        if (errText.toLowerCase().includes('context') || errText.toLowerCase().includes('exceed')) {
+                            logDebugPayload('CONTEXT EXCEEDED', { status: response.status, body: errText });
+                            throw new Error(`O tamanho do prompt excedeu o limite de contexto do motor local.`);
+                        }
+                        logger.warn(`[API Gateway] Erro 400 (Possível recusa de tools). Removendo tools e tentando novamente... Detalhes: ${errText}`);
                         delete finalPayload.tools;
                         delete finalPayload.tool_choice;
                         retryCount++;
                         continue;
                     }
                     
+                    logDebugPayload('UPSTREAM REJECTED', { status: response.status, body: errText });
                     throw new Error(`Upstream error: ${response.status} - ${errText}`);
                 }
                 break;
             }
 
-            if (!response || !response.ok) throw new Error(`Upstream error: Target endpoint unreachable.`);
+            if (!response || !response.ok) {
+                logDebugPayload('UPSTREAM FAILURE', 'Target endpoint unreachable.');
+                throw new Error(`Upstream error: Target endpoint unreachable.`);
+            }
 
             if (stream) {
                 const decoder = new TextDecoder();
@@ -730,34 +794,51 @@ app.post('/v1/chat/completions', async (req, res) => {
                 let interceptedToolId = '';
                 let chunkCache = [];
                 let passThrough = false;
-                let headersSentToClient = false;
-                
-                const sendHeaders = () => {
-                    if (!headersSentToClient) {
-                        res.setHeader('Content-Type', 'text/event-stream');
-                        res.setHeader('Cache-Control', 'no-cache');
-                        res.setHeader('Connection', 'keep-alive');
-                        headersSentToClient = true;
-                    }
-                };
+                let doneSent = false;
                 
                 try {
                     for await (const chunk of response.body) {
                         buffer += decoder.decode(chunk, { stream: true });
-                        let parts = buffer.split('\n\n');
+                        // Separação flexível por linha única lida perfeitamente com \n\n do OpenAI ou falhas do llama.cpp
+                        let parts = buffer.split(/\r?\n/);
                         buffer = parts.pop(); 
                         
                         for (const part of parts) {
-                            if (part.trim() === 'data: [DONE]') {
-                                chunkCache.push(part + '\n\n');
-                                if (passThrough) res.write(part + '\n\n');
+                            const trimmed = part.trim();
+                            if (!trimmed) continue;
+                            
+                            if (trimmed === 'data: [DONE]') {
+                                chunkCache.push(trimmed + '\n\n');
+                                if (passThrough) res.write(trimmed + '\n\n');
+                                doneSent = true;
                                 continue;
                             }
-                            if (!part.startsWith('data: ')) continue;
                             
-                            const dataStr = part.replace(/^data: /, '');
+                            if (!trimmed.startsWith('data: ')) {
+                                // Buggy engines podem retornar 200 OK com JSON puro de erro em vez de SSE
+                                if (trimmed.startsWith('{"error"')) {
+                                    logger.error('[API Gateway] Upstream retornou JSON de erro no stream: ' + trimmed);
+                                    if (!headersSentToClient) {
+                                        res.status(500).setHeader('Content-Type', 'application/json');
+                                        res.write(trimmed);
+                                        res.end();
+                                        headersSentToClient = true;
+                                    } else res.end();
+                                    streamFinished = true;
+                                    return;
+                                }
+                                if (passThrough) res.write(part + '\n');
+                                continue;
+                            }
+                            
+                            const dataStr = trimmed.replace(/^data:\s*/, '');
                             let dataObj;
-                            try { dataObj = JSON.parse(dataStr); } catch(e) { continue; }
+                            try { 
+                                dataObj = JSON.parse(dataStr); 
+                            } catch(e) { 
+                                if (passThrough) res.write(trimmed + '\n\n');
+                                continue; 
+                            }
                             
                             const delta = dataObj.choices?.[0]?.delta;
                             if (delta?.tool_calls?.length > 0) {
@@ -769,7 +850,7 @@ app.post('/v1/chat/completions', async (req, res) => {
                                         interceptedToolId = tc.id || `call_${Date.now()}`;
                                     } else {
                                         if (!passThrough) {
-                                            logger.info(`[API Gateway] [AUDIT] Repassando pedido de ferramenta '${tc.function.name}' para o Agente Cliente (ex: Roo Code) executar.`);
+                                            logger.info(`[API Gateway] [AUDIT] Repassando ferramenta '${tc.function.name}' para o Roo Code.`);
                                         }
                                         passThrough = true;
                                         sendHeaders();
@@ -778,7 +859,8 @@ app.post('/v1/chat/completions', async (req, res) => {
                                     }
                                 }
                                 if (interceptingTool && tc.function?.arguments) interceptedToolArgs += tc.function.arguments;
-                            } else if (delta?.content) {
+                            } else if (delta !== undefined) {
+                                // Tem conteúdo (mesmo vazio) ou role. Abrir portas para o Roo!
                                 if (!interceptingTool && !passThrough) {
                                     passThrough = true;
                                     sendHeaders();
@@ -787,10 +869,16 @@ app.post('/v1/chat/completions', async (req, res) => {
                                 }
                             }
                             
-                            if (interceptingTool) chunkCache.push(part + '\n\n');
-                            else if (passThrough) res.write(part + '\n\n');
-                            else chunkCache.push(part + '\n\n');
+                            if (interceptingTool) chunkCache.push(trimmed + '\n\n');
+                            else if (passThrough) res.write(trimmed + '\n\n');
+                            else chunkCache.push(trimmed + '\n\n');
                         }
+                    }
+                    
+                    // Despejar qualquer buffer remanescente vital preso na memória
+                    if (buffer.trim()) {
+                        const trimmed = buffer.trim();
+                        if (trimmed.startsWith('data: ') && passThrough) res.write(trimmed + '\n\n');
                     }
                     
                     if (interceptingTool && interceptedToolName === 'centraliza_web_search') {
@@ -803,8 +891,6 @@ app.post('/v1/chat/completions', async (req, res) => {
                         finalPayload.messages.push({ role: 'assistant', content: '', tool_calls: [{ id: interceptedToolId, type: 'function', function: { name: 'centraliza_web_search', arguments: interceptedToolArgs } }] });
                         finalPayload.messages.push({ role: 'tool', tool_call_id: interceptedToolId, name: 'centraliza_web_search', content: searchResults });
                         
-                        retryCount = 0; 
-                        continue; 
                         if (currentIteration >= maxIterations) {
                             logger.warn(`[API Gateway] [AUDIT] Limite de segurança atingido (${maxIterations}/${maxIterations})! Quebrando o loop do modelo para evitar execuções infinitas.`);
                             if (!headersSentToClient) sendHeaders();
@@ -813,20 +899,24 @@ app.post('/v1/chat/completions', async (req, res) => {
                             res.end();
                             streamFinished = true;
                         } else {
-                            logger.info(`[API Gateway] [AUDIT] Retornando contexto da ferramenta para o motor (Próximo loop).`);
                             retryCount = 0; 
                             continue; 
                         }
                     } else {
                         if (!headersSentToClient) sendHeaders();
                         if (!passThrough) chunkCache.forEach(c => res.write(c));
+                        
+                        // PREVENÇÃO CRÍTICA PARA O ROO CODE: Injetar manualmente o [DONE] final se o motor não o enviou
+                        if (!doneSent) {
+                             res.write('data: [DONE]\n\n');
+                        }
                         res.end();
                         streamFinished = true;
                     }
                 } catch (err) {
                     logger.warn('Stream response body error: ', err);
-                    if (headersSentToClient) res.end();
-                    else throw err;
+                    if (!headersSentToClient) res.status(500).json({ error: { message: err.message } });
+                    else res.end();
                     streamFinished = true;
                 }
             } else {
@@ -847,8 +937,6 @@ app.post('/v1/chat/completions', async (req, res) => {
                         finalPayload.messages.push(dataObj.choices[0].message);
                         finalPayload.messages.push({ role: 'tool', tool_call_id: tc.id, name: 'centraliza_web_search', content: searchResults });
                         
-                        retryCount = 0;
-                        continue;
                         if (currentIteration >= maxIterations) {
                             logger.warn(`[API Gateway] [AUDIT] Limite de segurança de ${maxIterations} iterações atingido! Parando o agente (non-stream).`);
                             dataObj.choices[0].message.content = (dataObj.choices[0].message.content || '') + "\n\n*[AVISO DO SISTEMA: Loop interrompido. Limite máximo de chamadas de ferramenta alcançado.]*";
@@ -875,9 +963,32 @@ app.post('/v1/chat/completions', async (req, res) => {
     } catch (e) {
         logger.error('[API Gateway] Error routing completion request', e);
         if (e.name !== 'AbortError') {
-            res.status(500).json({ error: 'AI Gateway Error: ' + e.message });
+            if (!res.headersSent) {
+                // Padronização OpenAI Compatible rigorosa para extensões
+                res.status(500).json({ error: { message: 'AI Gateway Error: ' + e.message, type: 'server_error', code: 500 } });
+            } else {
+                res.end();
+            }
         }
     }
+});
+
+// --- API GATEWAY: MOCK OPENAI MODELS ---
+// Essencial para evitar que extensões (Roo/Continue) congelem ao tentar validar a ligação.
+// SEMPRE retorna 'centraliza-router' — o ID que o Roo Code e Continue.dev estão configurados
+// para usar. Retornar o path GGUF causaria mismatch de validação nas extensões.
+app.get('/v1/models', (req, res) => {
+    res.json({
+        object: 'list',
+        data: [
+            {
+                id: 'centraliza-router',
+                object: 'model',
+                created: Math.floor(Date.now() / 1000),
+                owned_by: 'centraliza'
+            }
+        ]
+    });
 });
 
 // --- RAG (RETRIEVAL-AUGMENTED GENERATION) SYSTEM ---
@@ -959,7 +1070,7 @@ let currentLlamaPort = 8080;
 let currentLlamaModel = null;
 let currentLlamaCtx = 2048;
 
-app.post('/api/inference/start', (req, res) => {
+app.post('/api/inference/start', async (req, res) => {
     const { modelPath, ngl = 0, ctx = 2048 } = req.body;
     if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
 
@@ -971,14 +1082,26 @@ app.post('/api/inference/start', (req, res) => {
         }
 
         logger.info('[Llama.cpp] Terminating old engine to load new model or context size.');
-        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
-        else activeLlamaProcess.kill('SIGKILL');
+
+        await new Promise(r => {
+            if (os.platform() === 'win32') {
+                const killCmd = activeLlamaProcess.pid
+                    ? `taskkill /F /T /PID ${activeLlamaProcess.pid}`
+                    : `taskkill /F /IM llama-server.exe`;
+                exec(killCmd, () => setTimeout(r, 2000));
+            } else {
+                if (activeLlamaProcess.kill) activeLlamaProcess.kill('SIGKILL');
+                else exec('pkill -9 llama-server', () => {});
+                setTimeout(r, 2000);
+            }
+        });
         activeLlamaProcess = null;
     }
 
     const isWindows = os.platform() === 'win32';
     const binaryName = isWindows ? 'llama-server.exe' : 'llama-server';
     const args = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--port', String(currentLlamaPort)];
+    logDebugPayload('SPAWNING LLAMA.CPP', { binary: binaryName, args: args });
 
     try {
         const proc = spawn(binaryName, args, { stdio: 'pipe' });
@@ -1036,11 +1159,22 @@ app.post('/api/inference/start', (req, res) => {
     }
 });
 
-app.post('/api/inference/stop', (req, res) => {
+app.post('/api/inference/stop', async (req, res) => {
     if (activeLlamaProcess) {
-        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${activeLlamaProcess.pid}`, () => {});
-        else activeLlamaProcess.kill('SIGKILL');
+        await new Promise(r => {
+            if (os.platform() === 'win32') {
+                const killCmd = activeLlamaProcess.pid
+                    ? `taskkill /F /T /PID ${activeLlamaProcess.pid}`
+                    : `taskkill /F /IM llama-server.exe`;
+                exec(killCmd, () => setTimeout(r, 1000));
+            } else {
+                if (activeLlamaProcess.kill) activeLlamaProcess.kill('SIGKILL');
+                else exec('pkill -9 llama-server', () => {});
+                setTimeout(r, 1000);
+            }
+        });
         activeLlamaProcess = null;
+        currentLlamaModel = null;
         res.json({ success: true, message: 'Engine stopped.' });
     } else {
         res.json({ success: true, message: 'No engine running.' });
@@ -1443,6 +1577,24 @@ app.post('/api/open-folder', (req, res) => {
 });
 
 // --- CENTRALIZA CODER (AUTO-SYNC SYSTEM) ---
+function getCoderStatus() {
+    const coderDir = path.join(__dirname, 'data', 'free-claude-code');
+    // A instalação é confirmada pela presença do repositório git
+    const isInstalled = fs.existsSync(path.join(coderDir, '.git'));
+    let version = 'unknown';
+    if (isInstalled) {
+        try {
+            const pkgJsonPath = path.join(coderDir, 'package.json');
+            if (fs.existsSync(pkgJsonPath)) {
+                version = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8')).version || '1.0.0';
+            }
+        } catch(e) {
+            logger.warn('[Coder Status] Não foi possível ler o package.json para obter a versão.', e);
+        }
+    }
+    return { installed: isInstalled, path: coderDir, version };
+}
+
 async function syncCoder(isAuto = false) {
     const dataDir = path.join(__dirname, 'data');
     const coderDir = path.join(dataDir, 'free-claude-code');
@@ -1475,27 +1627,37 @@ async function syncCoder(isAuto = false) {
             await runCmd(`git clone ${repoUrl} free-claude-code`, dataDir);
         }
 
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Instalando dependências (npm install)...', progress: 60 });
-        await runCmd('npm install', coderDir);
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Instalando Node packages (se existirem)...', progress: 50 });
+        await runCmd('npm install', coderDir, true).catch(() => {});
 
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Configurando ambiente do agente (Python/uv)...', progress: 85 });
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Instalando CLI do Claude Code globalmente...', progress: 65 });
+        await runCmd('npm install -g @anthropic-ai/claude-code', coderDir, true).catch(err => {
+            logger.warn('[Coder Sync] Aviso: Falha ao instalar @anthropic-ai/claude-code globalmente. Talvez precise de permissões de Administrador.', err.message);
+        });
+
+        if (!isAuto) io.emit('coder-sync-progress', { status: 'Configurando ambiente Python (FastAPI/Uvicorn)...', progress: 85 });
         
         const isWin = os.platform() === 'win32';
         const setupCmd = isWin 
-            ? 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1'
-            : 'bash scripts/install.sh';
+            ? 'pip install -r requirements.txt || uv pip install -r requirements.txt || pip install fastapi uvicorn httpx pydantic'
+            : 'pip3 install -r requirements.txt || uv pip install -r requirements.txt || pip3 install fastapi uvicorn httpx pydantic';
             
-        // Usando as ferramentas de setup próprias do repositório (uv) em vez de comandos do Node
         await runCmd(setupCmd, coderDir, true).catch((err) => {
-            logger.warn('[Coder Sync] O script de instalação oficial falhou ou não existe. Ignorando...', err.message);
+            logger.warn('[Coder Sync] Aviso: Falha ao instalar dependências Python. Verifique se o Python/pip estão instalados.', err.message);
         });
 
         if (!isAuto) io.emit('coder-sync-progress', { status: 'Pronto!', progress: 100 });
         logger.info(`[Coder Sync] ${isAuto ? 'Auto-' : ''}Sync completed successfully.`);
-        return { success: true, message: 'Centraliza Coder synced successfully.' };
+
+        const newStatus = getCoderStatus();
+        if (!isAuto) {
+            // Emite um evento para todos os clientes atualizarem o status
+            io.emit('coder-status-updated', newStatus);
+        }
+        return { success: true, message: 'Sincronização concluída com sucesso!', status: newStatus };
     } catch (error) {
         logger.error('[Coder Sync] Critical Error:', error);
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Erro: ' + error.message, progress: -1 });
+        if (!isAuto) io.emit('coder-sync-progress', { status: `Erro: ${error.message}`, progress: -1 });
         throw error;
     }
 }
@@ -1510,13 +1672,7 @@ app.post('/api/coder/sync', async (req, res) => {
 });
 
 app.get('/api/coder/status', (req, res) => {
-    const coderDir = path.join(__dirname, 'data', 'free-claude-code');
-    const isInstalled = fs.existsSync(path.join(coderDir, 'package.json')) || fs.existsSync(path.join(coderDir, '.git'));
-    let version = 'unknown';
-    if (isInstalled) {
-        try { version = JSON.parse(fs.readFileSync(path.join(coderDir, 'package.json'))).version || '1.0.0'; } catch(e) {}
-    }
-    res.json({ installed: isInstalled, path: coderDir, version });
+    res.json(getCoderStatus());
 });
 
 // --- VS CODE / EDITOR INTEGRATION ---
@@ -1628,8 +1784,13 @@ const distPath = path.join(__dirname, 'frontend', 'dist');
 if (fs.existsSync(distPath)) {
     app.use(express.static(distPath));
     app.use((req, res, next) => {
-        if (!req.path.startsWith('/api')) res.sendFile(path.join(distPath, 'index.html'));
-        else next();
+        // Se for um pedido para a API ou Gateway, devolvemos 404 em JSON (evita crashes silenciosos nos clientes OpenAI)
+        // Se for qualquer outra coisa (navegador), devolvemos o React (index.html)
+        if (!req.path.startsWith('/api') && !req.path.startsWith('/v1')) {
+            res.sendFile(path.join(distPath, 'index.html'));
+        } else {
+            res.status(404).json({ error: { message: 'Endpoint not found in Centraliza API/Gateway.', type: 'invalid_request_error' } });
+        }
     });
 }
 
@@ -1648,9 +1809,25 @@ io.on('connection', (socket) => {
     });
 });
 
+async function probeExistingLlamaEngine() {
+    if (!config.activeRouterModel || !config.activeRouterModel.toLowerCase().endsWith('.gguf')) return;
+    try {
+        const resp = await fetch(`http://127.0.0.1:${currentLlamaPort}/health`, { signal: AbortSignal.timeout(2000) });
+        if (resp.ok) {
+            logger.info(`[Llama.cpp] Engine já a correr na porta ${currentLlamaPort}. Reconectando para modelo: ${path.basename(config.activeRouterModel)}`);
+            activeLlamaProcess = { pid: null, isExternal: true };
+            currentLlamaModel = config.activeRouterModel;
+            currentLlamaCtx = config.vramShieldLimit || 32768;
+        }
+    } catch(e) {
+        // Nenhum motor a correr — normal ao iniciar
+    }
+}
+
 if (require.main === module) {
     server.listen(4000, () => {
         logger.info('Centraliza.ai on http://localhost:4000');
+        probeExistingLlamaEngine().catch(() => {});
         syncCoder(true).catch(() => {}); // Auto-sync invisível ao iniciar
     });
 }
