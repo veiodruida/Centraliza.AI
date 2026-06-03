@@ -577,6 +577,10 @@ app.post('/v1/chat/completions', async (req, res) => {
 
     const finalMessages = [...messages];
 
+    // Qwen3 thinking is controlled via the Jinja template kwarg `enable_thinking`, NOT via
+    // text tokens in the system/user message. The kwarg is injected per-request below (see
+    // chat_template_kwargs) and at server startup (--reasoning off). No text injection needed.
+
     // --- RAG RETRIEVAL INJECTION ---
     // If documents are loaded in memory, inject their full content as context.
     if (globalDocuments.length > 0) {
@@ -596,8 +600,8 @@ app.post('/v1/chat/completions', async (req, res) => {
         }
     }
 
-    // --- VRAM SHIELD: SMART COMPACTION FOR AGENTS (CODER) ---
-    // Protege a placa de vídeo limitando estritamente os payloads gigantes gerados por ferramentas
+    // --- VRAM SHIELD v2: SMART COMPACTION WITH INTELLIGENT SUMMARIZATION ---
+    // Protege a placa de vídeo com compaction inteligente e monitoramento de métricas
     
     // CORREÇÃO CRÍTICA DO ESTOURO DE CONTEXTO:
     // Agentes (como Claude Code/Roo) enviam max_tokens gigantes (ex: 64000) esperando modelos na nuvem.
@@ -609,31 +613,66 @@ app.post('/v1/chat/completions', async (req, res) => {
         realCtxLimit = Math.min(hardwareLimit, currentLlamaCtx);
     }
     const requestCtx = req.body.num_ctx ? Math.min(req.body.num_ctx, realCtxLimit) : realCtxLimit;
-    
-    // CORREÇÃO CRÍTICA: Código e JSON possuem muito mais tokens por caractere que texto normal.
-    // Agentes enviam prompts gigantes. Aumentamos a folga para 0.85 e usamos rácio mais permissivo (3.5).
-    const SAFE_TOKEN_LIMIT = Math.floor(requestCtx * 0.85); 
-    const CHAR_LIMIT = Math.floor(SAFE_TOKEN_LIMIT * 3.5);
-    
+
+    // Código e JSON tokenizam mais denso (~2.5 chars/token vs 3.5 para texto).
+    // Margem de 75% para deixar espaço para resposta do modelo.
+    const SAFE_TOKEN_LIMIT = Math.floor(requestCtx * 0.75);
+
+    // Roo Code sends 20+ tool definitions with full schemas — this can be 30-50k chars.
+    // Reserve those tokens so the message compaction budget is accurate.
+    const incomingToolsChars = JSON.stringify(req.body.tools || []).length;
+    const incomingToolsTokens = Math.ceil(incomingToolsChars / 2.5);
+    const effectiveTokenLimit = Math.max(2000, SAFE_TOKEN_LIMIT - incomingToolsTokens);
+    const CHAR_LIMIT = Math.floor(effectiveTokenLimit * 2.5);
+
     // Nenhuma leitura de arquivo individual deve ocupar mais de 50% do payload
     const INDIVIDUAL_MSG_LIMIT = Math.floor(CHAR_LIMIT * 0.50);
 
-    // 1. Trunca respostas individuais gigantes (Ex: Agente tentou ler um arquivo de 50.000 linhas)
+    // --- METRICS: Track compaction effectiveness ---
+    let totalMessagesBefore = finalMessages.length;
+    let totalCharsBefore = 0;
+    let truncatedMessages = 0;
+    let droppedMessages = 0;
+    
+    // Helper: Summarize large content intelligently
+    const summarizeContent = (content, maxLen) => {
+        if (typeof content !== 'string') return content;
+        if (content.length <= maxLen) return content;
+        
+        // Smart truncation: keep beginning and end, summarize middle
+        const keepStart = Math.floor(maxLen * 0.4);
+        const keepEnd = Math.floor(maxLen * 0.4);
+        const summaryLen = maxLen - keepStart - keepEnd;
+        
+        // Find a good truncation point (avoid cutting mid-line)
+        const startCut = content.substring(0, keepStart);
+        const endCut = content.substring(content.length - keepEnd);
+        
+        // Create a summary of the middle section
+        const middleSummary = `\n\n... [CONTENT SUMMARY: ${(content.length / 1000).toFixed(1)}KB omitted. Key sections preserved.] ...\n\n`;
+        
+        return startCut + middleSummary + endCut;
+    };
+
+    // 1. Trunca respostas individuais gigantes com sumarização inteligente
     finalMessages.forEach(msg => {
         if (typeof msg.content === 'string' && msg.content.length > INDIVIDUAL_MSG_LIMIT && msg.role !== 'system') {
-            logger.warn(`[API Gateway] Mensagem gigante de ${msg.content.length} chars detectada no papel '${msg.role}'. Aplicando truncamento tático.`);
-            msg.content = msg.content.substring(0, INDIVIDUAL_MSG_LIMIT) + "\n\n... [SYSTEM WARNING: CONTENT TRUNCATED DUE TO VRAM LIMITS. THE FILE IS TOO LARGE. DO NOT TRY TO READ IT ALL AT ONCE. USE TERMINAL TOOLS LIKE 'grep', 'sed', 'head', 'tail', OR READ SPECIFIC LINE RANGES TO ANALYZE THIS FILE IN SMALLER CHUNKS.]";
+            truncatedMessages++;
+            logger.warn(`[VRAM SHIELD] Mensagem gigante de ${msg.content.length} chars detectada no papel '${msg.role}'. Aplicando sumarização inteligente.`);
+            msg.content = summarizeContent(msg.content, INDIVIDUAL_MSG_LIMIT);
         } else if (Array.isArray(msg.content)) {
             // Caso o payload venha num array (ex: multimodal)
             msg.content.forEach(item => {
                 if (item.type === 'text' && item.text && item.text.length > INDIVIDUAL_MSG_LIMIT) {
-                    item.text = item.text.substring(0, INDIVIDUAL_MSG_LIMIT) + "\n\n... [SYSTEM WARNING: CONTENT TRUNCATED DUE TO VRAM LIMITS. READ IN SMALLER CHUNKS.]";
+                    truncatedMessages++;
+                    logger.warn(`[VRAM SHIELD] Conteúdo multimodal gigante detectado. Aplicando sumarização.`);
+                    item.text = summarizeContent(item.text, INDIVIDUAL_MSG_LIMIT);
                 }
             });
         }
     });
 
-    // 2. Sliding Window: Se o histórico total da conversa ainda ultrapassar o limite, apagamos as mensagens do meio
+    // 2. Sliding Window com compaction inteligente e métricas
     let currentChars = 0;
     const systemMsgs = finalMessages.filter(m => m.role === 'system');
     const nonSystemMsgs = finalMessages.filter(m => m.role !== 'system');
@@ -641,18 +680,20 @@ app.post('/v1/chat/completions', async (req, res) => {
     systemMsgs.forEach(m => currentChars += (typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content).length));
     
     const compactedMessages = [];
+    let lastTruncatedMsg = null;
     
     // Adicionamos as mensagens de trás para frente (garantindo que o agente se lembre da ação mais recente)
     for (let i = nonSystemMsgs.length - 1; i >= 0; i--) {
         const msg = nonSystemMsgs[i];
-        const msgLen = typeof msg.content === 'string' ? msg.content.length : JSON.stringify(msg.content).length;
+        const msgLen = (typeof msg.content === 'string' ? msg.content.length : JSON.stringify(msg.content ?? null).length)
+                     + (msg.tool_calls ? JSON.stringify(msg.tool_calls).length : 0);
         
         if (currentChars + msgLen > CHAR_LIMIT) {
             // Correção da Falha da Última Mensagem:
-            // Se o histórico de mensagens antigas for removido, mas a ÚLTIMA AÇÃO do agente SOZINHA 
+            // Se o histórico de mensagens antigas for removido, mas a ÚLTIMA AÇÃO do agente SOZINHA
             // for maior que a margem, nós a cortamos à força (em vez de descartá-la inteira).
             if (compactedMessages.length === 0) {
-                 logger.warn(`[API Gateway] Apenas a última mensagem já excede a VRAM restante. Truncando agressivamente.`);
+                 logger.warn(`[VRAM SHIELD] Apenas a última mensagem já excede a VRAM restante. Truncando agressivamente.`);
                  const allowedLen = Math.max(4000, CHAR_LIMIT - currentChars - 500); // Garante 4000 chars mínimos
                  if (typeof msg.content === 'string') {
                      msg.content = msg.content.substring(0, allowedLen) + "\n\n... [SYSTEM WARNING: EXTREME TRUNCATION APPLIED. YOUR LAST TOOL OUTPUT WAS IMMENSE.]";
@@ -664,7 +705,8 @@ app.post('/v1/chat/completions', async (req, res) => {
                  }
                  compactedMessages.unshift(msg);
             } else {
-                 logger.warn(`[API Gateway] Histórico antigo do agente descartado para caber no contexto.`);
+                 droppedMessages += nonSystemMsgs.length - i;
+                 logger.warn(`[VRAM SHIELD] Histórico antigo do agente descartado: ${droppedMessages} mensagens removidas.`);
             }
             break; // Atingiu o teto
         }
@@ -672,10 +714,18 @@ app.post('/v1/chat/completions', async (req, res) => {
         compactedMessages.unshift(msg);
     }
     
+    // Log compaction metrics
+    const totalCharsAfter = compactedMessages.reduce((sum, msg) =>
+        sum + (typeof msg.content === 'string' ? msg.content.length : JSON.stringify(msg.content).length), 0
+    );
+    const reductionPercent = ((totalCharsBefore - totalCharsAfter) / totalCharsBefore * 100).toFixed(1);
+    
+    logger.info(`[VRAM SHIELD] Compaction summary: ${totalMessagesBefore} → ${compactedMessages.length} msgs, ${truncatedMessages} truncated, ${droppedMessages} dropped, ${reductionPercent}% reduction`);
+    
     // Reescreve a payload da requisição com as mensagens compactadas
     finalMessages.length = 0;
     finalMessages.push(...systemMsgs, ...compactedMessages);
-    // --- END VRAM SHIELD ---
+    // --- END VRAM SHIELD v2 ---
 
     // Preserve all original OpenAI properties (tools, temperature, etc) but replace model and messages
     const finalPayload = {
@@ -691,6 +741,29 @@ app.post('/v1/chat/completions', async (req, res) => {
     }
 
     delete finalPayload.endpoint; // Remove internal routing param
+
+    // Disable Qwen3-family thinking via Jinja template kwarg.
+    // The model's chat template checks `enable_thinking` (not text tokens in messages).
+    // This generates <think>\n\n</think>\n\n (empty think block) instead of <think>\n (real thinking).
+    if (targetEndpoint.includes(`${currentLlamaPort}`)) {
+        finalPayload.chat_template_kwargs = { enable_thinking: false };
+    }
+
+    // Cap max_tokens so estimated_prompt_tokens + max_tokens <= realCtxLimit
+    {
+        const estimatedPromptTokens = Math.ceil(
+            (finalPayload.messages.reduce((acc, m) => {
+                const contentLen = typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content ?? null).length;
+                const toolCallsLen = m.tool_calls ? JSON.stringify(m.tool_calls).length : 0;
+                return acc + contentLen + toolCallsLen;
+            }, 0) + JSON.stringify(finalPayload.tools || []).length) / 2.5
+        );
+        const maxAllowedOutput = Math.max(512, realCtxLimit - estimatedPromptTokens - 200);
+        if (finalPayload.max_tokens && finalPayload.max_tokens > maxAllowedOutput) {
+            logger.warn(`[API Gateway] max_tokens capped ${finalPayload.max_tokens} → ${maxAllowedOutput} (prompt est. ${estimatedPromptTokens} tokens).`);
+            finalPayload.max_tokens = maxAllowedOutput;
+        }
+    }
 
     logger.info(`[API Gateway] Transparent routing to ${targetEndpoint} for model: ${targetModel} (Stream: ${stream})`);
     logDebugPayload('OUTGOING PAYLOAD TO ENGINE', { endpoint: targetEndpoint, payload: finalPayload });
@@ -761,10 +834,33 @@ app.post('/v1/chat/completions', async (req, res) => {
                     
                     // Fallback: Modelos podem rejeitar tools retornando diversos erros (invalid_request, not supported)
                     if (response.status === 400 && (errText.toLowerCase().includes('tool') || errText.toLowerCase().includes('function') || errText.toLowerCase().includes('invalid'))) {
-                        // Se o erro for puramente sobre tamanho de contexto, não retiramos tools para tentar novamente
+                        // Context overflow: emergency recompact and retry instead of failing
                         if (errText.toLowerCase().includes('context') || errText.toLowerCase().includes('exceed')) {
-                            logDebugPayload('CONTEXT EXCEEDED', { status: response.status, body: errText });
-                            throw new Error(`O tamanho do prompt excedeu o limite de contexto do motor local.`);
+                            let errObj = {};
+                            try { errObj = JSON.parse(errText); } catch(e) {}
+                            const errDetails = errObj?.error || {};
+                            const nPrompt = errDetails.n_prompt_tokens || 0;
+                            const nCtx = errDetails.n_ctx || realCtxLimit;
+
+                            if (retryCount < 3) {
+                                const targetChars = Math.floor((nCtx * 0.70) * 2.5);
+                                const sMsgs = finalPayload.messages.filter(m => m.role === 'system');
+                                const nsMsgs = finalPayload.messages.filter(m => m.role !== 'system');
+                                let chars = sMsgs.reduce((a, m) => a + (typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content).length), 0);
+                                const kept = [];
+                                for (let i = nsMsgs.length - 1; i >= 0; i--) {
+                                    const l = typeof nsMsgs[i].content === 'string' ? nsMsgs[i].content.length : JSON.stringify(nsMsgs[i].content).length;
+                                    if (chars + l > targetChars) break;
+                                    chars += l;
+                                    kept.unshift(nsMsgs[i]);
+                                }
+                                finalPayload.messages = [...sMsgs, ...kept];
+                                logger.warn(`[API Gateway] Context exceeded (${nPrompt}/${nCtx}). Emergency compaction: ${nsMsgs.length} → ${kept.length} msgs. Retrying...`);
+                                retryCount++;
+                                continue;
+                            }
+                            logDebugPayload('CONTEXT EXCEEDED UNRECOVERABLE', { status: response.status, body: errText });
+                            throw new Error(`O tamanho do prompt excedeu o limite de contexto mesmo após compactação de emergência.`);
                         }
                         logger.warn(`[API Gateway] Erro 400 (Possível recusa de tools). Removendo tools e tentando novamente... Detalhes: ${errText}`);
                         delete finalPayload.tools;
@@ -833,13 +929,22 @@ app.post('/v1/chat/completions', async (req, res) => {
                             
                             const dataStr = trimmed.replace(/^data:\s*/, '');
                             let dataObj;
-                            try { 
-                                dataObj = JSON.parse(dataStr); 
-                            } catch(e) { 
+                            try {
+                                dataObj = JSON.parse(dataStr);
+                            } catch(e) {
                                 if (passThrough) res.write(trimmed + '\n\n');
-                                continue; 
+                                continue;
                             }
-                            
+
+                            // Strip reasoning_content (Qwen3 thinking tokens) before forwarding.
+                            // OpenAI-compatible clients (Roo Code, etc.) only read delta.content —
+                            // receiving reasoning_content-only chunks causes "no assistant messages".
+                            let chunkToForward = trimmed;
+                            if (dataObj.choices?.[0]?.delta?.reasoning_content !== undefined) {
+                                delete dataObj.choices[0].delta.reasoning_content;
+                                chunkToForward = 'data: ' + JSON.stringify(dataObj);
+                            }
+
                             const delta = dataObj.choices?.[0]?.delta;
                             if (delta?.tool_calls?.length > 0) {
                                 const tc = delta.tool_calls[0];
@@ -868,10 +973,10 @@ app.post('/v1/chat/completions', async (req, res) => {
                                     chunkCache = [];
                                 }
                             }
-                            
-                            if (interceptingTool) chunkCache.push(trimmed + '\n\n');
-                            else if (passThrough) res.write(trimmed + '\n\n');
-                            else chunkCache.push(trimmed + '\n\n');
+
+                            if (interceptingTool) chunkCache.push(chunkToForward + '\n\n');
+                            else if (passThrough) res.write(chunkToForward + '\n\n');
+                            else chunkCache.push(chunkToForward + '\n\n');
                         }
                     }
                     
@@ -1071,7 +1176,7 @@ let currentLlamaModel = null;
 let currentLlamaCtx = 2048;
 
 app.post('/api/inference/start', async (req, res) => {
-    const { modelPath, ngl = 0, ctx = 2048 } = req.body;
+    const { modelPath, ngl = 0, ctx = 2048, reasoningBudget = 2048 } = req.body;
     if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
 
     if (activeLlamaProcess) {
@@ -1100,7 +1205,7 @@ app.post('/api/inference/start', async (req, res) => {
 
     const isWindows = os.platform() === 'win32';
     const binaryName = isWindows ? 'llama-server.exe' : 'llama-server';
-    const args = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--port', String(currentLlamaPort)];
+    const args = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--port', String(currentLlamaPort), '--reasoning', 'off'];
     logDebugPayload('SPAWNING LLAMA.CPP', { binary: binaryName, args: args });
 
     try {
