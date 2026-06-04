@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Paperclip, X, Loader2, FileText } from 'lucide-react';
+import { X, Loader2, FileText } from 'lucide-react';
 
 export default function RagUploader() {
     const [documents, setDocuments] = useState<any[]>([]);
@@ -54,7 +54,7 @@ export default function RagUploader() {
             ))}
             
             <label className="cursor-pointer flex items-center justify-center p-2.5 bg-[var(--bg-input)] hover:bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl text-[var(--text-muted)] hover:text-blue-500 transition-colors active:scale-95 shadow-sm" title="Anexar PDF, DOCX ou TXT">
-                {uploading ? <Loader2 size={18} className="animate-spin text-blue-500" /> : <Paperclip size={18} />}
+                {uploading ? <Loader2 size={18} className="animate-spin text-blue-500" /> : <FileText size={18} />}
                 <input type="file" className="hidden" accept=".pdf,.txt,.docx" onChange={handleUpload} disabled={uploading || documents.length >= 5} />
             </label>
         </div>

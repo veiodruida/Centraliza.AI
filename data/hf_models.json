@@ -26,7 +26,8 @@
         "repo": "mradermacher/nomic-embed-text-v1.5-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "nomic-embed-text"
   },
   {
     "name": "BAAI/bge-large-en-v1.5",
@@ -330,7 +331,8 @@
         "repo": "mradermacher/Qwen3-0.6B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen3:0.6b"
   },
   {
     "name": "Qwen/Qwen3.5-0.8B",
@@ -437,7 +439,8 @@
         "repo": "mradermacher/gemma-3-1b-it-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "gemma3:1b"
   },
   {
     "name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
@@ -470,7 +473,8 @@
         "repo": "mradermacher/TinyLlama-1.1B-Chat-v1.0-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "tinyllama"
   },
   {
     "name": "LiquidAI/LFM2-1.2B",
@@ -739,7 +743,8 @@
         "repo": "mradermacher/Llama-3.2-1B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "llama3.2:1b"
   },
   {
     "name": "LGAI-EXAONE/EXAONE-4.0-1.2B",
@@ -859,7 +864,8 @@
         "repo": "mradermacher/Qwen2.5-Coder-1.5B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5-coder:1.5b"
   },
   {
     "name": "LiquidAI/LFM2-VL-1.6B",
@@ -989,7 +995,8 @@
         "repo": "mradermacher/Qwen3-1.7B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen3:1.7b"
   },
   {
     "name": "Qwen/Qwen3.5-2B",
@@ -1175,7 +1182,8 @@
         "repo": "mradermacher/gemma-2-2b-it-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "gemma2:2b"
   },
   {
     "name": "LiquidAI/LFM2-VL-3B",
@@ -1299,7 +1307,8 @@
         "repo": "mradermacher/Llama-3.2-3B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "llama3.2:3b"
   },
   {
     "name": "Qwen/Qwen2.5-VL-3B-Instruct",
@@ -1399,7 +1408,8 @@
         "repo": "mradermacher/phi-3-mini-4k-instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "phi3:mini"
   },
   {
     "name": "microsoft/Phi-3.5-mini-instruct",
@@ -1432,7 +1442,8 @@
         "repo": "mradermacher/Phi-3.5-mini-instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "phi3.5:mini"
   },
   {
     "name": "google/gemma-3n-E2B-it",
@@ -1640,7 +1651,8 @@
         "repo": "mradermacher/vicuna-7b-v1.5-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "vicuna:7b"
   },
   {
     "name": "meta-llama/CodeLlama-7b-Instruct-hf",
@@ -1669,7 +1681,8 @@
         "repo": "mradermacher/CodeLlama-7b-Instruct-hf-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "codellama:7b"
   },
   {
     "name": "ibm-granite/granite-4.0-h-tiny",
@@ -1800,7 +1813,8 @@
     "num_hidden_layers": 32,
     "num_attention_heads": 36,
     "num_key_value_heads": 4,
-    "head_dim": 128
+    "head_dim": 128,
+    "ollama_name": "starcoder2:7b"
   },
   {
     "name": "tiiuae/falcon-7b-instruct",
@@ -1897,7 +1911,8 @@
         "repo": "mradermacher/Mistral-7B-Instruct-v0.3-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "mistral:7b"
   },
   {
     "name": "tiiuae/Falcon3-7B-Instruct",
@@ -1965,7 +1980,8 @@
         "repo": "mradermacher/Qwen2.5-7B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5:7b"
   },
   {
     "name": "Qwen/Qwen2.5-Coder-7B-Instruct",
@@ -2004,7 +2020,8 @@
         "repo": "mradermacher/Qwen2.5-Coder-7B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5-coder:7b"
   },
   {
     "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
@@ -2041,7 +2058,8 @@
         "repo": "mradermacher/DeepSeek-R1-Distill-Qwen-7B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "deepseek-r1:7b"
   },
   {
     "name": "google/gemma-4-E4B-it",
@@ -2135,7 +2153,8 @@
     "num_hidden_layers": null,
     "num_attention_heads": null,
     "num_key_value_heads": null,
-    "head_dim": null
+    "head_dim": null,
+    "ollama_name": "llama3.1:8b"
   },
   {
     "name": "meta-llama/Llama-3.1-8B-Instruct",
@@ -2166,7 +2185,8 @@
         "repo": "unsloth/Llama-3.1-8B-Instruct-GGUF",
         "provider": "unsloth"
       }
-    ]
+    ],
+    "ollama_name": "llama3.1:8b"
   },
   {
     "name": "mistralai/Ministral-8B-Instruct-2410",
@@ -2232,7 +2252,8 @@
         "repo": "mradermacher/Qwen3-8B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen3:8b"
   },
   {
     "name": "Qwen/Qwen2.5-VL-7B-Instruct",
@@ -2361,7 +2382,8 @@
         "repo": "mradermacher/gemma-2-9b-it-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "gemma2:9b"
   },
   {
     "name": "THUDM/glm-4-9b-chat",
@@ -2482,7 +2504,8 @@
     "num_hidden_layers": null,
     "num_attention_heads": null,
     "num_key_value_heads": null,
-    "head_dim": null
+    "head_dim": null,
+    "ollama_name": "llama3.2-vision:11b"
   },
   {
     "name": "upstage/SOLAR-10.7B-Instruct-v1.0",
@@ -2550,7 +2573,8 @@
         "repo": "mradermacher/gemma-3-12b-it-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "gemma3:12b"
   },
   {
     "name": "mistralai/Mistral-Nemo-Instruct-2407",
@@ -2581,7 +2605,8 @@
         "repo": "mradermacher/Mistral-Nemo-Instruct-2407-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "mistral-nemo"
   },
   {
     "name": "microsoft/Orca-2-13b",
@@ -2635,7 +2660,8 @@
         "repo": "mradermacher/vicuna-13b-v1.5-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "vicuna:13b"
   },
   {
     "name": "WizardLMTeam/WizardLM-13B-V1.2",
@@ -2691,7 +2717,8 @@
         "repo": "mradermacher/CodeLlama-13b-Instruct-hf-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "codellama:13b"
   },
   {
     "name": "microsoft/phi-4",
@@ -2722,7 +2749,8 @@
         "repo": "mradermacher/phi-4-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "phi4"
   },
   {
     "name": "microsoft/Phi-3-medium-14b-instruct",
@@ -2739,7 +2767,8 @@
     "architecture": "phi3",
     "hf_downloads": 0,
     "hf_likes": 0,
-    "release_date": null
+    "release_date": null,
+    "ollama_name": "phi3:medium"
   },
   {
     "name": "microsoft/Phi-4-reasoning",
@@ -2793,7 +2822,8 @@
         "repo": "mradermacher/Qwen2.5-14B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5:14b"
   },
   {
     "name": "Qwen/Qwen3-14B",
@@ -2824,7 +2854,8 @@
         "repo": "mradermacher/Qwen3-14B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen3:14b"
   },
   {
     "name": "Qwen/Qwen2.5-Coder-14B-Instruct",
@@ -2863,7 +2894,8 @@
         "repo": "mradermacher/Qwen2.5-Coder-14B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5-coder:14b"
   },
   {
     "name": "WizardLMTeam/WizardCoder-15B-V1.0",
@@ -2909,7 +2941,8 @@
         "repo": "mradermacher/starcoder2-15b-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "starcoder2:15b"
   },
   {
     "name": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
@@ -3043,7 +3076,8 @@
         "repo": "mradermacher/Mistral-Small-24B-Instruct-2501-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "mistral-small3.1:24b"
   },
   {
     "name": "google/gemma-4-26B-A4B-it",
@@ -3120,7 +3154,8 @@
         "repo": "mradermacher/gemma-2-27b-it-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "gemma2:27b"
   },
   {
     "name": "google/gemma-3-27b-it",
@@ -3160,7 +3195,8 @@
         "repo": "mradermacher/gemma-3-27b-it-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "gemma3:27b"
   },
   {
     "name": "Qwen/Qwen3.5-27B",
@@ -3354,7 +3390,8 @@
         "repo": "mradermacher/Qwen2.5-32B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5:32b"
   },
   {
     "name": "google/gemma-4-31B-it",
@@ -3433,7 +3470,8 @@
         "repo": "mradermacher/Qwen2.5-Coder-32B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5-coder:32b"
   },
   {
     "name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
@@ -3470,7 +3508,8 @@
         "repo": "mradermacher/DeepSeek-R1-Distill-Qwen-32B-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "deepseek-r1:32b"
   },
   {
     "name": "meta-llama/CodeLlama-34b-Instruct-hf",
@@ -3501,7 +3540,8 @@
         "repo": "mradermacher/CodeLlama-34b-Instruct-hf-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "codellama:34b"
   },
   {
     "name": "01-ai/Yi-34B-Chat",
@@ -3555,7 +3595,8 @@
         "repo": "mradermacher/c4ai-command-r-v01-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "command-r"
   },
   {
     "name": "Qwen/Qwen3.5-35B-A3B",
@@ -3701,7 +3742,8 @@
         "repo": "mradermacher/Mixtral-8x7B-Instruct-v0.1-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "mixtral:8x7b"
   },
   {
     "name": "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
@@ -3765,7 +3807,8 @@
     "num_hidden_layers": null,
     "num_attention_heads": null,
     "num_key_value_heads": null,
-    "head_dim": null
+    "head_dim": null,
+    "ollama_name": "llama3.1:70b"
   },
   {
     "name": "meta-llama/Llama-3.3-70B-Instruct",
@@ -3804,7 +3847,8 @@
         "repo": "mradermacher/Llama-3.3-70B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "llama3.3:70b"
   },
   {
     "name": "Qwen/Qwen2.5-72B-Instruct",
@@ -3839,7 +3883,8 @@
         "repo": "mradermacher/Qwen2.5-72B-Instruct-GGUF",
         "provider": "mradermacher"
       }
-    ]
+    ],
+    "ollama_name": "qwen2.5:72b"
   },
   {
     "name": "Qwen/Qwen3-Coder-Next",
@@ -3947,7 +3992,8 @@
     "is_moe": true,
     "num_experts": 8,
     "active_experts": 2,
-    "active_parameters": 39100000000
+    "active_parameters": 39100000000,
+    "ollama_name": "mixtral:8x22b"
   },
   {
     "name": "rednote-hilab/dots.llm1.inst",
@@ -4166,7 +4212,8 @@
         "repo": "ggml-org/Qwen3-235B-A22B-GGUF",
         "provider": "ggml-org"
       }
-    ]
+    ],
+    "ollama_name": "qwen3:235b-a22b"
   },
   {
     "name": "deepseek-ai/DeepSeek-V4-Flash-Base",
@@ -4357,7 +4404,8 @@
     "num_hidden_layers": null,
     "num_attention_heads": null,
     "num_key_value_heads": null,
-    "head_dim": null
+    "head_dim": null,
+    "ollama_name": "llama3.1:405b"
   },
   {
     "name": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
@@ -4425,7 +4473,8 @@
         "repo": "unsloth/DeepSeek-V3-GGUF",
         "provider": "unsloth"
       }
-    ]
+    ],
+    "ollama_name": "deepseek-v3"
   },
   {
     "name": "deepseek-ai/DeepSeek-R1",
@@ -4462,7 +4511,8 @@
         "repo": "bartowski/DeepSeek-R1-GGUF",
         "provider": "bartowski"
       }
-    ]
+    ],
+    "ollama_name": "deepseek-r1"
   },
   {
     "name": "deepseek-ai/DeepSeek-V3.2-Speciale",

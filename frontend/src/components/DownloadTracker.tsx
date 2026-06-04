@@ -139,7 +139,7 @@ export default function DownloadTracker() {
   };
 
   return (
-    <div className="fixed bottom-12 right-12 z-[5000] w-96 space-y-6">
+    <div className="fixed bottom-4 right-4 sm:bottom-12 sm:right-12 z-[5000] w-[calc(100vw-2rem)] sm:w-96 space-y-3 sm:space-y-6">
       <AnimatePresence mode="popLayout">
         {entries.map(([model, item]) => (
           <motion.div 

@@ -350,6 +350,37 @@ app.get('/api/registry', (req, res) => {
     } else res.status(404).json({ error: 'Registry not found' });
 });
 
+app.get('/api/search/hf', async (req, res) => {
+    const { q, limit = 20 } = req.query;
+    if (!q || String(q).trim().length < 2) return res.json([]);
+
+    const cacheKey = `hf-search-${q}-${limit}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
+    try {
+        const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+        const url = `https://huggingface.co/api/models?search=${encodeURIComponent(q)}&sort=downloads&direction=-1&limit=${limit}&full=false`;
+        const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        const data = await r.json();
+        const normalized = (Array.isArray(data) ? data : []).map(m => ({
+            id: m.id || m.modelId || '',
+            name: m.id || m.modelId || '',
+            provider: (m.id || m.modelId || '').split('/')[0],
+            pipeline_tag: m.pipeline_tag || 'text-generation',
+            hf_downloads: m.downloads || 0,
+            hf_likes: m.likes || 0,
+            has_gguf: (m.tags || []).includes('gguf'),
+            updated_at: m.lastModified || null
+        }));
+        cache.set(cacheKey, normalized, 60000 * 5);
+        res.json(normalized);
+    } catch (err) {
+        logger.error('[HF Search] Failed:', err.message);
+        res.json([]);
+    }
+});
+
 app.get('/api/model-readme', async (req, res) => {
     const { repoId, localPath } = req.query;
     const cacheKey = `readme-${repoId || localPath}`;
@@ -1449,67 +1480,62 @@ app.post('/api/download', (req, res) => {
     const { modelName } = req.body;
     if (activeDownloads.has(modelName)) return res.status(400).json({ error: 'Download already in progress.' });
 
-    const isWindows = os.platform() === 'win32';
-    const shellCmd = isWindows ? 'cmd.exe' : '/bin/sh';
-    const shellArgs = isWindows ? ['/c', `ollama pull ${modelName}`] : ['-c', `ollama pull ${modelName}`];
-    
-    const proc = spawn(shellCmd, shellArgs, { shell: false, windowsHide: true });
-    activeDownloads.set(modelName, { proc, completed: false });
-    logger.info(`[Download] Started process for ${modelName} (PID: ${proc.pid})`);
+    const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+    const abortController = new AbortController();
+    activeDownloads.set(modelName, { abortController, completed: false, errorLines: [] });
+    logger.info(`[Download] Started Ollama REST pull for ${modelName}`);
+    io.emit('download-progress', { model: modelName, progress: -1 });
+    res.json({ success: true });
 
-    const onData = (data) => {
-        const currentEntry = activeDownloads.get(modelName);
-        if (!currentEntry || currentEntry.completed) return;
-        const text = data.toString();
-        const lines = text.split(/\r|\n/);
-        for (const rawLine of lines) {
-            // Strip ANSI codes and trim
-            const line = rawLine.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '').trim();
-            if (!line) continue;
-            
-            const lower = line.toLowerCase();
-            
-            // Success terminal states
-            if (lower.includes('success') || lower.includes('verifying sha256 digest') || (lower.includes('complete') && !lower.includes('pulling') && !lower.includes('layer'))) {
-                finishDownload(modelName, { success: true });
-                return;
-            }
+    (async () => {
+        try {
+            const ollamaRes = await fetch('http://localhost:11434/api/pull', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: modelName, stream: true }),
+                signal: abortController.signal
+            });
+            if (!ollamaRes.ok) throw new Error(`Ollama API ${ollamaRes.status}`);
 
-            // Progress parsing - focus on overall progress lines like "pulling manifest", "pulling layer", etc.
-            // Ollama often sends multiple lines per update. We pick the first valid percentage.
-            const match = line.match(/(\d+(?:\.\d+)?)\s*%/);
-            if (match) {
-                const p = Math.round(parseFloat(match[1]));
-                const prev = lastProgress.get(modelName);
-                
-                // Only emit if progress increased or was -1, to prevent flicker from sub-layer progress
-                if (prev === undefined || p > prev || (p === 0 && prev === -1)) {
-                    lastProgress.set(modelName, p);
-                    io.emit('download-progress', { model: modelName, progress: p });
+            let buf = '';
+            ollamaRes.body.on('data', (chunk) => {
+                const entry = activeDownloads.get(modelName);
+                if (!entry || entry.completed) { ollamaRes.body.destroy(); return; }
+                buf += chunk.toString();
+                const lines = buf.split('\n');
+                buf = lines.pop() || '';
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    let d; try { d = JSON.parse(line); } catch { continue; }
+                    if (d.error) { entry.errorLines.push(d.error); finishDownload(modelName, { success: false }); return; }
+                    if (d.status === 'success') { finishDownload(modelName, { success: true }); return; }
+                    if (d.total && d.completed !== undefined) {
+                        const pct = Math.round((d.completed / d.total) * 100);
+                        const prev = lastProgress.get(modelName);
+                        if (prev === undefined || pct > prev || (pct === 0 && prev === -1)) {
+                            lastProgress.set(modelName, pct);
+                            io.emit('download-progress', { model: modelName, progress: pct });
+                        }
+                    } else if (!lastProgress.has(modelName) || lastProgress.get(modelName) === -1) {
+                        lastProgress.set(modelName, -1);
+                        io.emit('download-progress', { model: modelName, progress: -1 });
+                    }
                 }
-            } else if (lower.includes('pulling') || lower.includes('downloading')) {
-                if (!lastProgress.has(modelName) || lastProgress.get(modelName) === -1) {
-                    lastProgress.set(modelName, -1);
-                    io.emit('download-progress', { model: modelName, progress: -1 });
-                }
-            }
-        }
-    };
-
-    proc.stdout.on('data', onData);
-    proc.stderr.on('data', onData);
-    proc.on('close', (code) => {
-        if (code === 0) finishDownload(modelName, { success: true });
-        else {
+            });
+            await new Promise((resolve, reject) => {
+                ollamaRes.body.on('end', resolve);
+                ollamaRes.body.on('error', reject);
+            });
             const entry = activeDownloads.get(modelName);
+            if (entry && !entry.completed) finishDownload(modelName, { success: true });
+        } catch (err) {
+            if (err.name === 'AbortError' || err.type === 'aborted') return;
+            logger.error(`[Download] Ollama pull failed: ${modelName}`, err);
+            const entry = activeDownloads.get(modelName);
+            if (entry) entry.errorLines.push(err.message);
             if (entry && !entry.completed) finishDownload(modelName, { success: false });
         }
-    });
-    proc.on('error', (err) => {
-        logger.error(`Download process error ${modelName}`, err);
-        finishDownload(modelName, { success: false });
-    });
-    res.json({ success: true });
+    })();
 });
 
 app.post('/api/download/pause', (req, res) => {
@@ -1518,8 +1544,11 @@ app.post('/api/download/pause', (req, res) => {
     if (entry) {
         logger.info(`[Download] Pausing ${modelName}`);
         finishDownload(modelName, { success: false, paused: true });
-        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
-        else entry.proc.kill('SIGKILL');
+        if (entry.abortController) entry.abortController.abort();
+        if (entry.proc) {
+            if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
+            else entry.proc.kill('SIGKILL');
+        }
         res.json({ success: true });
     } else res.status(404).json({ error: 'Download not found' });
 });
@@ -1535,8 +1564,11 @@ app.post('/api/download/cancel', (req, res) => {
         finishDownload(modelName, { success: false, cancelled: true });
         
         // Kill the process tree reliably
-        if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
-        else entry.proc.kill('SIGKILL');
+        if (entry.abortController) entry.abortController.abort();
+        if (entry.proc) {
+            if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${entry.proc.pid}`, () => {});
+            else entry.proc.kill('SIGKILL');
+        }
         
         // Post-kill cleanup: Ollama RM + partial files
         setTimeout(() => {
@@ -1568,7 +1600,100 @@ app.post('/api/download/cancel', (req, res) => {
             });
         }, 1500);
         res.json({ success: true });
-    } else res.status(404).json({ error: 'Download not found' });
+    } else {
+        // Entry not in activeDownloads — was already paused or finished.
+        // Still emit cancel event so UI unblocks, and clean up Ollama blobs.
+        logger.info(`[Download] Cancel of already-stopped ${modelName} — emitting cancelled and cleaning up`);
+        io.emit('download-complete', { model: modelName, success: false, cancelled: true });
+        exec(`ollama rm ${modelName}`, (err) => {
+            if (err) logger.warn(`[Download] ollama rm (post-pause cleanup) failed: ${err.message}`);
+            cache.clear();
+            io.emit('models-updated');
+        });
+        res.json({ success: true });
+    }
+});
+
+app.post('/api/download/hf', async (req, res) => {
+    const { repo, modelName } = req.body;
+    if (!repo || !modelName) return res.status(400).json({ error: 'Missing repo or modelName' });
+    if (activeDownloads.has(modelName)) return res.status(400).json({ error: 'Download already in progress.' });
+
+    try {
+        const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+
+        const apiRes = await fetch(`https://huggingface.co/api/models/${repo}`);
+        if (!apiRes.ok) return res.status(502).json({ error: `HuggingFace API error: ${apiRes.status}` });
+
+        const apiData = await apiRes.json();
+        const allGguf = (apiData.siblings || []).map(s => s.rfilename).filter(f => f.toLowerCase().endsWith('.gguf'));
+        // Prefer single-file GGUFs; fall back to split shards (first shard only — user can pull rest manually)
+        const singleGguf = allGguf.filter(f => !f.toLowerCase().includes('-of-'));
+        const ggufFiles = singleGguf.length > 0 ? singleGguf : allGguf;
+
+        const QUANT_PREF = ['Q4_K_M', 'Q5_K_M', 'Q4_K_S', 'Q4_0', 'Q5_0', 'Q8_0', 'IQ4_XS', 'IQ3_M', 'IQ4_NL', 'Q2_K'];
+        let selectedFile = null;
+        for (const q of QUANT_PREF) {
+            selectedFile = ggufFiles.find(f => f.toUpperCase().includes(q));
+            if (selectedFile) break;
+        }
+        if (!selectedFile && ggufFiles.length > 0) selectedFile = ggufFiles[0];
+        if (!selectedFile) return res.status(404).json({ error: `No GGUF file found in ${repo}` });
+
+        const downloadUrl = `https://huggingface.co/${repo}/resolve/main/${encodeURIComponent(selectedFile)}`;
+        const destPath = path.join(config.centralDir, selectedFile);
+        const partPath = destPath + '.part';
+
+        logger.info(`[HF Download] ${modelName} → ${selectedFile} from ${repo}`);
+        activeDownloads.set(modelName, { completed: false, errorLines: [] });
+        res.json({ success: true, file: selectedFile });
+
+        (async () => {
+            try {
+                const dlRes = await fetch(downloadUrl);
+                if (!dlRes.ok) throw new Error(`HTTP ${dlRes.status} from HuggingFace`);
+
+                const totalBytes = parseInt(dlRes.headers.get('content-length') || '0', 10);
+                let downloadedBytes = 0;
+                let lastPct = -1;
+
+                const fileStream = require('fs').createWriteStream(partPath);
+                dlRes.body.on('data', (chunk) => {
+                    const entry = activeDownloads.get(modelName);
+                    if (!entry || entry.completed) { dlRes.body.destroy(); return; }
+                    downloadedBytes += chunk.length;
+                    fileStream.write(chunk);
+                    if (totalBytes > 0) {
+                        const pct = Math.round((downloadedBytes / totalBytes) * 100);
+                        if (pct !== lastPct) { lastPct = pct; io.emit('download-progress', { model: modelName, progress: pct }); }
+                    } else {
+                        io.emit('download-progress', { model: modelName, progress: -1 });
+                    }
+                });
+
+                await new Promise((resolve, reject) => {
+                    dlRes.body.on('end', resolve);
+                    dlRes.body.on('error', reject);
+                });
+                fileStream.end();
+                await new Promise(resolve => fileStream.on('finish', resolve));
+
+                require('fs').renameSync(partPath, destPath);
+                finishDownload(modelName, { success: true });
+                io.emit('models-updated');
+                logger.info(`[HF Download] Complete: ${destPath}`);
+            } catch (err) {
+                logger.error(`[HF Download] Failed: ${modelName}`, err);
+                const entry = activeDownloads.get(modelName);
+                if (entry) entry.errorLines.push(err.message);
+                finishDownload(modelName, { success: false });
+                if (require('fs').existsSync(partPath)) try { require('fs').unlinkSync(partPath); } catch (_) {}
+            }
+        })();
+    } catch (err) {
+        logger.error(`[HF Download] Setup failed: ${modelName}`, err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/models/rename', async (req, res) => {

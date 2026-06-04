@@ -116,9 +116,9 @@ export default function Centralization() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
+      className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
     >
-      <header className="mb-16 flex justify-between items-start flex-wrap gap-10">
+      <header className="mb-8 md:mb-16 flex justify-between items-start flex-wrap gap-4 md:gap-10">
         <div className="space-y-4">
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 md:gap-6 uppercase break-words">
              {t('central_title')}
@@ -154,7 +154,7 @@ export default function Centralization() {
               <HelpTooltip text={t('central_spaceSavedHelp')} />
             </h3>
             <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-all">{(spaceSaved / (1024**3)).toFixed(1)}</p>
+               <p className="text-4xl sm:text-6xl md:text-7xl xl:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{(spaceSaved / (1024**3)).toFixed(1)}</p>
                <span className="text-2xl font-black text-blue-500 uppercase tracking-widest">GB</span>
             </div>
             <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Recovered Storage Potential</p>
@@ -166,7 +166,7 @@ export default function Centralization() {
               <HelpTooltip text={t('central_standaloneHelp')} />
             </h3>
             <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-all">{standaloneCount}</p>
+               <p className="text-4xl sm:text-6xl md:text-7xl xl:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{standaloneCount}</p>
                <span className="text-2xl font-black text-purple-500 uppercase tracking-widest">MODS</span>
             </div>
             <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Pending Centralization</p>
@@ -244,14 +244,14 @@ export default function Centralization() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className={`flex flex-col md:flex-row md:items-center justify-between p-8 rounded-[2.5rem] border transition-all cursor-pointer group relative overflow-hidden gap-8 ${
+                    className={`flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border transition-all cursor-pointer group relative overflow-hidden gap-4 md:gap-8 ${
                       selectedPaths.has(m.path) 
                         ? 'bg-blue-600/10 border-blue-500 shadow-2xl shadow-blue-600/10' 
                         : 'bg-[var(--bg-input)]/40 border-[var(--border)] hover:border-blue-500/30 hover:bg-[var(--bg-input)]'
                     }`} 
                     onClick={() => !m.isSymlink && toggleSelect(m.path)}
                   >
-                     <div className="flex items-center gap-10 relative z-10 min-w-0 flex-1">
+                     <div className="flex items-center gap-4 md:gap-8 relative z-10 min-w-0 flex-1">
                         {!m.isSymlink ? (
                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all shrink-0 ${
                             selectedPaths.has(m.path) ? 'bg-blue-600 border-blue-500 text-white shadow-2xl' : 'bg-transparent border-[var(--border)] text-transparent group-hover:border-[var(--text-secondary)]'
@@ -265,13 +265,13 @@ export default function Centralization() {
                         )}
                         <div className="flex flex-col gap-3 min-w-0">
                            <div className="flex items-center gap-4 flex-wrap">
-                              <span className={`font-black text-xl md:text-2xl tracking-tighter break-all ${m.isSymlink ? 'text-emerald-500' : 'text-[var(--text-primary)]'}`}>{m.name}</span>
+                              <span className={`font-black text-base md:text-xl tracking-tighter break-words min-w-0 ${m.isSymlink ? 'text-emerald-500' : 'text-[var(--text-primary)]'}`}>{m.name}</span>
                               <span className={`text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-glow-emerald' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border border-[var(--border)]'}`}>
                                  {m.isSymlink ? t('central_centralized') : t('central_standalone')}
                               </span>
                            </div>
-                           <div className="flex items-center gap-6">
-                              <p className="text-base font-mono text-[var(--text-primary)] break-all font-bold tracking-normal">{m.path}</p>
+                           <div className="flex items-center gap-3 min-w-0">
+                              <p className="text-sm font-mono text-[var(--text-primary)] truncate min-w-0 flex-1 font-bold tracking-normal" title={m.path}>{m.path}</p>
                               <div className="flex items-center gap-2 shrink-0 bg-blue-500/5 px-3 py-1 rounded-lg border border-blue-500/10">
                                  <Box size={14} className="text-blue-500" />
                                  <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{m.source}</span>
@@ -279,7 +279,7 @@ export default function Centralization() {
                            </div>
                         </div>
                      </div>
-                     <div className="flex items-center justify-between md:justify-end gap-12 relative z-10 shrink-0">
+                     <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8 relative z-10 shrink-0">
                         <div className="flex flex-col items-end">
                            <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('models_size')}</span>
                            <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">{(m.size / (1024**3)).toFixed(1)} <span className="text-base text-[var(--text-secondary)]">GB</span></span>
