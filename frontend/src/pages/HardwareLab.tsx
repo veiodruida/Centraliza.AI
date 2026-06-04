@@ -42,18 +42,18 @@ export default function HardwareLab() {
       className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
     >
       <header className="mb-10 md:mb-16 space-y-4">
-        <div className="flex items-start sm:items-center gap-4 sm:gap-6 flex-wrap">
+        <div className="flex items-start sm:items-center gap-4 sm:gap-6">
            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600/10 rounded-[1rem] sm:rounded-[1.5rem] flex items-center justify-center text-blue-500 shadow-premium shrink-0">
               <Server className="w-6 h-6 sm:w-8 sm:h-8" />
            </div>
-           <div className="min-w-0 flex-1">
-              <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-words">{t('nav_hardware')}</h2>
+           <div className="min-w-0">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase">{t('nav_hardware')}</h2>
               <p className="text-[var(--text-secondary)] text-sm sm:text-lg md:text-2xl font-medium opacity-80 max-w-xl leading-relaxed mt-2">{t('hardware_subtitle')}</p>
            </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 mb-10 md:mb-16">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-10 mb-10 md:mb-16">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -64,12 +64,12 @@ export default function HardwareLab() {
           </div>
           
           <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-12 relative z-10 gap-4 sm:gap-8">
-             <div className="flex items-center gap-4 md:gap-8 min-w-0">
-                <div className="w-12 h-12 md:w-20 md:h-20 bg-blue-600 rounded-[1.2rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-premium shadow-blue-600/30 group-hover:rotate-12 transition-transform duration-500 shrink-0">
-                   <Zap className="w-6 h-6 md:w-8 md:h-8 fill-current" />
+             <div className="flex items-center gap-4 md:gap-6 xl:gap-4 min-w-0">
+                <div className="w-12 h-12 md:w-20 md:h-20 xl:w-14 xl:h-14 bg-blue-600 rounded-[1.2rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-premium shadow-blue-600/30 group-hover:rotate-12 transition-transform duration-500 shrink-0">
+                   <Zap className="w-6 h-6 md:w-8 md:h-8 xl:w-6 xl:h-6 fill-current" />
                 </div>
                 <div className="min-w-0">
-                   <h3 className="text-xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words">{t('hardware_gpu')}</h3>
+                   <h3 className="text-xl md:text-3xl xl:text-lg 2xl:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-tight mb-1 md:mb-2 break-words">{t('hardware_gpu')}</h3>
                    <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
                       <span className="text-[10px] md:text-sm font-black text-blue-500 uppercase tracking-wider truncate">Accelerated Engine</span>
@@ -114,12 +114,12 @@ export default function HardwareLab() {
           </div>
           
           <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-12 relative z-10 gap-4 sm:gap-8">
-             <div className="flex items-center gap-4 md:gap-8 min-w-0">
-                <div className="w-12 h-12 md:w-20 md:h-20 bg-purple-600 rounded-[1.2rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-premium shadow-purple-600/30 group-hover:-rotate-12 transition-transform duration-500 shrink-0">
-                   <Cpu className="w-6 h-6 md:w-8 md:h-8" />
+             <div className="flex items-center gap-4 md:gap-6 xl:gap-4 min-w-0">
+                <div className="w-12 h-12 md:w-20 md:h-20 xl:w-14 xl:h-14 bg-purple-600 rounded-[1.2rem] md:rounded-[2rem] flex items-center justify-center text-white shadow-premium shadow-purple-600/30 group-hover:-rotate-12 transition-transform duration-500 shrink-0">
+                   <Cpu className="w-6 h-6 md:w-8 md:h-8 xl:w-6 xl:h-6" />
                 </div>
                 <div className="min-w-0">
-                   <h3 className="text-xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-1 md:mb-2 break-words">{t('hardware_cpu')}</h3>
+                   <h3 className="text-xl md:text-3xl xl:text-lg 2xl:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-1 md:mb-2 break-words">{t('hardware_cpu')}</h3>
                    <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-purple-500 animate-pulse shrink-0" />
                       <span className="text-[10px] md:text-sm font-black text-purple-500 uppercase tracking-wider truncate">Logic Controller</span>
@@ -169,25 +169,25 @@ export default function HardwareLab() {
             </div>
          </header>
          
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-16 relative z-10">
+         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-16 relative z-10">
             <div className="space-y-4 md:space-y-8 group/insight">
                <div className="flex items-center gap-2 md:gap-4 text-emerald-500 font-black text-[10px] md:text-[11px] uppercase tracking-wider bg-emerald-500/10 w-fit px-4 md:px-6 py-2 md:py-3 rounded-full border border-emerald-500/20 group-hover/insight:scale-105 transition-transform">
                   <Gauge className="w-4 h-4 md:w-5 md:h-5 fill-current shrink-0" /> Optimal Range
                </div>
                <p className="text-sm md:text-xl text-[var(--text-secondary)] leading-relaxed font-medium opacity-90 break-words">
-                  {vramGB >= 8 
-                    ? "Your GPU is perfect for models up to **8B parameters** (Llama 3, Mistral). Expect ultra-fast responses."
-                    : "Ideal for models up to **3B parameters**. For larger models, system RAM will be used, which is slower."}
+                  {vramGB >= 8
+                    ? "Your GPU is perfect for models up to 8B parameters (Llama 3, Mistral). Expect ultra-fast responses."
+                    : "Ideal for models up to 3B parameters. For larger models, system RAM will be used, which is slower."}
                </p>
             </div>
-            <div className="space-y-4 md:space-y-8 lg:border-x border-[var(--border)]/50 lg:px-16 group/insight">
+            <div className="space-y-4 md:space-y-8 xl:border-x border-[var(--border)]/50 xl:px-8 group/insight">
                <div className="flex items-center gap-2 md:gap-4 text-amber-500 font-black text-[10px] md:text-[11px] uppercase tracking-wider bg-amber-500/10 w-fit px-4 md:px-6 py-2 md:py-3 rounded-full border border-amber-500/20 group-hover/insight:scale-105 transition-transform">
                   <AlertCircle className="w-4 h-4 md:w-5 md:h-5 fill-current shrink-0" /> Extended Range
                </div>
                <p className="text-sm md:text-xl text-[var(--text-secondary)] leading-relaxed font-medium opacity-90 break-words">
                   {totalRamGB >= 32
-                    ? "With 32GB+ RAM, you can run models up to **70B** using quantization. It will be usable for complex tasks but slower."
-                    : "For models between **14B and 30B**, expect moderate speeds as the system balances memory between GPU and CPU."}
+                    ? "With 32GB+ RAM, you can run models up to 70B using quantization. It will be usable for complex tasks but slower."
+                    : "For models between 14B and 30B, expect moderate speeds as the system balances memory between GPU and CPU."}
                </p>
             </div>
             <div className="space-y-4 md:space-y-8 group/insight">
@@ -195,7 +195,7 @@ export default function HardwareLab() {
                   <Brain className="w-4 h-4 md:w-5 md:h-5 fill-current shrink-0" /> Smart Scaling
                </div>
                <p className="text-sm md:text-xl text-[var(--text-secondary)] leading-relaxed font-medium opacity-90 break-words">
-                  Always prefer **Q4_K_M** or **Q5_K_M** quantizations. They offer the best intelligence-to-weight ratio for your hardware.
+                  Always prefer Q4_K_M or Q5_K_M quantizations. They offer the best intelligence-to-weight ratio for your hardware.
                </p>
             </div>
          </div>

@@ -133,15 +133,15 @@ function Dashboard() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20 space-y-20"
+      className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20 space-y-10 md:space-y-20"
     >
       <header>
         <h2 className="text-[11px] font-black text-blue-500 uppercase tracking-[0.5em] mb-4">{t('dash_title')}</h2>
-        <h1 className="text-4xl md:text-8xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.85] uppercase max-w-4xl">{t('dash_subtitle')}</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl 2xl:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.85] uppercase max-w-4xl">{t('dash_subtitle')}</h1>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-         <div className="card-premium p-10 md:p-16 flex flex-col justify-between overflow-hidden relative group">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-12">
+         <div className="card-premium p-6 sm:p-8 md:p-10 lg:p-16 flex flex-col justify-between overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity"><HardDrive size={240} /></div>
             <div className="relative z-10 flex items-center justify-between mb-12">
                <div className="flex flex-col">
@@ -155,16 +155,16 @@ function Dashboard() {
             </div>
          </div>
 
-         <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[2.5rem] p-12 md:p-16 flex flex-col justify-center shadow-premium relative overflow-hidden group">
+         <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8 md:p-12 lg:p-16 flex flex-col justify-center shadow-premium relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
             <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
             
             <div className="relative z-10 space-y-8">
-               <h3 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] uppercase">
+               <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white tracking-tighter leading-[0.9] uppercase">
                  {t('dash_deploy')}
                </h3>
                <div className="space-y-6">
-                 <p className="text-blue-100 text-xl md:text-2xl leading-relaxed font-bold">
+                 <p className="text-blue-100 text-base md:text-lg xl:text-xl leading-relaxed font-bold">
                    {t('dash_deployDesc')}
                  </p>
                  <p className="text-blue-200/60 text-base md:text-lg leading-relaxed font-medium italic border-l-4 border-blue-500/30 pl-6">
@@ -172,10 +172,10 @@ function Dashboard() {
                  </p>
                </div>
                <div className="flex flex-wrap gap-6 pt-4">
-                 <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-12 py-5 shadow-2xl">
+                 <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-6 sm:px-8 md:px-10 py-4 md:py-5 shadow-2xl">
                     {t('dash_openHub')} <ArrowRight size={18} />
                  </Link>
-                 <Link to="/centralize" className="btn-premium bg-blue-600/20 border border-blue-400/30 text-white hover:bg-blue-600/30 flex items-center gap-4 w-fit px-12 py-5">
+                 <Link to="/centralize" className="btn-premium bg-blue-600/20 border border-blue-400/30 text-white hover:bg-blue-600/30 flex items-center gap-4 w-fit px-6 sm:px-8 md:px-10 py-4 md:py-5">
                     {t('central_title')} <Zap size={18} />
                  </Link>
                </div>
@@ -189,9 +189,9 @@ function Dashboard() {
           <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase">{t('dash_benefitTitle')}</h2>
           <div className="w-20 h-1 bg-blue-600 mx-auto rounded-full" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
           {[1, 2, 3].map(i => (
-            <div key={i} className="card-premium p-10 space-y-6 hover:translate-y-[-8px] transition-transform">
+            <div key={i} className="card-premium p-6 md:p-10 space-y-4 md:space-y-6 hover:translate-y-[-8px] transition-transform">
               <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500">
                 {i === 1 ? <Zap size={28} /> : i === 2 ? <Box size={28} /> : <Info size={28} />}
               </div>
@@ -203,13 +203,13 @@ function Dashboard() {
       </section>
 
       {/* Tutorial Section */}
-      <section className="bg-[var(--bg-input)]/30 rounded-[3.5rem] p-12 md:p-20 border border-[var(--border)] relative overflow-hidden">
+      <section className="bg-[var(--bg-input)]/30 rounded-[2rem] md:rounded-[3.5rem] p-6 sm:p-8 md:p-12 lg:p-20 border border-[var(--border)] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full" />
-        <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase mb-16 flex items-center gap-6">
-          <Terminal size={40} className="text-blue-500" />
+        <h2 className="text-2xl md:text-3xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase mb-8 md:mb-16 flex items-center gap-4 md:gap-6">
+          <Terminal size={32} className="text-blue-500 shrink-0" />
           {t('dash_tutorialTitle')}
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12 relative">
           <div className="absolute hidden lg:block top-10 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-blue-500/0" />
           {[1, 2, 3].map(i => (
             <div key={i} className="relative space-y-6">
@@ -228,7 +228,7 @@ function Dashboard() {
         <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase text-center">{t('dash_faqTitle')}</h2>
         <div className="space-y-6">
           {[1, 2].map(i => (
-            <div key={i} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] p-8 md:p-12 space-y-4 hover:border-blue-500/30 transition-colors">
+            <div key={i} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[1.5rem] md:rounded-[2rem] p-5 sm:p-6 md:p-8 lg:p-12 space-y-4 hover:border-blue-500/30 transition-colors">
               <h4 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-4">
                 <div className="w-2 h-2 rounded-full bg-blue-500" />
                 {t(`dash_faqQ${i}` as any)}

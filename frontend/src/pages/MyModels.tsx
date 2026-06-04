@@ -169,19 +169,19 @@ export default function MyModels() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
-        className="p-6 md:p-12 lg:p-16 max-w-7xl mx-auto pb-20"
+        className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-7xl mx-auto pb-20"
       >
-        <button onClick={() => setViewingModel(null)} className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-blue-500 mb-10 transition-all font-black text-xs uppercase tracking-[0.2em] group">
+        <button onClick={() => setViewingModel(null)} className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-blue-500 mb-6 md:mb-10 transition-all font-black text-xs uppercase tracking-[0.2em] group">
           <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" /> {t('close')}
         </button>
-        
-        <div className="card-premium relative overflow-hidden backdrop-blur-3xl p-8 md:p-16">
+
+        <div className="card-premium relative overflow-hidden backdrop-blur-3xl p-4 sm:p-6 md:p-8 lg:p-16">
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full -mr-20 -mt-20" />
           
           <header className="border-b border-[var(--border)] pb-12 mb-12 flex justify-between items-start flex-wrap gap-10">
              <div className="space-y-6 min-w-0 flex-1">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl sm:text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-all">{viewingModel.name}</h2>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-words">{viewingModel.name}</h2>
                   <HelpTooltip text="Model details and management" />
                 </div>
                 <div className="flex gap-3 flex-wrap">
@@ -206,20 +206,20 @@ export default function MyModels() {
              </div>
           </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10 lg:gap-16">
              <div className="lg:col-span-2 space-y-12">
                 <div>
                    <h3 className="text-[var(--text-muted)] font-black text-[11px] uppercase tracking-[0.5em] mb-8 flex items-center gap-4">
                       <FileText size={18} className="text-blue-500" /> {t('hub_details_desc')}
                    </h3>
-                   <div className="bg-[var(--bg-input)]/50 p-10 rounded-[3rem] border border-[var(--border)] max-h-[600px] overflow-y-auto custom-scrollbar">
+                   <div className="bg-[var(--bg-input)]/50 p-5 sm:p-7 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-[var(--border)] max-h-[600px] overflow-y-auto custom-scrollbar">
                       <pre className="whitespace-pre-wrap font-sans text-base text-[var(--text-secondary)] leading-relaxed font-medium">{description}</pre>
                    </div>
                 </div>
              </div>
 
              <div className="space-y-12">
-                <div className="bg-[var(--bg-input)]/50 p-10 rounded-[3rem] border border-[var(--border)] shadow-xl">
+                <div className="bg-[var(--bg-input)]/50 p-5 sm:p-7 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-xl">
                    <h4 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-8 flex items-center gap-3">
                       <Info size={16} className="text-purple-500" /> Metadata
                    </h4>
@@ -240,7 +240,7 @@ export default function MyModels() {
                    )}
                 </div>
 
-                <div className="bg-red-500/5 p-10 rounded-[3rem] border border-red-500/10 shadow-xl">
+                <div className="bg-red-500/5 p-5 sm:p-7 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-red-500/10 shadow-xl">
                    <h4 className="text-[11px] font-black text-red-500/70 uppercase tracking-widest mb-8 flex items-center gap-3">
                       <Terminal size={16} /> Danger Zone
                    </h4>
@@ -266,11 +266,11 @@ export default function MyModels() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
+      className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
     >
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end mb-16 gap-8">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end mb-8 md:mb-16 gap-6 md:gap-8">
         <div className="space-y-4">
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 md:gap-6 uppercase break-words">
+          <h2 className="text-3xl md:text-4xl xl:text-5xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 md:gap-6 uppercase break-words">
             {t('models_title')}
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
           </h2>
@@ -286,7 +286,7 @@ export default function MyModels() {
               placeholder={t('models_search')} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
-              className="w-full md:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-xl transition-all font-medium" 
+              className="w-full md:w-60 xl:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-xl transition-all font-medium" 
              />
           </div>
           <button onClick={fetchModels} className="bg-[var(--bg-surface)] hover:bg-[var(--bg-input)] text-[var(--text-primary)] p-5 rounded-2xl border border-[var(--border)] transition-all shadow-xl active:scale-95">
@@ -331,10 +331,10 @@ export default function MyModels() {
                   key={source} 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group"
+                  className="bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group"
                 >
                   <header 
-                    className="flex items-center justify-between p-8 md:p-12 cursor-pointer hover:bg-blue-600/5 transition-all" 
+                    className="flex items-center justify-between p-4 sm:p-6 md:p-8 lg:p-12 cursor-pointer hover:bg-blue-600/5 transition-all"
                     onClick={() => setExpandedSections(prev => ({ ...prev, [source]: !isExpanded }))}
                   >
                      <div className="flex items-center gap-10">
@@ -366,14 +366,14 @@ export default function MyModels() {
                           variants={CONTAINER_VARIANTS}
                           initial="hidden"
                           animate="visible"
-                          className="border-t border-[var(--border)] p-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+                          className="border-t border-[var(--border)] p-4 sm:p-6 md:p-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8"
                         >
                            {items.map(m => (
                               <motion.div 
                                 key={m.path} 
                                 variants={ITEM_VARIANTS}
                                 onClick={() => setViewingModel(m)} 
-                                className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[2.5rem] p-8 hover:border-blue-500/50 transition-all cursor-pointer group/card relative overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 flex flex-col min-h-[320px]"
+                                className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] p-5 sm:p-6 md:p-8 hover:border-blue-500/50 transition-all cursor-pointer group/card relative overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 flex flex-col min-h-[280px] sm:min-h-[320px]"
                               >
                                  <div className="absolute top-0 right-0 p-8 opacity-0 group-hover/card:opacity-100 transition-all translate-x-4 group-hover/card:translate-x-0">
                                     <ExternalLink size={20} className="text-blue-500" />

@@ -410,7 +410,7 @@ export default function ModelTester() {
           )}
         </AnimatePresence>
 
-        <header className="h-28 border-b border-[var(--border)] flex items-center justify-between px-10 md:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
+        <header className="h-20 md:h-28 border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6 md:px-10 xl:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
            <div className="flex items-center gap-8">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-premium">
                  <Bot size={32} />

@@ -100,9 +100,9 @@ export default function Settings() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="p-6 md:p-12 lg:p-16 max-w-[80rem] mx-auto pb-32 md:pb-40"
+      className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-[80rem] mx-auto pb-32 md:pb-40"
     >
-      <header className="mb-16 flex justify-between items-end flex-wrap gap-10">
+      <header className="mb-8 md:mb-16 flex justify-between items-end flex-wrap gap-4 md:gap-10">
         <div className="space-y-4">
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase flex items-center gap-4 md:gap-6 break-words">
             {t('nav_settings')}
