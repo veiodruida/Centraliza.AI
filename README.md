@@ -57,19 +57,25 @@
 
 ## 🛠️ Installation & Setup
 
-### 1. Automated Setup
-Simply run the setup script to install dependencies and configure your environment:
+### 1. Automated Setup (instalação completa)
+Run the setup script to install everything in one go:
 `bash
 .\setup.bat
 `
-*This will also add the central command to your Windows PATH.*
+O **setup.bat** faz tudo de forma consolidada:
+1. Verifica o Node.js;
+2. Instala as dependências do Root e do Frontend;
+3. Compila a interface (build);
+4. Adiciona o comando `central` ao PATH do utilizador;
+5. **Cria o atalho "Centraliza.ai" no Ambiente de Trabalho** (aponta para o `start.bat`).
 
 ### 2. Quick Start
-Once installed, you can launch the orchestrator from anywhere using:
-`bash
-central
-`
-*Or use .\start.bat from the root directory.*
+Depois de instalado, podes iniciar a aplicação de qualquer uma destas formas (equivalentes):
+- **Atalho "Centraliza.ai"** no Ambiente de Trabalho;
+- comando `central` (após reabrir o terminal);
+- `.\start.bat` a partir da raiz.
+
+O **start.bat** é o lançador único: encerra qualquer instância anterior na porta 4000, abre o dashboard no browser e inicia o servidor (fechar a janela do servidor para parar a aplicação).
 
 ---
 
@@ -77,9 +83,11 @@ central
 
 | Command | Action |
 | :--- | :--- |
-| central | Launches the Centraliza.ai Dashboard |
-| .\setup.bat | Re-installs dependencies and fixes PATH |
-| .\start.bat | Direct launch for development or production |
+| central | Launches the Centraliza.ai Dashboard (equivale ao start.bat) |
+| .\setup.bat | Instala dependências, compila, configura o PATH e cria o atalho no Ambiente de Trabalho |
+| .\start.bat | Lançador único: inicia o servidor e abre o dashboard |
+| .\start_app.bat | Alias de compatibilidade do start.bat |
+| .\create-shortcut.ps1 | (Re)cria o atalho "Centraliza.ai" no Ambiente de Trabalho |
 
 ---
 
