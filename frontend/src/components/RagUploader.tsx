@@ -14,25 +14,36 @@ export default function RagUploader() {
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
         
+        const files = Array.from(e.target.files);
         setUploading(true);
-        const formData = new FormData();
-        formData.append('document', e.target.files[0]);
 
         try {
-            const res = await fetch('/api/documents/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                setDocuments([...documents, data.document]);
-            } else {
-                alert(data.error);
+            for (const file of files) {
+                // Recheck limit before uploading the next file in the loop
+                if (documents.length >= 5) break;
+
+                const formData = new FormData();
+                formData.append('document', file);
+                const res = await fetch('/api/documents/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setDocuments(prev => {
+                        if (prev.length >= 5) return prev;
+                        return [...prev, data.document];
+                    });
+                } else {
+                    alert(data.error || `Erro no upload de ${file.name}`);
+                }
             }
         } catch (err) {
             alert('Erro no upload: ' + err);
         } finally {
             setUploading(false);
+            // Clear the input so the same files can be selected again after deletion
+            e.target.value = '';
         }
     };
 
@@ -55,7 +66,7 @@ export default function RagUploader() {
             
             <label className="cursor-pointer flex items-center justify-center p-2.5 bg-[var(--bg-input)] hover:bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl text-[var(--text-muted)] hover:text-blue-500 transition-colors active:scale-95 shadow-sm" title="Anexar PDF, DOCX ou TXT">
                 {uploading ? <Loader2 size={18} className="animate-spin text-blue-500" /> : <FileText size={18} />}
-                <input type="file" className="hidden" accept=".pdf,.txt,.docx" onChange={handleUpload} disabled={uploading || documents.length >= 5} />
+                <input type="file" className="hidden" accept=".pdf,.txt,.docx" multiple onChange={handleUpload} disabled={uploading || documents.length >= 5} />
             </label>
         </div>
     );
