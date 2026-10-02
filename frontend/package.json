@@ -1,7 +1,7 @@
 {
     "name": "frontend",
     "private": true,
-    "version": "0.3.1",
+    "version": "0.4.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -19,6 +19,7 @@
         "react-markdown": "^10.1.0",
         "react-router-dom": "^7.14.2",
         "react-syntax-highlighter": "^16.1.1",
+        "react-tooltip": "^6.0.8",
         "recharts": "^3.8.1",
         "remark-gfm": "^4.0.1",
         "socket.io-client": "^4.8.3"

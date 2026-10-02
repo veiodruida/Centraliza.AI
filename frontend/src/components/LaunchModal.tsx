@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { X, Play, Cpu } from 'lucide-react';
+import ConfigImpact from './ConfigImpact';
 
 interface LaunchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLaunch: (params: any) => void;
   modelName: string;
+  modelPath?: string | null;
 }
 
-export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: LaunchModalProps) {
+export default function LaunchModal({ isOpen, onClose, onLaunch, modelName, modelPath }: LaunchModalProps) {
   const [params, setParams] = useState({
     threads: 4,
     n_gpu_layers: 0,
@@ -63,17 +65,29 @@ export default function LaunchModal({ isOpen, onClose, onLaunch, modelName }: La
 
            <div>
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 block">Context Size</label>
-              <select 
-                value={params.ctx_size} 
-                onChange={(e) => setParams({...params, ctx_size: parseInt(e.target.value)})}
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 appearance-none"
-              >
-                 <option value={2048}>2048 tokens</option>
-                 <option value={4096}>4096 tokens</option>
-                 <option value={8192}>8192 tokens</option>
-                 <option value={16384}>16384 tokens</option>
-              </select>
+              <div className="flex justify-between items-center mb-2">
+                 <input 
+                   type="number" min="1024" max="1048576" step="1024"
+                   value={params.ctx_size} 
+                   onChange={(e) => setParams({...params, ctx_size: Math.max(1024, parseInt(e.target.value) || 2048)})}
+                   className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-white font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                 />
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-600 font-black uppercase tracking-widest mt-2">
+                 <span>1 024</span>
+                 <span className="text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">{params.ctx_size.toLocaleString('pt-PT')} tokens</span>
+                 <span>262 144</span>
+              </div>
            </div>
+
+           <ConfigImpact
+              ctxSize={params.ctx_size}
+              gpuLayers={params.n_gpu_layers}
+              modelPath={modelPath}
+              kvBytesPerElement={2}
+              onApplyRecommendation={(rec) => setParams(p => ({ ...p, ctx_size: rec.ctx, n_gpu_layers: rec.gpuLayers }))}
+              className="p-4 rounded-3xl bg-slate-950/60 border border-slate-800"
+           />
 
            <div>
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 block">System Prompt</label>
