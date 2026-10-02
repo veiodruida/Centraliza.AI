@@ -156,12 +156,34 @@ let config = {
         path.join(os.homedir(), '.cache', 'huggingface', 'hub'),
     ],
     comfyDir: 'C:\\ComfyUI_windows_portable',
-    sectionOrder: ['Ollama', 'ComfyUI', 'LM Studio / Hugging Face', 'Standalone'],
+    // Ordem padrão das secções na página Modelos. O utilizador pode arrastar
+    // as secções na UI para reordenar — a escolha fica gravada em config.json.
+    sectionOrder: ['Standalone', 'LM Studio / Hugging Face', 'Ollama', 'ComfyUI'],
     activeRouterModel: null,
-    vramShieldLimit: 32768
+    vramShieldLimit: 32768,
+    // Porta da Web UI do DeepSeek Harness lançada a partir do Centraliza Coder
+    // (agente sobre o motor local llama.cpp).
+    dshLocalPort: 3090,
+    // Executável do llama.cpp (llama-server). Pode ser um caminho absoluto
+    // (ex.: C:\Users\...\llama.cpp\build\bin\Release\llama-server.exe) ou
+    // apenas o nome "llama-server" para procurar no PATH.
+    llamaCppBinary: (os.platform() === 'win32'
+        ? path.join(os.homedir(), 'llama.cpp', 'build', 'bin', 'Release', 'llama-server.exe')
+        : 'llama-server'),
+    // Parâmetros adicionais do llama-server. O marcador $physicalCores é
+    // substituído automaticamente pelo número de núcleos físicos da máquina.
+    llamaCppArgs: '-t $physicalCores --flash-attn auto -ctk q4_0 -ctv q4_0 -b 2048 -ub 1024 --host 0.0.0.0 --port 8080 --alias qwen',
+    // Forma estruturada dos parâmetros (checkboxes da UI): [{ arg, value, enabled }].
+    // Preenchida automaticamente a partir de llamaCppArgs na migração abaixo.
+    llamaCppArgsList: null
 };
 if (fs.existsSync(CONFIG_FILE)) {
     try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) { logger.error('Failed to read config', e); }
+}
+// Migração: converte a string antiga de args na lista estruturada usada pelas
+// checkboxes da UI — nenhum parâmetro já guardado é perdido.
+if (!Array.isArray(config.llamaCppArgsList) && typeof config.llamaCppArgs === 'string') {
+    config.llamaCppArgsList = parseArgsToList(config.llamaCppArgs);
 }
 if (!fs.existsSync(config.centralDir)) fs.mkdirSync(config.centralDir, { recursive: true });
 function saveConfig() { 
@@ -323,28 +345,129 @@ app.post('/api/auto-detect', (req, res) => {
     res.json({ success: true, added, config });
 });
 
-app.get('/api/pick-folder', (req, res) => {
+// Abre o seletor nativo de pastas e devolve { path } ou { error }.
+// No Windows usa spawn('powershell.exe', [...]) com o picker.ps1 (sem shell/cmd,
+// sem problemas de aspas) e janela do console escondida (windowsHide).
+async function pickFolderNative(initialPath, description) {
     const platform = os.platform();
-    const initialPath = req.query.initialPath || '';
-    let command = '';
-
-    if (platform === 'win32') {
-        const psFile = path.join(__dirname, 'picker.ps1');
-        command = `powershell -NoProfile -ExecutionPolicy Bypass -sta -File "${psFile}" -initialPath "${initialPath}"`;
-    } else if (platform === 'darwin') {
-        const startPath = initialPath ? `default location "${initialPath.replace(/\\/g, '/')}"` : '';
-        command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "Select a folder for Centraliza.ai" ${startPath}' -e 'POSIX path of theFolder'`;
-    } else {
+    try {
+        if (platform === 'win32') {
+            const psFile = path.join(__dirname, 'picker.ps1');
+            const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-sta', '-File', psFile];
+            if (initialPath) args.push('-initialPath', String(initialPath));
+            if (description) args.push('-description', String(description));
+            const result = await new Promise((resolve) => {
+                const proc = spawn('powershell.exe', args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+                let stdout = '', stderr = '';
+                let settled = false;
+                let timer = null;
+                const done = (obj) => {
+                    if (settled) return;
+                    settled = true;
+                    if (timer) clearTimeout(timer);
+                    resolve(obj);
+                };
+                proc.stdout.on('data', d => { stdout += d; });
+                proc.stderr.on('data', d => { stderr += d; });
+                proc.on('error', (e) => done({ error: e && e.message ? e.message : String(e) }));
+                proc.on('close', (code) => done({ code, stdout, stderr }));
+                // Vigilante: se o seletor não responder (diálogo invisível ou
+                // bloqueado), mata-o e devolve erro legível em vez de pendurar
+                // o pedido durante o timeout de 120s do browser.
+                timer = setTimeout(() => {
+                    try { proc.kill(); } catch (e) {}
+                    if (os.platform() === 'win32') exec(`taskkill /F /T /PID ${proc.pid}`, () => {});
+                    done({ error: 'Folder picker timed out (75s). The dialog may not be visible — ensure Centraliza runs in your interactive Windows session, not as a service.' });
+                }, 75000);
+            });
+            if (result.error) return { error: result.error };
+            if (result.code !== 0) return { error: String(result.stderr || '').trim() || `picker.ps1 exited with code ${result.code}` };
+            const lines = String(result.stdout || '').split(/\r?\n/).filter(l => l.trim());
+            const picked = lines.length ? lines[lines.length - 1].trim() : '';
+            return { path: picked || null };
+        }
+        if (platform === 'darwin') {
+            const startPath = initialPath ? `default location "${initialPath.replace(/\\/g, '/')}"` : '';
+            const command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "${description}" ${startPath}' -e 'POSIX path of theFolder'`;
+            const { stdout } = await promisify(exec)(command);
+            return { path: String(stdout || '').trim() || null };
+        }
         const startPath = initialPath ? `--filename="${initialPath}/"` : '';
-        command = `zenity --file-selection --directory --title="Select a folder for Centraliza.ai" ${startPath}`;
+        const command = `zenity --file-selection --directory --title="${description}" ${startPath}`;
+        const { stdout } = await promisify(exec)(command);
+        return { path: String(stdout || '').trim() || null };
+    } catch (err) {
+        return { error: err && err.message ? err.message : String(err) };
     }
-    
-    exec(command, (err, stdout) => {
-        if (err) return res.json({ path: null });
-        const pickedPath = stdout.trim().split('\n').pop()?.trim();
-        res.json({ path: pickedPath || null });
-    });
+}
+
+app.get('/api/pick-folder', async (req, res) => {
+    const initialPath = req.query.initialPath || '';
+    const result = await pickFolderNative(initialPath, 'Select a folder for Centraliza.ai');
+    if (result.error) return res.json({ path: null, error: result.error });
+    res.json({ path: result.path || null });
 });
+
+// --- HUGGINGFACE MODEL ENRICHMENT HELPERS ---
+// Bits por peso por quantização — usados para estimar VRAM mínima e tamanho de ficheiro
+const QUANT_BITS = {
+    F32: 32, FP32: 32,
+    F16: 16, BF16: 16, FP16: 16,
+    Q8_0: 8.5, Q8_K_L: 8.8, Q8_K_XL: 8.8,
+    Q6_K: 6.6, Q6_K_L: 6.9, Q6_K_M: 6.7, Q6_K_XL: 7.1,
+    Q5_K_M: 5.7, Q5_K_S: 5.3, Q5_K_XL: 6.1, Q5_0: 5.5, Q5_1: 6.1,
+    Q4_K_M: 4.9, Q4_K_S: 4.4, Q4_K_XL: 5.3, Q4_0: 4.6, Q4_1: 5.1,
+    Q3_K_M: 3.9, Q3_K_S: 3.4, Q3_K_L: 4.2, Q3_K_XL: 4.5,
+    Q2_K: 2.6, Q2_K_S: 2.6, Q2_K_XL: 3.2,
+    IQ4_XS: 4.3, IQ4_NL: 4.6,
+    IQ3_XXS: 3.1, IQ3_XS: 3.3, IQ3_S: 3.5,
+    IQ2_XXS: 2.1, IQ2_XS: 2.3, IQ2_S: 2.6,
+    IQ1_M: 1.8, IQ1_S: 1.6
+};
+
+function parseQuantFromText(text) {
+    const t = String(text || '').toUpperCase();
+    if (!t) return null;
+    const m = t.match(/(?:^|[^A-Z0-9])(((?:IQ)?Q\d(?:_[A-Z0-9]+){0,3}|F(?:16|32)|BF16|FP16|FP32))(?=$|[^A-Z0-9])/);
+    return m ? m[1] : null;
+}
+
+// Extrai número de parâmetros do nome (ex.: "Qwen3.8-27B-GGUF" → 27B)
+function parseParamsFromName(name) {
+    const t = String(name || '');
+    const m = t.match(/(\d+(?:\.\d+)?)\s*[BbMm]\b/);
+    if (!m) return null;
+    const n = parseFloat(m[1]);
+    if (!n || n <= 0) return null;
+    const isM = /[Mm]\b/.test(m[0]);
+    return { b: isM ? n / 1000 : n, label: isM ? `${n}M` : `${n}B` };
+}
+
+function estimateVramGb(paramsB, quant) {
+    const bits = QUANT_BITS[quant || 'Q4_K_M'] || 4.9;
+    return Math.round((paramsB * bits / 8 + 1.5) * 10) / 10; // +1.5GB overhead (KV cache/contexto)
+}
+
+function estimateFileGb(paramsB, quant) {
+    const bits = QUANT_BITS[quant || 'Q4_K_M'] || 4.9;
+    return Math.round((paramsB * bits / 8) * 10) / 10;
+}
+
+// Preenche estimativas (parâmetros, VRAM, tamanho) para entradas sem metadados curados
+function enrichModelEntry(m) {
+    if (!m || typeof m !== 'object') return m;
+    const need = !m.min_vram_gb || m.min_vram_gb <= 0 || !m.parameter_count || m.parameter_count === '?';
+    if (!need) return m;
+    const p = parseParamsFromName(m.name);
+    if (!p) return m;
+    const q = parseQuantFromText(m.name) || m.quantization || 'Q4_K_M';
+    if (!m.parameter_count || m.parameter_count === '?') { m.parameter_count = p.label; m.parameters_raw = p.b; }
+    if (!m.min_vram_gb || m.min_vram_gb <= 0) m.min_vram_gb = estimateVramGb(p.b, q);
+    if (!m.file_size_gb || m.file_size_gb <= 0) m.file_size_gb = estimateFileGb(p.b, q);
+    m.quantization = q;
+    m.params_estimated = true;
+    return m;
+}
 
 app.get('/api/registry', (req, res) => {
     const cached = cache.get('registry');
@@ -357,6 +480,130 @@ app.get('/api/registry', (req, res) => {
         cache.set('registry', registry, 60000 * 30); // 30 min cache
         res.json(registry);
     } else res.status(404).json({ error: 'Registry not found' });
+});
+
+app.get('/api/registry/refresh', async (req, res) => {
+    try {
+        const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+        // Top 500 modelos com GGUF por downloads — novos modelos entram automaticamente
+        const url = 'https://huggingface.co/api/models?filter=gguf&sort=downloads&direction=-1&limit=500';
+        const r = await fetch(url, { signal: AbortSignal.timeout(30000) });
+        if (!r.ok) return res.status(502).json({ error: `HuggingFace API error: ${r.status}` });
+        let data = await r.json();
+        if (!Array.isArray(data)) data = [];
+
+        const registryPath = path.join(__dirname, 'data', 'hf_models.json');
+        let existing = [];
+        if (fs.existsSync(registryPath)) {
+            try { existing = JSON.parse(fs.readFileSync(registryPath, 'utf8')); } catch (_) {}
+            if (!Array.isArray(existing)) existing = [];
+        }
+
+        // Mescla: modelos curados mantêm seus metadados; novos são adicionados com dados básicos
+        const byName = new Map(existing.map(m => [m.name, m]));
+        let added = 0;
+        for (const m of data) {
+            const name = m.id || m.modelId;
+            if (!name) continue;
+            const org = name.split('/')[0] || 'Community';
+            const existingEntry = byName.get(name);
+            if (existingEntry) {
+                // Atualiza facetas e popularidade sem tocar em metadados curados
+                if (!existingEntry.hf_library) existingEntry.hf_library = m.library_name || null;
+                if (!Array.isArray(existingEntry.hf_tags) || existingEntry.hf_tags.length === 0) {
+                    existingEntry.hf_tags = Array.isArray(m.tags) ? m.tags : [];
+                }
+                if (!existingEntry.pipeline_tag) existingEntry.pipeline_tag = m.pipeline_tag || 'text-generation';
+                if (m.downloads) existingEntry.hf_downloads = m.downloads;
+                if (m.likes) existingEntry.hf_likes = m.likes;
+                if (!existingEntry.release_date && m.lastModified) existingEntry.release_date = String(m.lastModified).slice(0, 10);
+                continue;
+            }
+            byName.set(name, {
+                name,
+                provider: org,
+                parameter_count: '?',
+                parameters_raw: 0,
+                min_vram_gb: 0,
+                recommended_ram_gb: 0,
+                quantization: 'Q4_K_M',
+                format: 'gguf',
+                context_length: 0,
+                use_case: (m.pipeline_tag === 'text-generation') ? 'General purpose text generation' : 'General purpose',
+                capabilities: [],
+                pipeline_tag: m.pipeline_tag || 'text-generation',
+                architecture: '',
+                hf_downloads: m.downloads || 0,
+                hf_likes: m.likes || 0,
+                hf_library: m.library_name || null,
+                hf_tags: Array.isArray(m.tags) ? m.tags : [],
+                release_date: m.lastModified ? String(m.lastModified).slice(0, 10) : null,
+                gguf_sources: [{ repo: name, provider: org }],
+                from_live: true
+            });
+            added++;
+        }
+
+        // Backfill: entradas sem metadados (0 GB / '?') ganham estimativas reais a partir do nome
+        const merged = Array.from(byName.values()).map(enrichModelEntry);
+        fs.writeFileSync(registryPath, JSON.stringify(merged, null, 2), 'utf8');
+        cache.set('registry', merged, 60000 * 60); // 1 hora cache
+        res.json({ success: true, total: merged.length, added, message: 'Catálogo atualizado do HuggingFace' });
+    } catch (err) {
+        logger.error('[HF Registry Refresh] Failed:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Adiciona um modelo encontrado na busca ao vivo ao catálogo local (para aparecer sempre na lista)
+app.post('/api/registry/add', (req, res) => {
+    const { name, pipeline_tag, hf_downloads, hf_likes, has_gguf, library_name, tags } = req.body || {};
+    if (!name || typeof name !== 'string' || !name.includes('/')) {
+        return res.status(400).json({ error: 'Modelo inválido. Formato esperado: org/repo' });
+    }
+
+    const registryPath = path.join(__dirname, 'data', 'hf_models.json');
+    let registry = [];
+    if (fs.existsSync(registryPath)) {
+        try { registry = JSON.parse(fs.readFileSync(registryPath, 'utf8')); } catch (_) {}
+        if (!Array.isArray(registry)) registry = [];
+    }
+    if (registry.some(m => m.name === name)) {
+        return res.json({ success: true, added: false, message: 'Modelo já está no catálogo' });
+    }
+
+    const org = name.split('/')[0] || 'Community';
+    registry.push(enrichModelEntry({
+        name,
+        provider: org,
+        parameter_count: '?',
+        parameters_raw: 0,
+        min_vram_gb: 0,
+        recommended_ram_gb: 0,
+        quantization: 'Q4_K_M',
+        format: 'gguf',
+        context_length: 0,
+        use_case: (pipeline_tag === 'text-generation') ? 'General purpose text generation' : 'General purpose',
+        capabilities: [],
+        pipeline_tag: pipeline_tag || 'text-generation',
+        architecture: '',
+        hf_downloads: hf_downloads || 0,
+        hf_likes: hf_likes || 0,
+        hf_library: library_name || null,
+        hf_tags: Array.isArray(tags) ? tags : [],
+        release_date: null,
+        gguf_sources: has_gguf ? [{ repo: name, provider: org }] : [],
+        from_live: true
+    }));
+
+    try {
+        fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2), 'utf8');
+        cache.set('registry', registry, 60000 * 60);
+        res.json({ success: true, added: true, message: 'Modelo adicionado ao catálogo' });
+    } catch (err) {
+        logger.error('[HF Registry Add] Failed:', err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/search/hf', async (req, res) => {
@@ -387,6 +634,98 @@ app.get('/api/search/hf', async (req, res) => {
     } catch (err) {
         logger.error('[HF Search] Failed:', err.message);
         res.json([]);
+    }
+});
+
+// Detalhes completos de um modelo direto do HuggingFace: README real + cada versão GGUF com tamanho e link
+app.get('/api/models/hf/detail', async (req, res) => {
+    const repo = String(req.query.repo || '').trim();
+    if (!repo || !repo.includes('/')) return res.status(400).json({ error: 'Modelo inválido. Formato esperado: org/repo' });
+
+    const cacheKey = `hf-detail-${repo}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
+    try {
+        const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+
+        // Nota: a API de detalhe do HF rejeita slash URL-encoded ("%2F") no caminho — manter '/' literal
+        const pathPart = repo.split('/').map(encodeURIComponent).join('/');
+        const apiRes = await fetch(`https://huggingface.co/api/models/${pathPart}?blobs=true`, { signal: AbortSignal.timeout(20000) });
+        if (!apiRes.ok) return res.status(502).json({ error: `HuggingFace API error: ${apiRes.status}` });
+        const m = await apiRes.json();
+
+        let readme = '';
+        try {
+            const rr = await fetch(`https://huggingface.co/api/models/${pathPart}/readme`, { signal: AbortSignal.timeout(10000) });
+            if (rr.ok) readme = await rr.text();
+        } catch (_) {}
+        if (!readme) {
+            // Fallback: README cru do repositório (alguns repos não expõem via endpoint /readme)
+            try {
+                const raw = await fetch(`https://huggingface.co/${pathPart}/raw/main/README.md`, { signal: AbortSignal.timeout(15000) });
+                if (raw.ok) readme = await raw.text();
+            } catch (_) {}
+        }
+
+        const licenseTag = (m.tags || []).find(t => String(t).startsWith('license:'));
+        const baseModelTag = (m.tags || []).find(t => String(t).startsWith('base_model:'));
+
+        const ggufFiles = (m.siblings || [])
+            .filter(s => s.rfilename && String(s.rfilename).toLowerCase().endsWith('.gguf'))
+            .map(s => {
+                const fn = s.rfilename;
+                const name = fn.split('/').pop() || fn;
+                const isShard = /-\d+-of-\d+\.gguf$/i.test(fn) || /^\d+-of-\d+/.test(name);
+                const isAux = /^(mmproj|imatrix|embedding|projector)/i.test(name);
+                return {
+                    file: fn,
+                    name,
+                    size: s.size || (s.lfs && s.lfs.size) || 0,
+                    quant: parseQuantFromText(fn),
+                    isShard,
+                    isAux,
+                    url: `https://huggingface.co/${repo}/resolve/main/${fn.split('/').map(encodeURIComponent).join('/')}`
+                };
+            });
+
+        const modelGguf = ggufFiles.filter(f => !f.isAux && !f.isShard);
+        const totalGgufBytes = (m.gguf && m.gguf.total) || ggufFiles.reduce((a, f) => a + (f.size || 0), 0);
+        const params = parseParamsFromName(repo);
+        // Quant principal: Q4_K_M é o default de download; senão, a primeira quantização encontrada
+        const mainQuant = (modelGguf.find(f => f.quant === 'Q4_K_M') || modelGguf.find(f => f.quant) || ggufFiles.find(f => f.quant))?.quant || 'Q4_K_M';
+
+        const detail = {
+            id: m.id || repo,
+            name: (m.id || repo).split('/').pop(),
+            provider: (m.id || repo).split('/')[0],
+            author: m.author || (m.id || repo).split('/')[0],
+            pipeline_tag: m.pipeline_tag || 'text-generation',
+            library: m.library_name || null,
+            license: (m.cardData && m.cardData.license) || (licenseTag ? licenseTag.slice(8) : null) || 'Desconhecida',
+            base_model: baseModelTag ? baseModelTag.slice(11) : null,
+            downloads: m.downloads || 0,
+            likes: m.likes || 0,
+            created: m.createdAt ? String(m.createdAt).slice(0, 10) : null,
+            lastModified: m.lastModified ? String(m.lastModified).slice(0, 10) : null,
+            tags: m.tags || [],
+            parameter_count: params ? params.label : '?',
+            parameters_raw: params ? params.b : 0,
+            quantization: mainQuant,
+            min_vram_gb: params ? estimateVramGb(params.b, mainQuant) : 0,
+            file_size_gb: Math.round((totalGgufBytes / (1024 ** 3)) * 10) / 10,
+            context_length: (m.gguf && m.gguf.context_length) || null,
+            architecture: (m.config && (m.config.model_type || (m.config.architectures && m.config.architectures[0]))) || null,
+            gguf_files: ggufFiles,
+            description: readme || '',
+            hf_url: `https://huggingface.co/${repo}`
+        };
+
+        cache.set(cacheKey, detail, 60000 * 60);
+        res.json(detail);
+    } catch (err) {
+        logger.error('[HF Detail] Failed:', err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -425,28 +764,230 @@ app.get('/api/system-info', async (req, res) => {
     if (cached) return res.json(cached);
 
     const getVram = () => new Promise((resolve) => {
-        exec('nvidia-smi --query-gpu=memory.total,name --format=csv,noheader,nounits', (err, stdout) => {
-            if (!err && stdout) {
-                const parts = stdout.trim().split(',');
-                return resolve({ ram: parseInt(parts[0]) * 1024 * 1024, name: parts[1]?.trim() });
-            }
-            exec(`powershell -command "Get-CimInstance Win32_VideoController | Select-Object Name, @{Name='VRAM';Expression={[math]::Round($_.AdapterRAM / 1)}} | ForEach-Object { $_.Name + '|' + $_.VRAM }"`, (err2, stdout2) => {
-                let best = { ram: 0, name: 'Unknown' };
-                if (!err2) {
-                    stdout2.trim().split('\n').forEach(l => {
-                        const [n, r] = l.trim().split('|');
-                        const ram = Math.abs(parseFloat(r));
-                        if (ram > best.ram) best = { ram, name: n };
-                    });
-                }
-                resolve(best);
-            });
-        });
+        // try/catch defensivo: em alguns ambientes (ex.: processos confinados)
+        // o child_process.exec pode falhar; nesse caso reportamos VRAM desconhecida
+        // em vez de derrubar o endpoint.
+        const tryNvidiaSmi = () => {
+            try {
+                exec('nvidia-smi --query-gpu=memory.total,name --format=csv,noheader,nounits', (err, stdout) => {
+                    if (!err && stdout) {
+                        const parts = stdout.trim().split(',');
+                        return resolve({ ram: parseInt(parts[0]) * 1024 * 1024, name: parts[1]?.trim() });
+                    }
+                    tryPowerShell();
+                });
+            } catch (e) { tryPowerShell(); }
+        };
+        const tryPowerShell = () => {
+            try {
+                exec(`powershell -command "Get-CimInstance Win32_VideoController | Select-Object Name, @{Name='VRAM';Expression={[math]::Round($_.AdapterRAM / 1)}} | ForEach-Object { $_.Name + '|' + $_.VRAM }"`, (err2, stdout2) => {
+                    let best = { ram: 0, name: 'Unknown' };
+                    if (!err2) {
+                        stdout2.trim().split('\n').forEach(l => {
+                            const [n, r] = l.trim().split('|');
+                            const ram = Math.abs(parseFloat(r));
+                            if (ram > best.ram) best = { ram, name: n };
+                        });
+                    }
+                    resolve(best);
+                });
+            } catch (e) { resolve({ ram: 0, name: 'Unknown' }); }
+        };
+        tryNvidiaSmi();
     });
     const v = await getVram();
     const info = { totalRam: os.totalmem(), freeRam: os.freemem(), vram: v.ram, gpuName: v.name, cpuModel: os.cpus()[0].model };
     cache.set('system-info', info, 5000); // 5s cache
     res.json(info);
+});
+
+// ---------------------------------------------------------------------------
+// Leitor de metadados GGUF (cabeçalho do ficheiro).
+// Permite estimar com precisão o impacto de contexto/camadas GPU no hardware:
+// nº de camadas, contexto máximo, dimensões, quantização e bytes por peso.
+// Suporta GGUF v2 e v3 (spec https://github.com/ggerganov/ggml/blob/master/docs/gguf.md)
+// ---------------------------------------------------------------------------
+const GGUF_MAGIC = 0x46554747; // "GGUF" em little-endian
+const GGUF_T = { U8:0, I8:1, U16:2, I16:3, U32:4, I32:5, F32:6, BOOL:7, STRING:8, ARRAY:9, U64:10, I64:11, F64:12 };
+
+// Le um valor GGUF a partir do buffer na posição `off`.
+// Devolve { value, next } ou undefined se sair dos limites.
+function ggufReadValue(buf, off, type) {
+    switch (type) {
+        case GGUF_T.U8:  return off + 1 > buf.length ? undefined : { value: buf.readUInt8(off), next: off + 1 };
+        case GGUF_T.I8:  return off + 1 > buf.length ? undefined : { value: buf.readInt8(off), next: off + 1 };
+        case GGUF_T.U16: return off + 2 > buf.length ? undefined : { value: buf.readUInt16LE(off), next: off + 2 };
+        case GGUF_T.I16: return off + 2 > buf.length ? undefined : { value: buf.readInt16LE(off), next: off + 2 };
+        case GGUF_T.U32: return off + 4 > buf.length ? undefined : { value: buf.readUInt32LE(off), next: off + 4 };
+        case GGUF_T.I32: return off + 4 > buf.length ? undefined : { value: buf.readInt32LE(off), next: off + 4 };
+        case GGUF_T.F32: return off + 4 > buf.length ? undefined : { value: buf.readFloatLE(off), next: off + 4 };
+        case GGUF_T.BOOL: return off + 1 > buf.length ? undefined : { value: buf.readUInt8(off) !== 0, next: off + 1 };
+        case GGUF_T.STRING: {
+            if (off + 8 > buf.length) return undefined;
+            const len = Number(buf.readBigUInt64LE(off));
+            off += 8;
+            if (off + len > buf.length) return undefined;
+            return { value: buf.toString('utf8', off, off + len), next: off + len };
+        }
+        case GGUF_T.ARRAY: {
+            if (off + 12 > buf.length) return undefined;
+            const elemType = buf.readUInt32LE(off);
+            off += 4;
+            const count = Number(buf.readBigUInt64LE(off));
+            off += 8;
+            // Arrays enormes (ex.: tokenizer.ggml.tokens com 128k strings) são
+            // percorridos sem armazenar valores quando não interessa.
+            const isHugeStrings = elemType === GGUF_T.STRING && count > 5000;
+            const arr = isHugeStrings ? null : [];
+            for (let j = 0; j < count; j++) {
+                const r = ggufReadValue(buf, off, elemType);
+                if (!r) return undefined;
+                off = r.next;
+                if (!isHugeStrings) arr.push(r.value);
+            }
+            return { value: arr, next: off };
+        }
+        case GGUF_T.U64: { if (off + 8 > buf.length) return undefined; return { value: Number(buf.readBigUInt64LE(off)), next: off + 8 }; }
+        case GGUF_T.I64: { if (off + 8 > buf.length) return undefined; return { value: Number(buf.readBigInt64LE(off)), next: off + 8 }; }
+        case GGUF_T.F64: { if (off + 8 > buf.length) return undefined; return { value: buf.readDoubleLE(off), next: off + 8 }; }
+        default: return undefined;
+    }
+}
+
+// Analisa o buffer do cabeçalho GGUF. `fileSizeBytes` é o tamanho real do ficheiro.
+// Devolve o mapa de metadados + informação derivada (ou { ok:false, error }).
+function parseGGUFBuffer(buf, fileSizeBytes = 0) {
+    if (!buf || buf.length < 24) return { ok: false, error: 'Ficheiro demasiado pequeno para ser GGUF.' };
+    if (buf.readUInt32LE(0) !== GGUF_MAGIC) return { ok: false, error: 'O ficheiro não tem assinatura GGUF.' };
+    const version = buf.readUInt32LE(4);
+    const kvCount = Number(buf.readBigUInt64LE(16));
+    let off = 24;
+    const meta = {};
+
+    // Chaves essenciais — deixamos de percorrer assim que as tivermos todas,
+    // para não atravessar os arrays gigantes do tokenizer no fim dos metadados.
+    const needsArch = !meta['general.architecture'];
+    const isCore = (k) => k.startsWith('general.architecture') || k === 'general.file_type' || k === 'general.quantization_version' ||
+        /\.block_count$/.test(k) || /\.context_length$/.test(k) || /\.embedding_length$/.test(k) ||
+        /\.attention\.head_count$/.test(k) || /\.attention\.head_count_kv$/.test(k) || /\.rope\.dimension_count$/.test(k);
+
+    for (let i = 0; i < kvCount; i++) {
+        if (off + 8 > buf.length) break;
+        const keyLen = Number(buf.readBigUInt64LE(off));
+        off += 8;
+        if (off + keyLen > buf.length) break;
+        const key = buf.toString('utf8', off, off + keyLen);
+        off += keyLen;
+        if (off + 4 > buf.length) break;
+        const vtype = buf.readUInt32LE(off);
+        off += 4;
+        const r = ggufReadValue(buf, off, vtype);
+        if (!r) break;
+        off = r.next;
+        meta[key] = r.value;
+
+        // Paragem antecipada: já temos tudo o que precisamos.
+        const arch = meta['general.architecture'];
+        const hasLayers = Object.keys(meta).some(k => k.endsWith('.block_count'));
+        const hasEmb = Object.keys(meta).some(k => k.endsWith('.embedding_length'));
+        if (arch && hasLayers && hasEmb && meta['general.file_type'] !== undefined) break;
+    }
+
+    // --- Derivar os campos estruturados ---
+    const pick = (prefixes) => {
+        for (const p of prefixes) if (meta[p] !== undefined) return meta[p];
+        return undefined;
+    };
+    const arch = meta['general.architecture'] || 'llama';
+    const a = (k) => pick([`${arch}.${k}`, `llama.${k}`, `qwen2.${k}`]);
+    const nLayers = a('block_count');
+    const nCtxMax = a('context_length');
+    const nEmb = a('embedding_length');
+    const nHeads = a('attention.head_count');
+    const nKVHeads = a('attention.head_count_kv');
+    const ropeDim = a('rope.dimension_count');
+    const fileType = meta['general.file_type'];
+    const quantVersion = meta['general.quantization_version'];
+
+    const FILE_TYPE_NAMES = {
+        0: 'F32', 1: 'F16', 2: 'Q4_0', 3: 'Q4_1', 6: 'Q5_0', 7: 'Q5_1', 8: 'Q8_0', 9: 'Q8_1',
+        10: 'Q2_K', 11: 'Q3_K', 12: 'Q4_K', 13: 'Q5_K', 14: 'Q6_K', 15: 'Q8_K',
+        16: 'IQ2_XXS', 17: 'IQ2_XS', 18: 'IQ3_XXS', 19: 'IQ1_S', 20: 'IQ4_NL', 21: 'IQ3_S',
+        22: 'IQ3_M', 23: 'IQ2_S', 24: 'IQ2_M', 25: 'IQ4_XS', 26: 'IQ1_M', 27: 'BF16',
+        28: 'Q4_0_4_4', 29: 'Q4_0_4_8', 30: 'Q4_0_8_8', 31: 'TQ1_0', 32: 'TQ2_0', 33: 'IQ4_NL_4_4'
+    };
+    // Bytes médios por peso para cada quantização (aproximação usada na estimativa).
+    const QUANT_BYTES = {
+        0: 4, 1: 2, 27: 2, 8: 1, 9: 1, 15: 1, 14: 0.79, 13: 0.69, 6: 0.66, 7: 0.68,
+        12: 0.56, 2: 0.56, 3: 0.59, 11: 0.45, 10: 0.34, 19: 0.15, 16: 0.22, 17: 0.26,
+        18: 0.31, 23: 0.31, 24: 0.31, 20: 0.53, 21: 0.40, 22: 0.40, 25: 0.53, 26: 0.15,
+        28: 0.55, 29: 0.55, 30: 0.55, 31: 0.13, 32: 0.25, 33: 0.53
+    };
+    const quantName = FILE_TYPE_NAMES[fileType] || (fileType !== undefined ? `FileType_${fileType}` : undefined);
+    const bytesPerWeight = QUANT_BYTES[fileType];
+
+    // head_dim: rope.dimension_count ou embedding/heads
+    let headDim = ropeDim;
+    if (!headDim && nEmb && nHeads) headDim = nEmb / nHeads;
+
+    // Estimativa de parâmetros (arquitetura Llama-like): ~12*nEmb² por camada.
+    // Serve para calibrar os bytes/peso reais a partir do tamanho do ficheiro.
+    let paramsEstimate = null;
+    if (typeof nLayers === 'number' && typeof nEmb === 'number') {
+        paramsEstimate = nLayers * (12 * nEmb * nEmb + 13 * nEmb);
+    }
+
+    const out = {
+        ok: true,
+        version,
+        arch: arch || null,
+        nLayers: typeof nLayers === 'number' ? nLayers : null,
+        nCtxMax: typeof nCtxMax === 'number' ? nCtxMax : null,
+        nEmb: typeof nEmb === 'number' ? nEmb : null,
+        nKVHeads: typeof nKVHeads === 'number' ? nKVHeads : null,
+        headDim: typeof headDim === 'number' ? headDim : null,
+        fileType: typeof fileType === 'number' ? fileType : null,
+        quantVersion: typeof quantVersion === 'number' ? quantVersion : null,
+        quantName: quantName || null,
+        bytesPerWeight: typeof bytesPerWeight === 'number' ? bytesPerWeight : null,
+        paramsEstimate,
+        fileSizeBytes: fileSizeBytes || 0
+    };
+    if (!out.nLayers && !out.fileSizeBytes) out.ok = false; // sem dados úteis
+    return out;
+}
+
+// Lê os primeiros bytes do ficheiro e analisa o cabeçalho GGUF.
+function parseGGUFHeader(filePath, maxReadBytes = 16 * 1024 * 1024) {
+    let fd;
+    try {
+        fd = fs.openSync(filePath, 'r');
+        const stat = fs.fstatSync(fd);
+        const size = Math.min(stat.size, maxReadBytes);
+        const buf = Buffer.alloc(size);
+        fs.readSync(fd, buf, 0, size, 0);
+        return parseGGUFBuffer(buf, stat.size);
+    } catch (e) {
+        return { ok: false, error: e.message };
+    } finally {
+        if (fd !== undefined) { try { fs.closeSync(fd); } catch (e) {} }
+    }
+}
+
+// Metadados GGUF de um modelo local (usado pelos painéis de "impacto no hardware").
+app.get('/api/gguf/meta', (req, res) => {
+    const p = String(req.query.path || '');
+    if (!p) return res.status(400).json({ ok: false, error: 'Missing path.' });
+    if (!p.toLowerCase().endsWith('.gguf')) return res.status(400).json({ ok: false, error: 'O ficheiro não é .gguf.' });
+    if (!fs.existsSync(p)) return res.status(404).json({ ok: false, error: 'Ficheiro não encontrado.' });
+
+    const cacheKey = 'gguf-meta:' + p;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
+    const meta = parseGGUFHeader(p);
+    cache.set(cacheKey, meta, 1000 * 60 * 60 * 24); // 1 dia
+    res.json(meta);
 });
 
 app.get('/api/models', async (req, res) => {
@@ -653,9 +1194,11 @@ app.post('/v1/chat/completions', async (req, res) => {
     // O Gateway deve limitar-se SEMPRE ao teto físico real (vramShieldLimit) para proteger o motor.
     const hardwareLimit = config.vramShieldLimit || 32768;
     let realCtxLimit = hardwareLimit;
-    // Se for o motor nativo Llama.cpp a correr, alinhamos estritamente ao contexto alocado no boot (Evita Crashes)
+    // Se for o motor nativo Llama.cpp a correr, alinhamos estritamente ao contexto alocado no boot (Evita Crashes).
+    // Quando o utilizador iniciou o motor explicitamente com um contexto maior (ex.: 1M), o KV já foi
+    // alocado com -c nesse valor — respeitamos essa escolha em vez de a limitar ao vramShieldLimit.
     if (activeLlamaProcess && targetModel === currentLlamaModel) {
-        realCtxLimit = Math.min(hardwareLimit, currentLlamaCtx);
+        realCtxLimit = Math.max(hardwareLimit, currentLlamaCtx);
     }
     const requestCtx = req.body.num_ctx ? Math.min(req.body.num_ctx, realCtxLimit) : realCtxLimit;
 
@@ -1220,41 +1763,254 @@ let currentLlamaPort = 8080;
 let currentLlamaModel = null;
 let currentLlamaCtx = 2048;
 
+// ---- llama.cpp helpers ----
+let cachedPhysicalCores = null;
+
+// Número de núcleos físicos (não lógicos) da máquina, com cache.
+async function getPhysicalCoreCount() {
+    if (cachedPhysicalCores) return cachedPhysicalCores;
+    try {
+        if (os.platform() === 'win32') {
+            const psCmd = `powershell -NoProfile -Command "(Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfCores -Sum).Sum"`;
+            const { stdout } = await promisify(exec)(psCmd, { timeout: 10000 });
+            const n = parseInt(String(stdout).trim(), 10);
+            if (n > 0) { cachedPhysicalCores = n; return n; }
+        } else if (os.platform() === 'darwin') {
+            const { stdout } = await promisify(exec)('sysctl -n hw.physicalcpu', { timeout: 5000 });
+            const n = parseInt(String(stdout).trim(), 10);
+            if (n > 0) { cachedPhysicalCores = n; return n; }
+        } else {
+            // Linux: conta pares únicos de physical id + core id em /proc/cpuinfo
+            const cpuinfo = fs.readFileSync('/proc/cpuinfo', 'utf8');
+            const ids = new Set();
+            let phys = null, core = null;
+            for (const line of cpuinfo.split('\n')) {
+                if (line.startsWith('physical id')) phys = line.split(':')[1].trim();
+                else if (line.startsWith('core id')) core = line.split(':')[1].trim();
+                else if (line.trim() === '') {
+                    if (phys !== null && core !== null) ids.add(`${phys}:${core}`);
+                    phys = null; core = null;
+                }
+            }
+            if (ids.size > 0) { cachedPhysicalCores = ids.size; return ids.size; }
+        }
+    } catch (e) { /* usa fallback abaixo */ }
+    cachedPhysicalCores = os.cpus().length; // fallback: núcleos lógicos
+    return cachedPhysicalCores;
+}
+
+// Converte uma string de argumentos em tokens, respeitando aspas.
+function tokenizeArgs(str) {
+    const tokens = [];
+    const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+    let m;
+    while ((m = re.exec(str)) !== null) {
+        tokens.push(m[1] !== undefined ? m[1] : (m[2] !== undefined ? m[2] : m[3]));
+    }
+    return tokens;
+}
+
+// Converte uma string de argumentos ("-t 8 --flash-attn auto ...") na lista
+// estruturada usada pelas checkboxes da UI: [{ arg, value, enabled }].
+// Um token que começa por "-" é uma flag; o token seguinte é o valor dela
+// (a menos que também comece por "-", caso em que a flag não tem valor).
+function parseArgsToList(str) {
+    const tokens = tokenizeArgs(String(str || '').trim());
+    const list = [];
+    for (let i = 0; i < tokens.length; i++) {
+        const tok = tokens[i];
+        const next = tokens[i + 1];
+        if (tok.startsWith('-') && next !== undefined && !next.startsWith('-')) {
+            list.push({ arg: tok, value: next, enabled: true });
+            i++; // consome o valor
+        } else {
+            list.push({ arg: tok, value: '', enabled: true });
+        }
+    }
+    return list;
+}
+
+// Reconstrói a string clássica ("-t 8 --flash-attn auto") a partir da lista
+// estruturada — apenas parâmetros ativos, espelhando o que é executado.
+// Mantém a compatibilidade com llamaCppArgs em config.json.
+function listToArgsString(list) {
+    return (Array.isArray(list) ? list : [])
+        .filter(x => x && x.enabled !== false && typeof x.arg === 'string' && x.arg.trim())
+        .map(x => {
+            const arg = x.arg.trim();
+            const val = String(x.value || '').trim();
+            return val ? `${arg} ${val}` : arg;
+        })
+        .join(' ');
+}
+
+// Converte a lista estruturada em tokens finais para o spawn, aplicando a
+// substituição de $physicalCores e ignorando parâmetros desativados.
+function buildArgsFromList(list, cores) {
+    const out = [];
+    for (const x of (Array.isArray(list) ? list : [])) {
+        if (!x || !x.enabled) continue;
+        const arg = String(x.arg || '').trim().replace(/\$physicalCores/gi, String(cores));
+        if (!arg) continue;
+        const val = String(x.value || '').trim().replace(/\$physicalCores/gi, String(cores));
+        out.push(arg);
+        if (val) out.push(val);
+    }
+    return out;
+}
+
+// Extrai a porta (--port N ou -p N) dos argumentos, se presente.
+function extractPort(args) {
+    for (let i = 0; i < args.length - 1; i++) {
+        if (args[i] === '--port' || args[i] === '-p') {
+            const p = parseInt(args[i + 1], 10);
+            if (p > 0) return p;
+        }
+    }
+    return null;
+}
+
+// Caminho resolvido do binário llama-server (configurado ou nome simples).
+function resolveLlamaBinary() {
+    const bin = (config.llamaCppBinary || '').trim();
+    if (!bin) return os.platform() === 'win32' ? 'llama-server.exe' : 'llama-server';
+    return bin;
+}
+
+// Verifica se o binário configurado existe (só para caminhos com separador).
+function llamaBinaryExists() {
+    const bin = (config.llamaCppBinary || '').trim();
+    if (!bin) return null;
+    if (!/[\\/]/.test(bin)) return null; // nome simples → procura no PATH
+    return fs.existsSync(bin);
+}
+
+// Monta a lista final de argumentos: base + extras (extras têm prioridade).
+async function buildLlamaArgs(modelPath, ctx, ngl) {
+    const cores = await getPhysicalCoreCount();
+    const base = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--reasoning', 'off'];
+    let extras;
+    if (Array.isArray(config.llamaCppArgsList) && config.llamaCppArgsList.length) {
+        extras = buildArgsFromList(config.llamaCppArgsList, cores);
+    } else {
+        extras = tokenizeArgs(String(config.llamaCppArgs || '').replace(/\$physicalCores/gi, String(cores)));
+    }
+    return [...base, ...extras];
+}
+
+// Encerra o processo ativo do motor (taskkill com PID ou nome da imagem).
+function killActiveLlama(bin) {
+    return new Promise(r => {
+        if (os.platform() === 'win32') {
+            const image = (bin && path.basename(bin)) || 'llama-server.exe';
+            const killCmd = activeLlamaProcess && activeLlamaProcess.pid
+                ? `taskkill /F /T /PID ${activeLlamaProcess.pid}`
+                : `taskkill /F /IM ${image}`;
+            exec(killCmd, () => setTimeout(r, 2000));
+        } else {
+            if (activeLlamaProcess && activeLlamaProcess.kill) activeLlamaProcess.kill('SIGKILL');
+            else exec('pkill -9 llama-server', () => {});
+            setTimeout(r, 2000);
+        }
+    });
+}
+
+// Configuração do motor (binário + args) — lida pela página Centraliza Coder
+app.get('/api/inference/config', async (req, res) => {
+    const binary = (config.llamaCppBinary || '').trim();
+    res.json({
+        binary: binary || 'llama-server',
+        args: listToArgsString(config.llamaCppArgsList) || config.llamaCppArgs || '',
+        argList: (Array.isArray(config.llamaCppArgsList) ? config.llamaCppArgsList : []).map(x => ({ arg: x.arg, value: x.value || '', enabled: !!x.enabled })),
+        physicalCores: await getPhysicalCoreCount(),
+        binaryExists: llamaBinaryExists(),
+        port: currentLlamaPort
+    });
+});
+
+app.post('/api/inference/config', (req, res) => {
+    const { binary, args, argList } = req.body || {};
+    if (typeof binary === 'string' && binary.trim()) config.llamaCppBinary = binary.trim();
+    if (Array.isArray(argList)) {
+        // Forma estruturada (checkboxes da UI): guarda a lista e mantém a
+        // string clássica sincronizada para compatibilidade.
+        const clean = argList
+            .filter(x => x && typeof x.arg === 'string' && x.arg.trim())
+            .map(x => ({ arg: String(x.arg).trim(), value: String(x.value || '').trim(), enabled: !!x.enabled }));
+        config.llamaCppArgsList = clean;
+        config.llamaCppArgs = listToArgsString(clean);
+    } else if (typeof args === 'string') {
+        // Forma antiga (string livre): converte para a lista estruturada.
+        config.llamaCppArgs = args.trim();
+        config.llamaCppArgsList = parseArgsToList(args);
+    }
+    saveConfig();
+    logger.info(`[Llama.cpp] Engine config saved. Binary: ${config.llamaCppBinary}`);
+    res.json({ success: true });
+});
+
+// Abre o seletor nativo de PASTA e devolve o caminho do llama-server nela
+// (o utilizador escolhe a pasta onde está o build do llama.cpp, ex.:
+// C:\...\llama.cpp\build\bin\Release, e o ficheiro é completado por aqui).
+app.get('/api/inference/pick-binary', async (req, res) => {
+    const platform = os.platform();
+    const exeName = platform === 'win32' ? 'llama-server.exe' : 'llama-server';
+    const current = (config.llamaCppBinary || '').trim();
+    let initialPath = (current && /[\\/]/.test(current)) ? path.dirname(current) : '';
+    if (initialPath && !fs.existsSync(initialPath)) initialPath = '';
+    if (!initialPath) initialPath = __dirname; // sem pista do binário → começa na pasta da app
+
+    const result = await pickFolderNative(initialPath, 'Select the folder containing llama-server (llama.cpp)');
+    if (result.error || !result.path) {
+        return res.json({ path: null, exists: false, folder: null, error: result.error || null });
+    }
+    const candidate = path.join(result.path, exeName);
+    res.json({ path: candidate, exists: fs.existsSync(candidate), folder: result.path });
+});
+
 app.post('/api/inference/start', async (req, res) => {
-    const { modelPath, ngl = 0, ctx = 2048, reasoningBudget = 2048 } = req.body;
+    const { modelPath, ngl = 0, ctx = 2048, reasoningBudget = 2048, binary, extraArgs, argList } = req.body;
     if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
 
+    // Aceita binário/args vindos da UI e persiste-os em config.json
+    if (typeof binary === 'string' && binary.trim()) config.llamaCppBinary = binary.trim();
+    if (Array.isArray(argList)) {
+        const clean = argList
+            .filter(x => x && typeof x.arg === 'string' && x.arg.trim())
+            .map(x => ({ arg: String(x.arg).trim(), value: String(x.value || '').trim(), enabled: !!x.enabled }));
+        config.llamaCppArgsList = clean;
+        config.llamaCppArgs = listToArgsString(clean);
+    } else if (typeof extraArgs === 'string') {
+        config.llamaCppArgs = extraArgs.trim();
+        config.llamaCppArgsList = parseArgsToList(extraArgs);
+    }
+    if (binary || argList || extraArgs) saveConfig();
+
+    const bin = resolveLlamaBinary();
+    const binExists = llamaBinaryExists();
+    if (binExists === false) {
+        return res.status(400).json({ error: `Binário do llama.cpp não encontrado em: ${bin}. Verifique o caminho nas configurações do motor (Centraliza Coder → ⚙).` });
+    }
+
     if (activeLlamaProcess) {
-        // If the exact same model and context size are already running, skip spawn and just return ready
+        // Se o mesmo modelo e contexto já estão a correr, apenas informa
         if (currentLlamaModel === modelPath && currentLlamaCtx === ctx) {
              logger.info('[Llama.cpp] Engine already running with this model and ctx.');
              return res.json({ success: true, port: currentLlamaPort, message: 'Engine already running.' });
         }
 
         logger.info('[Llama.cpp] Terminating old engine to load new model or context size.');
-
-        await new Promise(r => {
-            if (os.platform() === 'win32') {
-                const killCmd = activeLlamaProcess.pid
-                    ? `taskkill /F /T /PID ${activeLlamaProcess.pid}`
-                    : `taskkill /F /IM llama-server.exe`;
-                exec(killCmd, () => setTimeout(r, 2000));
-            } else {
-                if (activeLlamaProcess.kill) activeLlamaProcess.kill('SIGKILL');
-                else exec('pkill -9 llama-server', () => {});
-                setTimeout(r, 2000);
-            }
-        });
+        await killActiveLlama(bin);
         activeLlamaProcess = null;
     }
 
-    const isWindows = os.platform() === 'win32';
-    const binaryName = isWindows ? 'llama-server.exe' : 'llama-server';
-    const args = ['-m', modelPath, '-c', String(ctx), '-ngl', String(ngl), '--port', String(currentLlamaPort), '--reasoning', 'off'];
-    logDebugPayload('SPAWNING LLAMA.CPP', { binary: binaryName, args: args });
+    const args = await buildLlamaArgs(modelPath, ctx, ngl);
+    const portFromArgs = extractPort(args);
+    if (portFromArgs) currentLlamaPort = portFromArgs;
+    logDebugPayload('SPAWNING LLAMA.CPP', { binary: bin, args });
 
     try {
-        const proc = spawn(binaryName, args, { stdio: 'pipe' });
+        const proc = spawn(bin, args, { stdio: 'pipe', windowsHide: true });
         activeLlamaProcess = proc;
 
         proc.stdout.on('data', d => logger.info(`[Llama.cpp] ${d.toString().trim()}`));
@@ -1311,18 +2067,7 @@ app.post('/api/inference/start', async (req, res) => {
 
 app.post('/api/inference/stop', async (req, res) => {
     if (activeLlamaProcess) {
-        await new Promise(r => {
-            if (os.platform() === 'win32') {
-                const killCmd = activeLlamaProcess.pid
-                    ? `taskkill /F /T /PID ${activeLlamaProcess.pid}`
-                    : `taskkill /F /IM llama-server.exe`;
-                exec(killCmd, () => setTimeout(r, 1000));
-            } else {
-                if (activeLlamaProcess.kill) activeLlamaProcess.kill('SIGKILL');
-                else exec('pkill -9 llama-server', () => {});
-                setTimeout(r, 1000);
-            }
-        });
+        await killActiveLlama(resolveLlamaBinary());
         activeLlamaProcess = null;
         currentLlamaModel = null;
         res.json({ success: true, message: 'Engine stopped.' });
@@ -1629,7 +2374,7 @@ app.post('/api/download/cancel', (req, res) => {
 });
 
 app.post('/api/download/hf', async (req, res) => {
-    const { repo, modelName } = req.body;
+    const { repo, modelName, file } = req.body;
     if (!repo || !modelName) return res.status(400).json({ error: 'Missing repo or modelName' });
     if (activeDownloads.has(modelName)) return res.status(400).json({ error: 'Download already in progress.' });
 
@@ -1647,11 +2392,16 @@ app.post('/api/download/hf', async (req, res) => {
 
         const QUANT_PREF = ['Q4_K_M', 'Q5_K_M', 'Q4_K_S', 'Q4_0', 'Q5_0', 'Q8_0', 'IQ4_XS', 'IQ3_M', 'IQ4_NL', 'Q2_K'];
         let selectedFile = null;
-        for (const q of QUANT_PREF) {
-            selectedFile = ggufFiles.find(f => f.toUpperCase().includes(q));
-            if (selectedFile) break;
+        // Quantização específica pedida pela UI (ex.: versão escolhida pelo utilizador)
+        if (file && (allGguf.includes(file) || ggufFiles.includes(file))) {
+            selectedFile = file;
+        } else {
+            for (const q of QUANT_PREF) {
+                selectedFile = ggufFiles.find(f => f.toUpperCase().includes(q));
+                if (selectedFile) break;
+            }
+            if (!selectedFile && ggufFiles.length > 0) selectedFile = ggufFiles[0];
         }
-        if (!selectedFile && ggufFiles.length > 0) selectedFile = ggufFiles[0];
         if (!selectedFile) return res.status(404).json({ error: `No GGUF file found in ${repo}` });
 
         const downloadUrl = `https://huggingface.co/${repo}/resolve/main/${encodeURIComponent(selectedFile)}`;
@@ -1952,6 +2702,174 @@ app.get('/api/coder/status', (req, res) => {
     res.json(getCoderStatus());
 });
 
+// --- DEEPSEEK HARNESS COMO AGENTE SOBRE O MOTOR LOCAL (llama.cpp) ---
+// Lança a Web UI do DeepSeek Harness (`dsh web`) apontada para o motor local
+// via um patch de perfil isolado (mesma técnica que o free-claude-code usa):
+// os providers/settings reais do utilizador (~/.dsh) não são tocados.
+const DSH_PATCH_DIR = path.join(__dirname, 'data', 'dsh');
+
+function llamaArgsMap() {
+    const map = {};
+    const list = Array.isArray(config.llamaCppArgsList) ? config.llamaCppArgsList : [];
+    for (const item of list) {
+        if (item && typeof item.arg === 'string' && item.arg.trim()) {
+            map[String(item.arg).trim()] = String(item.value || '').trim();
+        }
+    }
+    return map;
+}
+
+function llamaAlias() {
+    const alias = llamaArgsMap()['--alias'];
+    return (alias && alias.trim()) || 'qwen';
+}
+
+function llamaEnginePort() {
+    const p = parseInt(llamaArgsMap()['--port'], 10);
+    return (Number.isFinite(p) && p > 0) ? p : (currentLlamaPort || 8080);
+}
+
+async function httpGetOk(url, timeoutMs = 2000) {
+    try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+        return res && res.ok ? res : null;
+    } catch (e) { return null; }
+}
+
+async function isEngineRunning() {
+    return !!(await httpGetOk(`http://127.0.0.1:${llamaEnginePort()}/health`, 1500));
+}
+
+function findFreePort(start) {
+    return new Promise((resolve) => {
+        const net = require('net');
+        const tryPort = (p) => {
+            if (p > start + 20) return resolve(start);
+            const srv = net.createServer();
+            srv.once('error', () => { srv.close(); tryPort(p + 1); });
+            srv.listen(p, '127.0.0.1', () => {
+                const port = srv.address().port;
+                srv.close(() => resolve(port));
+            });
+        };
+        tryPort(start);
+    });
+}
+
+let dshProcessPid = null;
+
+function writeDshPatch() {
+    fs.mkdirSync(DSH_PATCH_DIR, { recursive: true });
+    const settingsPath = path.join(DSH_PATCH_DIR, 'settings.local.yaml');
+    const credentialsPath = path.join(DSH_PATCH_DIR, '.credentials.local.yaml');
+    fs.writeFileSync(settingsPath, '{}\n');
+    fs.writeFileSync(credentialsPath, '{}\n');
+    const alias = llamaAlias();
+    const enginePort = llamaEnginePort();
+    const patch = [
+        { id: 'settings', name: '@deepseek-ai/dsh-settings-file', config: { path: settingsPath, watch: false } },
+        { id: 'credentials', name: '@deepseek-ai/dsh-credentials-local', config: { path: credentialsPath, watch: false } },
+        {
+            id: 'llm-pi-ai',
+            name: '@deepseek-ai/dsh-llm-pi-ai',
+            config: {
+                providers: {
+                    'centraliza-local': {
+                        displayName: 'Centraliza Local (llama.cpp)',
+                        api: 'openai-completions',
+                        baseURL: `http://127.0.0.1:${enginePort}/v1`,
+                        headers: { Authorization: 'Bearer centraliza-local' },
+                        defaultInput: ['text'],
+                        models: [
+                            {
+                                id: alias,
+                                name: `${alias} (llama.cpp local)`,
+                                contextWindow: 131072
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        { id: 'agent-default-model', name: '@deepseek-ai/dsh-agent-default-model', config: { provider: 'centraliza-local', model: alias } }
+    ];
+    const patchPath = path.join(DSH_PATCH_DIR, 'local.patch.json');
+    fs.writeFileSync(patchPath, JSON.stringify(patch, null, 2));
+    return patchPath;
+}
+
+app.get('/api/coder/dsh/status', async (req, res) => {
+    try {
+        const port = parseInt(config.dshLocalPort, 10) || 3090;
+        const engineRunning = await isEngineRunning();
+        const dshRunning = !!(await httpGetOk(`http://127.0.0.1:${port}`, 1500));
+        res.json({ port, engineRunning, dshRunning, url: `http://127.0.0.1:${port}` });
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/coder/dsh/launch', async (req, res) => {
+    try {
+        const startPort = parseInt(config.dshLocalPort, 10) || 3090;
+        const port = await findFreePort(startPort);
+        const url = `http://127.0.0.1:${port}`;
+
+        if (!(await isEngineRunning())) {
+            return res.status(400).json({ error: 'O motor local (llama.cpp) não está a correr. Inicie o motor na página Centraliza Coder e tente novamente.' });
+        }
+        if (await httpGetOk(url, 1200)) {
+            return res.json({ success: true, port, url, message: 'O DeepSeek Harness já está a correr.' });
+        }
+
+        const patchPath = writeDshPatch();
+        const cmd = `dsh web --no-open --host 127.0.0.1 --port ${port} --patch "${patchPath}"`;
+        logger.info(`[DSH] A lançar DeepSeek Harness: ${cmd}`);
+        const child = spawn(cmd, { shell: true, detached: true, stdio: 'ignore', windowsHide: true });
+        child.unref();
+        dshProcessPid = child.pid;
+        child.on('error', (err) => {
+            logger.error('[DSH] Falha ao lançar DeepSeek Harness:', err);
+        });
+
+        let up = false;
+        for (let i = 0; i < 40; i++) {
+            if (await httpGetOk(url, 1500)) { up = true; break; }
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        if (!up) {
+            logger.error('[DSH] DeepSeek Harness não respondeu a tempo.');
+            return res.status(502).json({ error: 'O DeepSeek Harness não respondeu a tempo. Verifique se o dsh está instalado (npm install -g @deepseek-ai/dsh) e se a porta está livre.' });
+        }
+        logger.info(`[DSH] DeepSeek Harness ativo em ${url} (modelo local: ${llamaAlias()}).`);
+        res.json({ success: true, port, url, message: 'DeepSeek Harness aberto com o modelo local.' });
+    } catch (e) {
+        logger.error('[DSH] Erro ao lançar:', e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/coder/dsh/stop', async (req, res) => {
+    const port = parseInt(config.dshLocalPort, 10) || 3090;
+    const pids = new Set();
+    if (dshProcessPid) pids.add(dshProcessPid);
+    dshProcessPid = null;
+    try {
+        const out = await new Promise((resolve, reject) => exec(`netstat -ano | findstr :${port}`, (err, stdout) => err ? reject(err) : resolve(stdout)));
+        for (const line of out.split(/\r?\n/)) {
+            if (!line.toLowerCase().includes('listen')) continue;
+            const m = line.trim().match(/\s+(\d+)\s*$/);
+            if (m) pids.add(parseInt(m[1], 10));
+        }
+    } catch (e) { /* sem netstat — usa apenas o pid rastreado */ }
+    let killed = 0;
+    for (const pid of pids) {
+        if (!pid || pid <= 0 || pid === process.pid) continue;
+        try { exec(`taskkill /F /T /PID ${pid}`, () => {}); killed++; } catch (e) {}
+    }
+    res.json({ success: true, killed });
+});
+
 // --- VS CODE / EDITOR INTEGRATION ---
 app.post('/api/coder/setup-continue', (req, res) => {
     try {
@@ -2102,10 +3020,11 @@ async function probeExistingLlamaEngine() {
 }
 
 if (require.main === module) {
-    server.listen(4000, () => {
-        logger.info('Centraliza.ai on http://localhost:4000');
+    const PORT = Number(process.env.PORT) || 4000;
+    server.listen(PORT, () => {
+        logger.info(`Centraliza.ai on http://localhost:${PORT}`);
         probeExistingLlamaEngine().catch(() => {});
         syncCoder(true).catch(() => {}); // Auto-sync invisível ao iniciar
     });
 }
-module.exports = { app, server };
+module.exports = { app, server, writeDshPatch, parseGGUFBuffer, parseGGUFHeader };

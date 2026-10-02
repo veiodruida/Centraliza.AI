@@ -107,4 +107,79 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
   }
+
+  /* Markdown README do HuggingFace */
+  .md-prose {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.7;
+    word-break: break-word;
+  }
+  .md-prose h1, .md-prose h2, .md-prose h3, .md-prose h4 {
+    color: var(--text-primary);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 1.75em 0 0.75em;
+    text-transform: none;
+  }
+  .md-prose h1 { font-size: 1.6em; }
+  .md-prose h2 { font-size: 1.4em; }
+  .md-prose h3 { font-size: 1.2em; }
+  .md-prose h4 { font-size: 1.05em; }
+  .md-prose h1:first-child, .md-prose h2:first-child, .md-prose h3:first-child { margin-top: 0; }
+  .md-prose p { margin: 0 0 1em; }
+  .md-prose ul { list-style: disc; padding-left: 1.5em; margin: 0 0 1em; display: flex; flex-direction: column; gap: 0.35em; }
+  .md-prose ol { list-style: decimal; padding-left: 1.5em; margin: 0 0 1em; display: flex; flex-direction: column; gap: 0.35em; }
+  .md-prose a { color: #60a5fa; text-decoration: underline; text-underline-offset: 4px; }
+  .md-prose a:hover { color: #93c5fd; }
+  .md-prose code { background: var(--bg-surface); color: #93c5fd; padding: 0.15em 0.4em; border-radius: 0.5em; font-size: 0.9em; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .md-prose pre { background: var(--bg-base); border: 1px solid var(--border); border-radius: 1.25rem; padding: 1.1em; margin: 0 0 1em; overflow-x: auto; }
+  .md-prose pre code { background: transparent; padding: 0; color: var(--text-secondary); }
+  .md-prose blockquote { border-left: 4px solid rgba(59, 130, 246, 0.4); padding-left: 1.1em; font-style: italic; opacity: 0.9; margin: 0 0 1em; }
+  .md-prose table { width: 100%; border-collapse: collapse; margin: 0 0 1em; }
+  .md-prose th, .md-prose td { border: 1px solid var(--border); padding: 0.55em 0.8em; text-align: left; }
+  .md-prose th { background: var(--bg-surface); color: var(--text-primary); }
+  .md-prose img { border-radius: 1.25rem; max-width: 100%; margin: 1em 0; }
+  .md-prose hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+  .md-prose strong { color: var(--text-primary); }
+}
+
+/* Tooltip rico dos parâmetros do llama-server (Centraliza Coder) */
+.coder-param-tooltip {
+  max-width: 400px !important;
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+  background: rgba(10, 10, 15, 0.97) !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55) !important;
+  color: #d7d7e0 !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+  z-index: 99999 !important;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif !important;
+  backdrop-filter: blur(12px);
+}
+.coder-param-tooltip .coder-tip-title {
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #a78bfa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.coder-param-tooltip .coder-tip-row {
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+.coder-param-tooltip .coder-tip-row b {
+  color: #a78bfa;
+  font-weight: 800;
+}
+.coder-param-tooltip code {
+  background: rgba(139, 92, 246, 0.12);
+  color: #c4b5fd;
+  padding: 0.1em 0.35em;
+  border-radius: 0.4em;
+  font-size: 0.92em;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
