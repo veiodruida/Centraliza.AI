@@ -359,6 +359,16 @@ th {
 .vram-warning { background: rgba(234, 179, 8, 0.1); color: #facc15; }
 .vram-bad { background: rgba(239, 68, 68, 0.1); color: #f87171; }
 
+.cap-badge {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.cap-coder { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+.cap-vision { background: rgba(236, 72, 153, 0.15); color: #f9a8d4; border: 1px solid rgba(236, 72, 153, 0.3); }
+
 tr:hover {
     background: rgba(255, 255, 255, 0.02);
 }
