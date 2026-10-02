@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Download, Star, Zap, CheckCircle, AlertTriangle, XCircle, Image as ImageIcon, MessageSquare, Brain, Clock, TrendingUp, Monitor, Calendar, User, FileText, Shield, X } from 'lucide-react';
+import { Search, Download, Star, Zap, CheckCircle, AlertTriangle, XCircle, Image as ImageIcon, MessageSquare, Brain, Clock, TrendingUp, Monitor, Calendar, User, FileText, Shield, X, SlidersHorizontal, ExternalLink, HardDrive, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useApp } from '../context/AppContext';
 
 
@@ -25,6 +27,49 @@ interface RegistryModel {
   license?: string;
   gguf_sources?: any[];
   ollama_name?: string;
+  hf_tags?: string[];
+  hf_library?: string | null;
+  params_estimated?: boolean;
+  file_size_gb?: number;
+  quantization?: string;
+  context_length?: number;
+  from_live?: boolean;
+}
+
+interface HfGgufFile {
+  file: string;
+  name: string;
+  size: number;
+  quant: string | null;
+  isShard: boolean;
+  isAux?: boolean;
+  url: string;
+}
+
+interface HfDetail {
+  id: string;
+  name: string;
+  provider: string;
+  author: string;
+  pipeline_tag: string;
+  library: string | null;
+  license: string | null;
+  base_model: string | null;
+  downloads: number;
+  likes: number;
+  created: string | null;
+  lastModified: string | null;
+  tags: string[];
+  parameter_count: string;
+  parameters_raw: number;
+  quantization: string;
+  min_vram_gb: number;
+  file_size_gb: number;
+  context_length: number | null;
+  architecture: string | null;
+  gguf_files: HfGgufFile[];
+  description: string;
+  hf_url: string;
 }
 
 type SortOption = 'Popular' | 'Newest' | 'Best Fit';
@@ -78,10 +123,65 @@ export default function ExploreStore() {
   const [visibleCount, setVisibleCount] = useState(24);
   const [customUrl, setCustomUrl] = useState('');
   const [customUrlError, setCustomUrlError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMsg, setRefreshMsg] = useState('');
+  const [showFacets, setShowFacets] = useState(false);
+  const [facets, setFacets] = useState<Record<string, string>>({});
+  const [detail, setDetail] = useState<HfDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
 
   const setDownloadingModelSync = (val: string | null) => {
     downloadingModelRef.current = val;
     setDownloadingModel(val);
+  };
+
+  const loadRegistry = async () => {
+    try {
+      const res = await fetch('/api/registry', { cache: 'no-store' });
+      const data = await res.json();
+      if (Array.isArray(data)) setRegistry(data);
+    } catch {}
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setRefreshMsg('');
+    try {
+      const res = await fetch('/api/registry/refresh', { cache: 'no-store' });
+      const data = await res.json();
+      await loadRegistry();
+      if (data.success) {
+        setRefreshMsg(data.added > 0 ? `+${data.added} novos modelos adicionados` : 'Catálogo já atualizado');
+      } else {
+        setRefreshMsg(data.error || 'Erro ao atualizar');
+      }
+    } catch {
+      setRefreshMsg('Erro ao atualizar catálogo');
+    }
+    setRefreshing(false);
+    setTimeout(() => setRefreshMsg(''), 4000);
+  };
+
+  const handleAddToRegistry = async (item: HFLiveResult) => {
+    try {
+      const res = await fetch('/api/registry/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: item.id,
+          pipeline_tag: item.pipeline_tag,
+          hf_downloads: item.hf_downloads,
+          hf_likes: item.hf_likes,
+          has_gguf: item.has_gguf
+        })
+      });
+      const data = await res.json();
+      await loadRegistry();
+      setSearch(item.name.split('/').pop() || '');
+      if (data.message) setRefreshMsg(data.message);
+      setTimeout(() => setRefreshMsg(''), 4000);
+    } catch {}
   };
 
   useEffect(() => {
@@ -100,19 +200,201 @@ export default function ExploreStore() {
       setLoading(false);
     }).catch(() => setLoading(false));
 
+    // Auto-refresh registry em background (10 min) — novos modelos entram sozinhos
+    const refreshRegistry = async () => {
+      try {
+        await fetch('/api/registry/refresh', { cache: 'no-store' });
+        await loadRegistry();
+      } catch {}
+    };
+    const registryRefreshId = setInterval(refreshRegistry, 600000);
+    refreshRegistry();
+
     socket.on('models-updated', () => {
       fetchLocalModels();
     });
 
     return () => {
       socket.off('models-updated');
+      clearInterval(registryRefreshId);
     };
   }, []);
 
   const filters = ['All', 'Chat', 'Coding', 'Image', 'Reasoning', 'Vision'];
 
+  // --- Filtros no estilo HuggingFace (Tasks / Libraries / Apps / Inference Providers / Hardware / Parameters) ---
+  const LIBRARY_TAGS = ['transformers', 'pytorch', 'tensorflow', 'jax', 'diffusers', 'gguf', 'mlx', 'safetensors', 'keras', 'flax', 'onnx', 'openvino', 'ctranslate2', 'spacy', 'allennlp', 'sentence-transformers', 'timm', 'fastai', 'peft', 'tokenizers', 'accelerate', 'bitsandbytes'];
+  const APP_TAGS = ['vllm', 'llamacpp', 'llama.cpp', 'ollama', 'mlx-lm', 'lmstudio', 'jan', 'drawthings', 'tgi', 'text-generation-inference', 'sglang', 'exllama', 'koboldcpp', 'ctransformers', 'tensorrt-llm', 'onnxruntime-genai', 'gptq', 'awq'];
+  const PROVIDER_TAGS = ['groq', 'novita', 'cerebras', 'nscale', 'fal', 'together', 'together-ai', 'fireworks', 'featherless', 'baseten', 'deepinfra', 'replicate', 'sambanova', 'reka', 'writer', 'xinference'];
+  const HARDWARE_TAGS = ['rtx', 'cuda', 'ampere', 'ada', 'hopper', 'a100', 'h100', 'l40s', 'l4', 't4', 'v100', 'gpu', 'rtx-4070-ti-super'];
+
+  const TASK_LABELS: Record<string, string> = {
+    'text-generation': 'Text Generation',
+    'any-to-any': 'Any-to-Any',
+    'image-text-to-text': 'Image-Text-to-Text',
+    'image-to-text': 'Image-to-Text',
+    'image-to-image': 'Image-to-Image',
+    'text-to-image': 'Text-to-Image',
+    'text-to-video': 'Text-to-Video',
+    'text-to-speech': 'Text-to-Speech',
+    'automatic-speech-recognition': 'Automatic Speech Recognition',
+    'question-answering': 'Question Answering',
+    'fill-mask': 'Fill-Mask',
+    'feature-extraction': 'Feature Extraction',
+    'sentence-similarity': 'Sentence Similarity',
+    'image-classification': 'Image Classification',
+    'object-detection': 'Object Detection',
+    'image-segmentation': 'Image Segmentation',
+    'zero-shot-classification': 'Zero-Shot Classification',
+    'summarization': 'Summarization',
+    'translation': 'Translation',
+    'audio-classification': 'Audio Classification',
+    'reinforcement-learning': 'Reinforcement Learning',
+    'text-classification': 'Text Classification',
+    'token-classification': 'Token Classification'
+  };
+
+  const parseParamLabel = (label: string | undefined): number | null => {
+    if (!label) return null;
+    const m = String(label).match(/(\d+(?:\.\d+)?)\s*([BbMm])/);
+    if (!m) return null;
+    const n = parseFloat(m[1]);
+    return m[2] === 'M' ? n / 1000 : n;
+  };
+
+  const paramBucket = (b: number) => b < 1 ? '<1B' : b < 3 ? '1B–3B' : b < 7 ? '3B–7B' : b < 13 ? '7B–13B' : b < 30 ? '13B–30B' : b < 70 ? '30B–70B' : '70B+';
+
+  // Remove HTML cru (ex.: <div>, <p style="...">, <strong>) que alguns READMEs do HF contêm,
+  // convertendo blocos em quebras de linha para o texto ficar legível sem tags.
+  const cleanReadme = (md: string): string => {
+    let s = String(md || '');
+    s = s
+      // front matter YAML do HF (--- language: ... ---) — o HF não o mostra
+      .replace(/^---[\s\S]*?---\s*/, '')
+      .replace(/<\/(p|div|h[1-6]|li|ul|ol|table|tr|td|th|blockquote|pre|section|article|details|summary)>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<li[^>]*>/gi, '\n- ')
+      .replace(/<h([1-6])[^>]*>/gi, (_m, n: string) => '\n' + '#'.repeat(Number(n)) + ' ')
+      .replace(/<td[^>]*>/gi, ' | ')
+      .replace(/<\/?tr[^>]*>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&mdash;/gi, '—')
+      .replace(/&ndash;/gi, '–')
+      .replace(/&hellip;/gi, '…')
+      .replace(/&#(\d+);/g, (_m, n: string) => String.fromCharCode(Number(n)))
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    return s;
+  };
+
+  const facetOptions = useMemo(() => {
+    const count = (map: Map<string, number>, key: string) => { if (key) map.set(key, (map.get(key) || 0) + 1); };
+    const tasks = new Map<string, number>();
+    const libraries = new Map<string, number>();
+    const apps = new Map<string, number>();
+    const providers = new Map<string, number>();
+    const hardware = new Map<string, number>();
+    const params = new Map<string, number>();
+
+    for (const m of registry) {
+      if (m.pipeline_tag && m.pipeline_tag !== 'unknown') count(tasks, m.pipeline_tag);
+      if (m.hf_library) count(libraries, m.hf_library.toLowerCase());
+      const tags = (m.hf_tags || []).map(t => String(t).toLowerCase());
+      for (const t of tags) {
+        if (LIBRARY_TAGS.includes(t)) count(libraries, t);
+        if (APP_TAGS.includes(t)) count(apps, t);
+        if (PROVIDER_TAGS.includes(t)) count(providers, t);
+        if (HARDWARE_TAGS.includes(t)) count(hardware, t);
+      }
+      const pb = parseParamLabel(m.parameter_count);
+      if (pb) count(params, paramBucket(pb));
+    }
+    const toOpts = (map: Map<string, number>) => [...map.entries()].sort((a, b) => b[1] - a[1]).map(([key, c]) => ({ key, label: key, count: c }));
+    return {
+      tasks: toOpts(tasks).map(o => ({ ...o, label: TASK_LABELS[o.key] || o.key })),
+      libraries: toOpts(libraries),
+      apps: toOpts(apps),
+      providers: toOpts(providers),
+      hardware: toOpts(hardware),
+      params: toOpts(params)
+    };
+  }, [registry]);
+
+  const activeFacetCount = Object.values(facets).filter(Boolean).length;
+
+  const setFacet = (key: string, val: string) => {
+    setFacets(f => {
+      const next = { ...f };
+      if (val) next[key] = val; else delete next[key];
+      return next;
+    });
+  };
+
+  const clearFacets = () => setFacets({});
+
+  const openModelDetail = (model: RegistryModel) => {
+    setSelectedModel(model);
+    setDetail(null);
+    setDetailError('');
+    setDetailLoading(true);
+    const repo = model.gguf_sources?.[0]?.repo || model.name;
+    fetch(`/api/models/hf/detail?repo=${encodeURIComponent(repo)}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => { if (d && d.error) setDetailError(d.error); else setDetail(d); })
+      .catch(() => setDetailError('Erro ao carregar detalhes do HuggingFace'))
+      .finally(() => setDetailLoading(false));
+  };
+
+  const openLiveDetail = (item: HFLiveResult) => {
+    openModelDetail({
+      name: item.id,
+      provider: item.provider,
+      parameter_count: '?',
+      parameters_raw: 0,
+      min_vram_gb: 0,
+      recommended_ram_gb: 0,
+      use_case: item.pipeline_tag || 'General purpose',
+      hf_downloads: item.hf_downloads,
+      hf_likes: item.hf_likes,
+      pipeline_tag: item.pipeline_tag || 'text-generation',
+      gguf_sources: item.has_gguf ? [{ repo: item.id, provider: item.provider }] : [],
+      from_live: true
+    });
+  };
+
+  const handleInstallHFFile = async (model: RegistryModel, file: string) => {
+    const repo = model.gguf_sources?.[0]?.repo || model.name;
+    setDownloadingModelSync(model.name);
+    setDownloadStatus(t('loading'));
+    try {
+      const res = await fetch('/api/download/hf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo, modelName: model.name, file })
+      });
+      const data = await res.json();
+      if (data.error) {
+        setDownloadStatus(`Erro: ${data.error}`);
+        setTimeout(() => setDownloadingModelSync(null), 4000);
+        return;
+      }
+      setDownloadStatus(`${t('hub_installing')} (${data.file})`);
+    } catch {
+      setDownloadStatus(t('error'));
+      setTimeout(() => setDownloadingModelSync(null), 3000);
+    }
+  };
+
   const getFitScore = (model: RegistryModel) => {
     if (!sysInfo) return 0;
+    // VRAM desconhecida (modelo vindo do refresh ao vivo) → neutro, sem badge
+    if (!model.min_vram_gb || model.min_vram_gb <= 0) return 0;
     const vramGB = sysInfo.vram / (1024 ** 3);
     const totalRamGB = sysInfo.totalRam / (1024 ** 3);
     
@@ -152,6 +434,32 @@ export default function ExploreStore() {
       });
     }
 
+    // Filtros estilo HuggingFace
+    if (facets.tasks) {
+      list = list.filter(m => (m.pipeline_tag || '').toLowerCase() === facets.tasks);
+    }
+    if (facets.libraries) {
+      list = list.filter(m =>
+        (m.hf_library || '').toLowerCase() === facets.libraries ||
+        (m.hf_tags || []).some(t => String(t).toLowerCase() === facets.libraries)
+      );
+    }
+    if (facets.apps) {
+      list = list.filter(m => (m.hf_tags || []).some(t => String(t).toLowerCase() === facets.apps));
+    }
+    if (facets.providers) {
+      list = list.filter(m => (m.hf_tags || []).some(t => String(t).toLowerCase() === facets.providers));
+    }
+    if (facets.hardware) {
+      list = list.filter(m => (m.hf_tags || []).some(t => String(t).toLowerCase() === facets.hardware));
+    }
+    if (facets.params) {
+      list = list.filter(m => {
+        const pb = parseParamLabel(m.parameter_count);
+        return pb ? paramBucket(pb) === facets.params : false;
+      });
+    }
+
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(m => m.name.toLowerCase().includes(s) || m.provider.toLowerCase().includes(s));
@@ -170,7 +478,7 @@ export default function ExploreStore() {
     });
 
     return list;
-  }, [registry, localModels, search, activeFilter, activeSort, sysInfo]);
+  }, [registry, localModels, search, activeFilter, activeSort, sysInfo, facets]);
 
   const handleInstallHF = async (model: RegistryModel) => {
     if (!model.gguf_sources?.length) return;
@@ -275,7 +583,7 @@ export default function ExploreStore() {
   useEffect(() => {
     setVisibleCount(24);
     setLiveResults([]);
-  }, [search, activeFilter, activeSort]);
+  }, [search, activeFilter, activeSort, facets]);
 
   useEffect(() => {
     if (search.length < 3 || filteredModels.length >= 3) {
@@ -406,7 +714,18 @@ export default function ExploreStore() {
                 {f}
               </button>
             ))}
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="px-4 py-2 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all bg-[var(--primary)] text-white hover:bg-blue-600/90 disabled:opacity-50"
+              title="Atualizar catálogo do HuggingFace"
+            >
+              {refreshing ? '...' : 'Atualizar'}
+            </button>
           </div>
+          {refreshMsg && (
+            <p className="text-xs font-black text-blue-500 uppercase tracking-widest text-center">{refreshMsg}</p>
+          )}
 
           <div className="grid grid-cols-1 sm:flex sm:flex-row items-center gap-2 bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full xl:w-fit">
              {(['Best Fit', 'Popular', 'Newest'] as SortOption[]).map(s => (
@@ -424,6 +743,98 @@ export default function ExploreStore() {
                 </button>
              ))}
           </div>
+        </div>
+
+        {/* Filtros estilo HuggingFace */}
+        <div className="mt-6 md:mt-10">
+          <div className="flex items-center gap-4 flex-wrap">
+            <button
+              onClick={() => setShowFacets(!showFacets)}
+              className={`px-5 py-3 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2.5 border ${
+                showFacets || activeFacetCount > 0 ? 'bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-600/30' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <SlidersHorizontal size={15} />
+              Filtros HuggingFace
+              {activeFacetCount > 0 && (
+                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">{activeFacetCount}</span>
+              )}
+            </button>
+            {activeFacetCount > 0 && (
+              <>
+                <button
+                  onClick={clearFacets}
+                  className="px-4 py-3 rounded-[1.5rem] text-xs font-black uppercase tracking-widest text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 transition-all flex items-center gap-2"
+                >
+                  <RotateCcw size={13} /> Limpar filtros
+                </button>
+                <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  {filteredModels.length} modelos
+                </span>
+              </>
+            )}
+          </div>
+
+          <AnimatePresence initial={false}>
+            {showFacets && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {([
+                    { key: 'tasks', label: 'Tasks' },
+                    { key: 'libraries', label: 'Libraries' },
+                    { key: 'apps', label: 'Apps' },
+                    { key: 'providers', label: 'Inference Providers' },
+                    { key: 'hardware', label: 'Hardware' },
+                    { key: 'params', label: 'Parameters' }
+                  ] as { key: keyof typeof facetOptions; label: string }[]).map(sec => {
+                    const opts = facetOptions[sec.key];
+                    if (!opts.length) return null;
+                    const active = facets[sec.key];
+                    return (
+                      <div key={sec.key} className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] p-4 sm:p-5 shadow-inner">
+                        <div className="flex items-center justify-between mb-3 gap-3">
+                          <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">{sec.label}</span>
+                          {active && (
+                            <button
+                              onClick={() => setFacet(sec.key, '')}
+                              className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 flex items-center gap-1"
+                            >
+                              <X size={11} /> {opts.find(o => o.key === active)?.label}
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {opts.map(o => {
+                            const isActive = active === o.key;
+                            return (
+                              <button
+                                key={o.key}
+                                onClick={() => setFacet(sec.key, isActive ? '' : o.key)}
+                                title={o.label}
+                                className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider border transition-all active:scale-95 ${
+                                  isActive
+                                    ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30'
+                                    : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border)] hover:border-blue-500/50 hover:text-[var(--text-primary)]'
+                                }`}
+                              >
+                                {o.label} <span className={isActive ? 'opacity-80' : 'text-[var(--text-muted)]'}>{o.count}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
@@ -445,7 +856,7 @@ export default function ExploreStore() {
             <motion.div 
               key={model.name} 
               variants={ITEM_VARIANTS}
-              onClick={() => setSelectedModel(model)}
+              onClick={() => openModelDetail(model)}
               className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] p-5 sm:p-7 md:p-10 flex flex-col hover:border-blue-500/50 transition-all group backdrop-blur-3xl hover:shadow-2xl relative overflow-hidden cursor-pointer active:scale-[0.98] shadow-sm min-h-[360px] sm:min-h-[420px] md:min-h-[480px]"
             >
               <div className={`absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[100px] opacity-0 group-hover:opacity-10 transition-all duration-700 ${
@@ -466,9 +877,13 @@ export default function ExploreStore() {
                   <div className="flex items-center gap-2 text-amber-500 text-xs font-black uppercase tracking-widest bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20 shadow-sm">
                     <AlertTriangle size={14} /> {t('hub_needsRam')}
                   </div>
-                ) : (
+                ) : score === 1 ? (
                   <div className="flex items-center gap-2 text-red-500 text-xs font-black uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20 shadow-sm">
                     <XCircle size={14} /> {t('hub_tooLarge')}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-black uppercase tracking-widest bg-[var(--bg-surface)] px-4 py-2 rounded-full border border-[var(--border)] shadow-sm">
+                    <Zap size={14} /> Novo no HF
                   </div>
                 )}
               </div>
@@ -482,7 +897,7 @@ export default function ExploreStore() {
                 <h4 className="text-xl md:text-2xl lg:text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors tracking-tighter uppercase break-words line-clamp-3">{model.name.split('/').pop()}</h4>
                 <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-8 line-clamp-2 opacity-70">{model.use_case}</p>
                 
-                <div className="flex gap-4 mb-8">
+                <div className="flex gap-4 mb-8 flex-wrap">
                    <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner">
                       <Download size={14} className="text-blue-500" />
                       <span className="text-xs font-black text-[var(--text-secondary)]">{(model.hf_downloads / 1000).toFixed(0)}k</span>
@@ -491,6 +906,12 @@ export default function ExploreStore() {
                       <Star size={14} className="text-yellow-500 fill-current" />
                       <span className="text-xs font-black text-[var(--text-secondary)]">{model.hf_likes || 0}</span>
                    </div>
+                   {model.file_size_gb ? (
+                     <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner" title="Tamanho do ficheiro GGUF (estimado)">
+                       <HardDrive size={14} className="text-purple-500" />
+                       <span className="text-xs font-black text-[var(--text-secondary)]">{model.file_size_gb} GB</span>
+                     </div>
+                   ) : null}
                 </div>
               </div>
 
@@ -575,7 +996,8 @@ export default function ExploreStore() {
                   return (
                     <div
                       key={item.id}
-                      className="bg-[var(--bg-input)]/40 border border-[var(--border)] border-dashed rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] p-5 sm:p-7 md:p-10 flex flex-col hover:border-blue-500/50 transition-all group backdrop-blur-3xl hover:shadow-2xl relative overflow-hidden"
+                      onClick={() => openLiveDetail(item)}
+                      className="bg-[var(--bg-input)]/40 border border-[var(--border)] border-dashed rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] p-5 sm:p-7 md:p-10 flex flex-col hover:border-blue-500/50 transition-all group backdrop-blur-3xl hover:shadow-2xl relative overflow-hidden cursor-pointer active:scale-[0.98]"
                     >
                       <div className="flex justify-between items-start mb-8">
                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl">
@@ -628,6 +1050,13 @@ export default function ExploreStore() {
                             >
                               <Download size={16} /> Ollama
                             </button>
+                            <button
+                              onClick={() => handleAddToRegistry(item)}
+                              className="btn-premium px-6 py-4 text-xs bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600 hover:text-white"
+                              title="Adicionar ao catálogo para aparecer sempre na lista"
+                            >
+                              <Star size={16} /> Fixar no catálogo
+                            </button>
                           </>
                         )}
                       </div>
@@ -650,7 +1079,8 @@ export default function ExploreStore() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-black/90 backdrop-blur-xl"
+            onClick={() => setSelectedModel(null)}
+             className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-black/90 backdrop-blur-xl"
           >
              <motion.div 
                initial={{ scale: 0.95, y: 20 }}
@@ -669,40 +1099,67 @@ export default function ExploreStore() {
                 <div className="relative z-10">
                    <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 mb-8 md:mb-16">
                       <div className="w-28 h-28 rounded-[2.5rem] flex items-center justify-center text-white bg-[var(--bg-input)] border border-[var(--border)] shadow-3xl shrink-0">
-                        {selectedModel.pipeline_tag?.includes('image') ? <ImageIcon size={56} className="text-rose-400" /> :
-                         selectedModel.pipeline_tag?.includes('text') ? <MessageSquare size={56} className="text-blue-400" /> :
+                        {(detail?.pipeline_tag || selectedModel.pipeline_tag)?.includes('image') ? <ImageIcon size={56} className="text-rose-400" /> :
+                         (detail?.pipeline_tag || selectedModel.pipeline_tag)?.includes('text') ? <MessageSquare size={56} className="text-blue-400" /> :
                          <Brain size={56} className="text-purple-400" />}
                       </div>
-                      <div className="text-center md:text-left">
-                         <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                            <span className="text-xs font-black text-blue-500 uppercase tracking-wider">{selectedModel.provider}</span>
+                      <div className="text-center md:text-left flex-1 min-w-0">
+                         <div className="flex items-center justify-center md:justify-start gap-4 mb-4 flex-wrap">
+                            <span className="text-xs font-black text-blue-500 uppercase tracking-wider">{detail?.provider || selectedModel.provider}</span>
                             <span className="w-1.5 h-1.5 rounded-full bg-[var(--border)]"></span>
-                            <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">{selectedModel.parameter_count}</span>
+                            <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">{detail?.parameter_count || selectedModel.parameter_count || '?'}</span>
+                            {detail?.quantization && (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--border)]"></span>
+                                <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">{detail.quantization}</span>
+                              </>
+                            )}
                          </div>
-                         <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.9] uppercase break-words">{selectedModel.name.split('/').pop()}</h3>
+                         <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-[var(--text-primary)] tracking-tighter leading-[0.9] uppercase break-words">{detail?.name || selectedModel.name.split('/').pop()}</h3>
+                         {detail?.base_model && (
+                           <p className="text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mt-3">Base model: {detail.base_model}</p>
+                         )}
                       </div>
+                      <a
+                        href={detail?.hf_url || `https://huggingface.co/${selectedModel.name}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-premium bg-[var(--bg-input)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-blue-500/50 hover:text-blue-400 px-6 py-4 text-xs shrink-0"
+                      >
+                        <ExternalLink size={16} /> HuggingFace
+                      </a>
                    </div>
 
-                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 md:gap-8 mb-10 md:mb-20">
-                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
-                         <div className="absolute -bottom-4 -right-4 text-blue-500/5 group-hover:scale-110 transition-transform"><Download size={96} /></div>
-                         <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 block">{t('hub_details_downloads')}</span>
-                         <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">{(selectedModel.hf_downloads / 1000).toFixed(1)}k</span>
+                   <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 mb-10 md:mb-16">
+                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-5 rounded-[1.25rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
+                         <div className="absolute -bottom-4 -right-4 text-blue-500/5 group-hover:scale-110 transition-transform"><Download size={72} /></div>
+                         <span className="text-[10px] md:text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-3 block">{t('hub_details_downloads')}</span>
+                         <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{(((detail?.downloads ?? selectedModel.hf_downloads) || 0) / 1000).toFixed(1)}k</span>
                       </div>
-                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
-                         <div className="absolute -bottom-4 -right-4 text-yellow-500/5 group-hover:scale-110 transition-transform"><Star size={96} /></div>
-                         <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 block">{t('hub_details_likes')}</span>
-                         <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">{selectedModel.hf_likes}</span>
+                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-5 rounded-[1.25rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
+                         <div className="absolute -bottom-4 -right-4 text-yellow-500/5 group-hover:scale-110 transition-transform"><Star size={72} /></div>
+                         <span className="text-[10px] md:text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-3 block">{t('hub_details_likes')}</span>
+                         <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{detail?.likes ?? selectedModel.hf_likes ?? 0}</span>
                       </div>
-                      <div className="bg-blue-600/5 p-4 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-blue-500/20 shadow-premium relative overflow-hidden group">
-                         <div className="absolute -bottom-4 -right-4 text-blue-500/10 group-hover:scale-110 transition-transform"><Monitor size={96} /></div>
-                         <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest mb-4 block">{t('hub_details_vram')}</span>
-                         <span className="text-3xl font-black text-blue-500 tracking-tighter">{selectedModel.min_vram_gb} GB</span>
+                      <div className="bg-blue-600/5 p-4 sm:p-5 rounded-[1.25rem] border border-blue-500/20 shadow-premium relative overflow-hidden group">
+                         <div className="absolute -bottom-4 -right-4 text-blue-500/10 group-hover:scale-110 transition-transform"><Monitor size={72} /></div>
+                         <span className="text-[10px] md:text-xs font-black text-blue-500 uppercase tracking-widest mb-3 block">{t('hub_details_vram')}</span>
+                         <span className="text-2xl font-black text-blue-500 tracking-tighter">{detail?.min_vram_gb || selectedModel.min_vram_gb || 0} <span className="text-xs">GB</span></span>
                       </div>
-                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
-                         <div className="absolute -bottom-4 -right-4 text-purple-500/5 group-hover:scale-110 transition-transform"><Brain size={96} /></div>
-                         <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-4 block">{t('hub_details_type')}</span>
-                         <span className="text-2xl font-black text-[var(--text-primary)] uppercase truncate block tracking-tighter leading-none">{selectedModel.pipeline_tag}</span>
+                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-5 rounded-[1.25rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
+                         <div className="absolute -bottom-4 -right-4 text-purple-500/5 group-hover:scale-110 transition-transform"><HardDrive size={72} /></div>
+                         <span className="text-[10px] md:text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-3 block">Tamanho GGUF</span>
+                         <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{detail?.file_size_gb || selectedModel.file_size_gb ? `${(detail?.file_size_gb ?? selectedModel.file_size_gb)?.toFixed(1)} GB` : '—'}</span>
+                      </div>
+                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-5 rounded-[1.25rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
+                         <div className="absolute -bottom-4 -right-4 text-purple-500/5 group-hover:scale-110 transition-transform"><Brain size={72} /></div>
+                         <span className="text-[10px] md:text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-3 block">Parâmetros</span>
+                         <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{detail?.parameter_count || selectedModel.parameter_count || '?'}</span>
+                      </div>
+                      <div className="bg-[var(--bg-input)]/50 p-4 sm:p-5 rounded-[1.25rem] border border-[var(--border)] shadow-premium relative overflow-hidden group">
+                         <div className="absolute -bottom-4 -right-4 text-blue-500/5 group-hover:scale-110 transition-transform"><MessageSquare size={72} /></div>
+                         <span className="text-[10px] md:text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-3 block">Contexto</span>
+                         <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{detail?.context_length ? `${(detail.context_length / 1000).toFixed(0)}k` : '—'}</span>
                       </div>
                    </div>
 
@@ -710,45 +1167,138 @@ export default function ExploreStore() {
                       <div>
                          <h4 className="flex items-center gap-4 text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.5em] mb-6 md:mb-8">
                             <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500"><FileText size={20} /></div>
-                            {t('hub_details_desc')}
+                            {t('hub_details_desc')} <span className="text-[var(--text-muted)]">(do HuggingFace)</span>
                          </h4>
-                         <div className="bg-[var(--bg-input)]/30 p-5 sm:p-8 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border border-[var(--border)] font-medium shadow-inner">
-                            <p className="text-base md:text-xl text-[var(--text-secondary)] leading-relaxed">
-                              {selectedModel.description || selectedModel.use_case}
-                            </p>
-                         </div>
+                         {detailLoading ? (
+                           <div className="bg-[var(--bg-input)]/30 p-8 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border border-[var(--border)] animate-pulse">
+                             <p className="text-base md:text-xl text-[var(--text-secondary)] leading-relaxed">A carregar a descrição real do HuggingFace…</p>
+                           </div>
+                         ) : detailError ? (
+                           <div className="bg-[var(--bg-input)]/30 p-8 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border border-red-500/30">
+                             <p className="text-base md:text-xl text-red-400 leading-relaxed">{detailError}</p>
+                           </div>
+                         ) : (
+                           <div className="bg-[var(--bg-input)]/30 p-5 sm:p-8 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border border-[var(--border)] shadow-inner">
+                             {detail?.description ? (() => {
+                               let readmeText = cleanReadme(detail.description);
+                               if (readmeText.length > 200000) {
+                                 readmeText = readmeText.slice(0, 200000) + '\n\n> *README truncado — consulte o HuggingFace para o conteúdo completo.*';
+                               }
+                               return (
+                                 <div className="md-prose max-w-none">
+                                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{readmeText}</ReactMarkdown>
+                                 </div>
+                               );
+                             })() : (
+                               <p className="text-base md:text-xl text-[var(--text-secondary)] leading-relaxed">
+                                 {selectedModel.description || selectedModel.use_case}
+                               </p>
+                             )}
+                           </div>
+                         )}
                       </div>
+
+                      {detail && detail.gguf_files.length > 0 && (
+                        <div>
+                          <h4 className="flex items-center gap-4 text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.5em] mb-6 md:mb-8">
+                            <div className="w-10 h-10 bg-emerald-600/10 rounded-xl flex items-center justify-center text-emerald-500"><HardDrive size={20} /></div>
+                            Versões GGUF ({detail.gguf_files.filter(f => !f.isAux).length}) — cada quantização
+                          </h4>
+                          <div className="space-y-3">
+                            {detail.gguf_files.filter(f => !f.isAux).map(f => (
+                              <div key={f.file} className="bg-[var(--bg-input)]/30 border border-[var(--border)] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div className="w-10 h-10 rounded-xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 shrink-0"><FileText size={18} /></div>
+                                  <div className="min-w-0">
+                                    <p className="font-black text-[var(--text-primary)] text-sm tracking-tight break-all">{f.name}</p>
+                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                      {f.quant ? <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">{f.quant}</span> : null}
+                                      {f.isShard ? <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">shard</span> : null}
+                                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{(f.size / (1024 ** 3)).toFixed(2)} GB</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 sm:ml-auto shrink-0" onClick={e => e.stopPropagation()}>
+                                  <button
+                                    onClick={() => handleInstallHFFile(selectedModel, f.file)}
+                                    disabled={downloadingModel === selectedModel.name}
+                                    className="btn-premium px-5 py-3 text-[10px] bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white"
+                                  >
+                                    <Download size={14} /> Baixar
+                                  </button>
+                                  <a
+                                    href={f.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="btn-premium px-5 py-3 text-[10px] bg-[var(--bg-input)] text-[var(--text-secondary)] border border-[var(--border)] hover:border-blue-500/50 hover:text-blue-400"
+                                    title="Link direto para o ficheiro no HuggingFace"
+                                  >
+                                    <ExternalLink size={14} /> Link
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {downloadingModel === selectedModel.name && downloadStatus && (
+                            <p className="mt-4 text-xs font-black text-blue-500 uppercase tracking-widest text-center animate-pulse">{downloadStatus}</p>
+                          )}
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-16">
                          <div className="space-y-8">
                             <div className="flex items-center justify-between border-b border-[var(--border)]/50 pb-8">
                                <span className="text-[var(--text-muted)] flex items-center gap-3 font-black uppercase tracking-widest text-[11px]"><User size={22} className="text-blue-500" /> {t('hub_details_author')}</span>
-                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg">{selectedModel.author || selectedModel.provider}</span>
+                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg">{detail?.author || selectedModel.author || selectedModel.provider}</span>
                             </div>
                             <div className="flex items-center justify-between border-b border-[var(--border)]/50 pb-8">
                                <span className="text-[var(--text-muted)] flex items-center gap-3 font-black uppercase tracking-widest text-[11px]"><Shield size={22} className="text-emerald-500" /> {t('hub_details_license')}</span>
-                               <span className="font-black text-emerald-500 tracking-tight uppercase text-lg">{selectedModel.license || 'Apache 2.0'}</span>
+                               <span className="font-black text-emerald-500 tracking-tight uppercase text-lg">{detail?.license || selectedModel.license || 'Apache 2.0'}</span>
+                            </div>
+                            <div className="flex items-center justify-between border-b border-[var(--border)]/50 pb-8">
+                               <span className="text-[var(--text-muted)] flex items-center gap-3 font-black uppercase tracking-widest text-[11px]"><Brain size={22} className="text-purple-500" /> Arquitetura</span>
+                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg uppercase">{detail?.architecture || '—'}</span>
                             </div>
                          </div>
                          <div className="space-y-8">
                             <div className="flex items-center justify-between border-b border-[var(--border)]/50 pb-8">
                                <span className="text-[var(--text-muted)] flex items-center gap-3 font-black uppercase tracking-widest text-[11px]"><Calendar size={22} className="text-purple-500" /> {t('hub_details_created')}</span>
-                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg">{selectedModel.release_date || 'N/A'}</span>
+                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg">{detail?.created || selectedModel.release_date || 'N/A'}</span>
                             </div>
                             <div className="flex items-center justify-between border-b border-[var(--border)]/50 pb-8">
                                <span className="text-[var(--text-muted)] flex items-center gap-3 font-black uppercase tracking-widest text-[11px]"><Clock size={22} className="text-rose-500" /> {t('hub_details_updated')}</span>
-                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg">{selectedModel.updated_at || selectedModel.release_date || 'N/A'}</span>
+                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg">{detail?.lastModified || selectedModel.updated_at || selectedModel.release_date || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center justify-between border-b border-[var(--border)]/50 pb-8">
+                               <span className="text-[var(--text-muted)] flex items-center gap-3 font-black uppercase tracking-widest text-[11px]"><Zap size={22} className="text-amber-500" /> Biblioteca</span>
+                               <span className="font-black text-[var(--text-primary)] tracking-tight text-lg uppercase">{detail?.library || '—'}</span>
                             </div>
                          </div>
                       </div>
+
+                      {detail && detail.tags.length > 0 && (
+                        <div>
+                          <h4 className="flex items-center gap-4 text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.5em] mb-6 md:mb-8">
+                            <div className="w-10 h-10 bg-purple-600/10 rounded-xl flex items-center justify-center text-purple-500"><Zap size={20} /></div>
+                            Tags
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {detail.tags
+                              .filter(t => [...LIBRARY_TAGS, ...APP_TAGS, ...PROVIDER_TAGS].includes(String(t).toLowerCase()))
+                              .map(tag => (
+                                <span key={tag} className="px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-[var(--bg-input)] border border-[var(--border)] text-[var(--text-secondary)]">{tag}</span>
+                              ))}
+                          </div>
+                        </div>
+                      )}
                    </div>
 
-                   <div className="flex gap-6 mb-10">
+                   <div className="flex gap-6 mb-10 flex-wrap">
                      {selectedModel.gguf_sources?.length ? (
                        <button
                          onClick={() => { handleInstallHF(selectedModel); setSelectedModel(null); }}
                          disabled={getFitScore(selectedModel) === 1}
-                         className="flex-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white font-black py-5 sm:py-7 md:py-10 rounded-[1.5rem] md:rounded-[3rem] transition-all shadow-premium flex items-center justify-center gap-4 md:gap-8 active:scale-[0.98] disabled:opacity-50 text-sm md:text-xl uppercase tracking-wider"
+                         className="flex-1 min-w-[200px] bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white font-black py-5 sm:py-7 md:py-10 rounded-[1.5rem] md:rounded-[3rem] transition-all shadow-premium flex items-center justify-center gap-4 md:gap-8 active:scale-[0.98] disabled:opacity-50 text-sm md:text-xl uppercase tracking-wider"
                        >
                          <Download size={28} />
                          GGUF · llama.cpp
@@ -758,7 +1308,7 @@ export default function ExploreStore() {
                        <button
                          onClick={() => { handleInstall(selectedModel); setSelectedModel(null); }}
                          disabled={getFitScore(selectedModel) === 1}
-                         className="flex-1 bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black py-5 sm:py-7 md:py-10 rounded-[1.5rem] md:rounded-[3rem] transition-all shadow-premium flex items-center justify-center gap-4 md:gap-8 active:scale-[0.98] disabled:opacity-50 text-sm md:text-xl uppercase tracking-wider"
+                         className="flex-1 min-w-[200px] bg-[var(--text-primary)] text-[var(--bg-base)] hover:bg-blue-600 hover:text-white font-black py-5 sm:py-7 md:py-10 rounded-[1.5rem] md:rounded-[3rem] transition-all shadow-premium flex items-center justify-center gap-4 md:gap-8 active:scale-[0.98] disabled:opacity-50 text-sm md:text-xl uppercase tracking-wider"
                        >
                          <Download size={40} />
                          Ollama

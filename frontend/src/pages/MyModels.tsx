@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { io } from 'socket.io-client';
-import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink } from 'lucide-react';
+import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PAGE_VARIANTS = {
@@ -49,11 +49,17 @@ export default function MyModels() {
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
   const [description, setDescription] = useState('');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'Standalone': true,
+    'LM Studio / Hugging Face': true,
     'Ollama': true,
     'ComfyUI': true,
-    'LM Studio / Hugging Face': true,
   });
-  const [sectionOrder, setSectionOrder] = useState<string[]>(['Ollama', 'ComfyUI', 'LM Studio / Hugging Face', 'Standalone']);
+  // Ordem padrão: Standalone → LM Studio / Hugging Face → Ollama → ComfyUI.
+  // O utilizador pode arrastar as secções para reordenar; a escolha fica
+  // gravada no servidor (config.json) e é restaurada ao voltar à página.
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['Standalone', 'LM Studio / Hugging Face', 'Ollama', 'ComfyUI']);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[]; initialAction?: 'delete' | 'decentralize' | 'centralize' | null }>({ isOpen: false, models: [], initialAction: null });
   const { showToast } = useToast();
 
@@ -73,12 +79,25 @@ export default function MyModels() {
     finally { setLoading(false); }
   };
 
+  // Grava preferências do utilizador (ordem das secções / estado recolhido)
+  // no servidor, para ficarem guardadas permanentemente em config.json.
+  const persistConfig = (patch: Record<string, unknown>) => {
+    fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    }).catch(() => {});
+  };
+
   useEffect(() => { 
     fetchModels(); 
     const socket = io();
     socket.on('models-updated', () => fetchModels());
     fetch('/api/config').then(res => res.json()).then(data => {
-      if (data.sectionOrder) setSectionOrder(data.sectionOrder);
+      if (Array.isArray(data.sectionOrder) && data.sectionOrder.length) setSectionOrder(data.sectionOrder);
+      if (data.expandedSections && typeof data.expandedSections === 'object') {
+        setExpandedSections(prev => ({ ...prev, ...data.expandedSections }));
+      }
     });
     return () => { socket.disconnect(); };
   }, []);
@@ -159,6 +178,38 @@ export default function MyModels() {
     filtered.forEach(m => { if (!groups[m.source]) groups[m.source] = []; groups[m.source].push(m); });
     return groups;
   }, [models, search]);
+
+  // Apenas as secções com modelos são renderizadas; a ordem persistida
+  // mantém as 4 origens para quando voltarem a ter conteúdo.
+  const visibleSources = useMemo(
+    () => sectionOrder.filter(s => (groupedModels[s] || []).length > 0),
+    [sectionOrder, groupedModels]
+  );
+
+  const toggleSection = (source: string) => {
+    setExpandedSections(prev => {
+      const next = { ...prev, [source]: !(prev[source] !== false) };
+      persistConfig({ expandedSections: next });
+      return next;
+    });
+  };
+
+  const handleDrop = (overIndex: number) => {
+    if (dragIndex === null || dragIndex === overIndex) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const from = visibleSources[dragIndex];
+    const to = visibleSources[overIndex];
+    const next = sectionOrder.filter(s => s !== from);
+    const insertAt = next.indexOf(to) + (dragIndex < overIndex ? 1 : 0);
+    next.splice(insertAt, 0, from);
+    setSectionOrder(next);
+    persistConfig({ sectionOrder: next });
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
 
   const formatSize = (bytes: number) => (bytes / (1024 ** 3)).toFixed(2) + ' GB';
 
@@ -321,20 +372,22 @@ export default function MyModels() {
           </motion.div>
         ) : (
           <div className="space-y-12">
-            {sectionOrder.map(source => {
+            {visibleSources.map((source, index) => {
               const items = groupedModels[source] || [];
-              if (items.length === 0) return null;
               const isExpanded = expandedSections[source] !== false;
+              const isDragTarget = dragOverIndex === index && dragIndex !== null && dragIndex !== index;
               return (
                 <motion.section 
                   key={source} 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group"
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragIndex !== null && dragIndex !== index && dragOverIndex !== index) setDragOverIndex(index); }}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(index); }}
+                  className={`bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group transition-all duration-200 ${isDragTarget ? 'ring-2 ring-blue-500/60 border-blue-500/40 scale-[1.004] shadow-2xl' : ''}`}
                 >
                   <header 
                     className="flex items-center justify-between p-4 sm:p-6 md:p-8 lg:p-12 cursor-pointer hover:bg-blue-600/5 transition-all"
-                    onClick={() => setExpandedSections(prev => ({ ...prev, [source]: !isExpanded }))}
+                    onClick={() => toggleSection(source)}
                   >
                      <div className="flex items-center gap-10">
                         <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-2xl transition-all duration-700 ${isExpanded ? 'scale-110 rotate-3 shadow-blue-500/40' : 'scale-90 opacity-40 grayscale'} ${source === 'Ollama' ? 'bg-gradient-to-br from-blue-600 to-blue-400' : source === 'ComfyUI' ? 'bg-gradient-to-br from-purple-600 to-pink-500' : 'bg-gradient-to-br from-slate-800 to-slate-600'}`}>
@@ -348,8 +401,21 @@ export default function MyModels() {
                            </div>
                         </div>
                      </div>
-                     <div className={`w-14 h-14 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
-                        <ChevronDown size={24} />
+                     <div className="flex items-center gap-3">
+                        <div
+                          data-drag-handle
+                          draggable
+                          onDragStart={(e) => { setDragIndex(index); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(index)); }}
+                          onDragEnd={() => { setDragIndex(null); setDragOverIndex(null); }}
+                          onClick={(e) => e.stopPropagation()}
+                          title={t('models_dragHint')}
+                          className="w-11 h-11 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] cursor-grab hover:text-blue-500 hover:border-blue-500/40 hover:bg-blue-500/5 active:cursor-grabbing transition-all select-none"
+                        >
+                          <GripVertical size={18} />
+                        </div>
+                        <div className={`w-14 h-14 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <ChevronDown size={24} />
+                        </div>
                      </div>
                   </header>
 

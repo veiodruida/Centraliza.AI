@@ -12,6 +12,9 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import SlashCommands from '../components/SlashCommands';
 import RagUploader from '../components/RagUploader';
+import ConfigImpact from '../components/ConfigImpact';
+import { useGGUFMeta } from '../utils/useGGUFMeta';
+import { MAX_CTX_LIMIT } from '../utils/configAdvisor';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -62,6 +65,21 @@ export default function ModelTester() {
   const [image, setImage] = useState<string | ArrayBuffer | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Limites reais do modelo GGUF selecionado (para os sliders fazerem sentido)
+  const { meta: gmeta } = useGGUFMeta(engine === 'llama.cpp' ? selectedModel?.path : null);
+  const maxCtxSlider = gmeta?.ok && gmeta.nCtxMax ? Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax) : MAX_CTX_LIMIT;
+  const maxGpuLayers = gmeta?.ok && gmeta.nLayers ? Math.min(99, gmeta.nLayers) : 99;
+  const ctxSliderStep = maxCtxSlider <= 16384 ? 1024 : 4096;
+
+  // Quando os metadados do modelo chegam, ajusta valores iniciais que
+  // ultrapassem os limites reais do modelo (ex.: 99 camadas num modelo de 64).
+  useEffect(() => {
+    if (!gmeta?.ok) return;
+    if (gmeta.nCtxMax && ctxSize > Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax)) setCtxSize(Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax));
+    if (gmeta.nLayers && gpuLayers > Math.min(99, gmeta.nLayers)) setGpuLayers(Math.min(99, gmeta.nLayers));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gmeta]);
 
   useEffect(() => {
     setMessages([{ role: 'assistant', content: t('chat_welcome') || 'Hello! Select a model and inference engine to start testing.', text_content: t('chat_welcome') || 'Hello! Select a model and inference engine to start testing.' }]);
@@ -504,18 +522,28 @@ export default function ModelTester() {
                         <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Zap size={14} /> Context Size</label>
                         <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{ctxSize}</span>
                       </div>
-                    <input type="range" min="1024" max="131072" step="4096" value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
-                    <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Memória da conversa (Max: 131k). Valores altos gastam muita RAM/VRAM.</p>
+                    <input type="range" min="1024" max={maxCtxSlider} step={ctxSliderStep} value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-2 font-medium">Memória da conversa (Max: {maxCtxSlider.toLocaleString('pt-PT')}). Valores altos gastam muita RAM/VRAM.</p>
                     </div>
                     <div>
                       <div className="flex justify-between items-center mb-4">
                         <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Server size={14} /> GPU Layers</label>
                         <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{gpuLayers}</span>
                       </div>
-                      <input type="range" min="0" max="99" step="1" value={gpuLayers} onChange={e => setGpuLayers(parseInt(e.target.value))} className="w-full accent-purple-500" />
-                      <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Camadas descarregadas na Placa de Vídeo. 99 = Full GPU.</p>
+                      <input type="range" min="0" max={maxGpuLayers} step="1" value={gpuLayers} onChange={e => setGpuLayers(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                      <p className="text-[11px] text-[var(--text-secondary)] mt-2 font-medium">Camadas descarregadas na Placa de Vídeo. {maxGpuLayers === 99 ? '99 = Full GPU.' : `Máx. do modelo: ${maxGpuLayers}.`}</p>
                     </div>
                   </div>
+
+                  {engine === 'llama.cpp' && (
+                    <ConfigImpact
+                      ctxSize={ctxSize}
+                      gpuLayers={gpuLayers}
+                      modelPath={selectedModel?.path}
+                      kvBytesPerElement={0.5}
+                      onApplyRecommendation={(rec) => { setCtxSize(rec.ctx); setGpuLayers(rec.gpuLayers); }}
+                    />
+                  )}
 
                   <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
                     <MessageCircle size={14} className="text-blue-500" /> System Prompt (Comportamento Base)
