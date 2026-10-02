@@ -1,11 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, Settings2, SlidersHorizontal, FileText, UploadCloud } from 'lucide-react';
+import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, Settings2, SlidersHorizontal, Paperclip, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+// @ts-ignore
+import ReactMarkdown from 'react-markdown';
+// @ts-ignore
+import remarkGfm from 'remark-gfm';
+// @ts-ignore
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+// @ts-ignore
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import SlashCommands from '../components/SlashCommands';
+import RagUploader from '../components/RagUploader';
+import ConfigImpact from '../components/ConfigImpact';
+import { useGGUFMeta } from '../utils/useGGUFMeta';
+import { MAX_CTX_LIMIT } from '../utils/configAdvisor';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: any;
+  text_content?: string;
+  image_url?: string;
   reasoning_content?: string;
   metrics?: { tps: string, time: string };
 }
@@ -44,17 +59,30 @@ export default function ModelTester() {
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.9);
   const [topK, setTopK] = useState(40);
-  const [ctxSize, setCtxSize] = useState(4096);
+  const [ctxSize, setCtxSize] = useState(32768);
   const [gpuLayers, setGpuLayers] = useState(99);
 
-  // RAG State
-  const [ragDocs, setRagDocs] = useState<{filename: string, id: number}[]>([]);
-  const [ragUploading, setRagUploading] = useState(false);
+  const [image, setImage] = useState<string | ArrayBuffer | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Limites reais do modelo GGUF selecionado (para os sliders fazerem sentido)
+  const { meta: gmeta } = useGGUFMeta(engine === 'llama.cpp' ? selectedModel?.path : null);
+  const maxCtxSlider = gmeta?.ok && gmeta.nCtxMax ? Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax) : MAX_CTX_LIMIT;
+  const maxGpuLayers = gmeta?.ok && gmeta.nLayers ? Math.min(99, gmeta.nLayers) : 99;
+  const ctxSliderStep = maxCtxSlider <= 16384 ? 1024 : 4096;
+
+  // Quando os metadados do modelo chegam, ajusta valores iniciais que
+  // ultrapassem os limites reais do modelo (ex.: 99 camadas num modelo de 64).
   useEffect(() => {
-    setMessages([{ role: 'assistant', content: t('chat_welcome') || 'Hello! Select a model and inference engine to start testing.' }]);
+    if (!gmeta?.ok) return;
+    if (gmeta.nCtxMax && ctxSize > Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax)) setCtxSize(Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax));
+    if (gmeta.nLayers && gpuLayers > Math.min(99, gmeta.nLayers)) setGpuLayers(Math.min(99, gmeta.nLayers));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gmeta]);
+
+  useEffect(() => {
+    setMessages([{ role: 'assistant', content: t('chat_welcome') || 'Hello! Select a model and inference engine to start testing.', text_content: t('chat_welcome') || 'Hello! Select a model and inference engine to start testing.' }]);
   }, [t]);
 
   useEffect(() => {
@@ -78,17 +106,37 @@ export default function ModelTester() {
           abortController.abort();
           setAbortController(null);
           setLoading(false);
-          setMessages(prev => [...prev, { role: 'system', content: '[A requisição foi cancelada pelo utilizador.]' }]);
+          setMessages(prev => [...prev, { role: 'system', content: '[A requisição foi cancelada pelo utilizador.]', text_content: '[A requisição foi cancelada pelo utilizador.]' }]);
+      }
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => setImage(reader.result);
+          reader.readAsDataURL(file);
       }
   };
 
   const handleSend = async () => {
-    if (!input.trim() || (!selectedModel && engine !== 'custom') || loading) return;
+    if ((!input.trim() && !image) || (!selectedModel && engine !== 'custom') || loading) return;
 
-    const userMsg: Message = { role: 'user', content: input };
+    const userMsgText = input.trim();
+
+    const userMsg: Message = { 
+        role: 'user', 
+        content: image ? [
+            { type: 'text', text: userMsgText },
+            { type: 'image_url', image_url: { url: image } }
+        ] : userMsgText,
+        text_content: userMsgText,
+        image_url: image as string
+    };
     const currentMessages = [...messages, userMsg];
     setMessages(currentMessages);
     setInput('');
+    setImage(null);
     setLoading(true);
     setError('');
 
@@ -96,26 +144,88 @@ export default function ModelTester() {
     setAbortController(controller);
 
     try {
+      const isAnalyze = userMsgText.startsWith('/analyze ');
+      if (isAnalyze) {
+          const question = userMsgText.replace('/analyze ', '');
+          setMessages(prev => [...prev, { role: 'system', content: `Iniciando análise profunda (Map-Reduce) do documento. Isso dividirá o arquivo em pedaços pequenos para economizar memória VRAM. Pode demorar alguns instantes...`, text_content: `Iniciando análise profunda (Map-Reduce)...` }]);
+          
+          const modelId = engine === 'llama.cpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
+          
+          const res = await fetch('/api/documents/analyze', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                  userQuestion: question,
+                  modelId: modelId,
+                  engineType: engine,
+                  ctxSize: ctxSize
+              })
+          });
+          
+          const data = await res.json();
+          if (!res.ok || data.error) throw new Error(data.error || 'Erro ao analisar documento.');
+          
+          setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: `*(Análise Completa de ${data.chunksProcessed} partes)*\n\n${data.answer}`,
+              text_content: `*(Análise Completa de ${data.chunksProcessed} partes)*\n\n${data.answer}`
+          }]);
+          
+          setLoading(false);
+          setAbortController(null);
+          return;
+      }
+
       // Auto-start Llama.cpp engine if needed
       if (engine === 'llama.cpp') {
           const statusRes = await fetch('/api/inference/status');
-          const statusData = await statusRes.json();
-          if (!statusData.running || statusData.model !== selectedModel.path) {
-              setMessages(prev => [...prev, { role: 'system', content: `Iniciando motor nativo para o modelo ${selectedModel.name.split('/').pop()}... Aguarde.` }]);
+          const statusText = await statusRes.text();
+          let statusData: any = { running: false, model: null, ctx: null };
+          try { statusData = JSON.parse(statusText); } catch(e) { console.warn('Status response:', statusText); }
+          
+          if (!statusData.running || statusData.model !== selectedModel.path || statusData.ctx !== ctxSize) {
+              setMessages(prev => [...prev, { role: 'system', content: `Iniciando motor nativo para o modelo ${selectedModel.name.split('/').pop()} com contexto de ${ctxSize}... Aguarde.` }]);
               const startRes = await fetch('/api/inference/start', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ modelPath: selectedModel.path, ctx: ctxSize, ngl: gpuLayers })
               });
-              const startData = await startRes.json();
+              const startText = await startRes.text();
+              let startData;
+              try { startData = JSON.parse(startText); } catch(e) { throw new Error(`Falha ao iniciar motor. Resposta bruta: ${startText.substring(0, 100)}`); }
+              
               if (!startData.success) throw new Error(startData.error || 'Falha ao iniciar motor nativo.');
           }
       }
 
-      // Prepare OpenAI format payload
-      const chatHistory = currentMessages
-          .filter(m => m.role !== 'system') // Filter out UI system messages like "Engine started"
-          .map(m => ({ role: m.role, content: m.content }));
+      // Prepare OpenAI format payload com Auto-Compaction (Sliding Window)
+      // Estima a contagem de tokens (1 token ≈ 4 caracteres em média)
+      const estimateTokens = (text: string) => Math.ceil((text || '').length / 4);
+      
+      // Reserva 20% do contexto para a resposta da IA (margem de segurança)
+      const MAX_TOKENS_FOR_HISTORY = Math.floor(ctxSize * 0.8);
+      let currentTokenCount = systemPrompt ? estimateTokens(systemPrompt) : 0;
+      
+      const prunedMessages = [];
+      const filterSystem = currentMessages.filter(m => m.role !== 'system');
+      
+      // Adiciona as mensagens de trás para frente (da mais recente para a mais antiga)
+      for (let i = filterSystem.length - 1; i >= 0; i--) {
+          const msg = filterSystem[i];
+          const contentStr = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+          const msgTokens = estimateTokens(contentStr);
+          
+          if (currentTokenCount + msgTokens > MAX_TOKENS_FOR_HISTORY) {
+              console.warn('Contexto cheio! Mensagens antigas foram ocultadas desta requisição para evitar erro 400.');
+              break;
+          }
+          
+          currentTokenCount += msgTokens;
+          prunedMessages.unshift({ role: msg.role, content: msg.content });
+      }
+      
+      const chatHistory = prunedMessages;
 
       if (systemPrompt) {
           chatHistory.unshift({ role: 'system', content: systemPrompt });
@@ -134,20 +244,35 @@ export default function ModelTester() {
           temperature,
           top_p: topP,
           top_k: topK,
+          num_ctx: ctxSize,
           stream: false // Using static fetch for simplicity in this phase
         })
       });
-      const data = await res.json();
+      
+      const rawText = await res.text();
+      let data;
+      try {
+          data = JSON.parse(rawText);
+      } catch(err) {
+          throw new Error(`Resposta inválida do servidor (Status ${res.status}): ${rawText.substring(0, 200)}`);
+      }
       
       if (data.error) throw new Error(data.error);
       if (!res.ok && data.error) throw new Error(data.error);
 
       // Fallback to JSON stringify ONLY if it really seems like an invalid response structure
       const choice = data.choices?.[0];
-      const messageContent = choice?.message?.content !== undefined ? choice.message.content : '';
-      const reasoningContent = choice?.message?.reasoning_content || '';
+      let messageContent = choice?.message?.content !== undefined ? choice.message.content : '';
+      let reasoningContent = choice?.message?.reasoning_content || '';
 
-      const assistantResponse = (messageContent || reasoningContent) ? messageContent : JSON.stringify(data);
+      // If the main content is empty but reasoning exists, assume the model put the answer in the wrong field.
+      // We move the reasoning to the main content and clear the reasoning field to avoid duplication in the UI.
+      if (!messageContent.trim() && reasoningContent.trim()) {
+          messageContent = reasoningContent;
+          reasoningContent = '';
+      }
+
+      const assistantResponse = messageContent ? messageContent : JSON.stringify(data);
 
       const endTime = Date.now();
 
@@ -160,6 +285,7 @@ export default function ModelTester() {
       setMessages(prev => [...prev, {
           role: 'assistant',
           content: assistantResponse,
+          text_content: assistantResponse,
           reasoning_content: reasoningContent,
           metrics: { tps, time: durationSecs.toFixed(1) }
       }]);
@@ -168,7 +294,7 @@ export default function ModelTester() {
           console.log('Fetch aborted');
       } else {
           setError(err.message || 'AI Server error.');
-          setMessages(prev => [...prev, { role: 'system', content: 'SYSTEM ERROR: ' + (err.message || 'Error connecting to AI server.') }]);
+          setMessages(prev => [...prev, { role: 'system', content: 'SYSTEM ERROR: ' + (err.message || 'Error connecting to AI server.'), text_content: 'SYSTEM ERROR: ' + (err.message || 'Error connecting to AI server.') }]);
       }
     } finally {
       setLoading(false);
@@ -291,7 +417,7 @@ export default function ModelTester() {
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent)]" />
                    <Terminal size={64} className="group-hover:scale-110 transition-transform duration-700" />
                 </div>
-                <h2 className="text-5xl md:text-7xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tighter leading-none">{t('dash_ready')}</h2>
+              <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-[var(--text-primary)] mb-6 uppercase tracking-tighter leading-none">{t('dash_ready')}</h2>
                 <p className="text-[var(--text-secondary)] max-w-md text-xl font-medium leading-relaxed opacity-80">{t('chat_selectToBegin') || 'Select a model and engine to start a local conversation.'}</p>
                 <div className="mt-12 flex gap-4">
                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-bounce" />
@@ -302,13 +428,13 @@ export default function ModelTester() {
           )}
         </AnimatePresence>
 
-        <header className="h-28 border-b border-[var(--border)] flex items-center justify-between px-10 md:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
+        <header className="h-20 md:h-28 border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6 md:px-10 xl:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
            <div className="flex items-center gap-8">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-premium">
                  <Bot size={32} />
               </div>
               <div className="hidden sm:block">
-                 <div className="text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-[12rem] sm:max-w-xs md:max-w-lg lg:max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
                  <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                     <span className="text-xs text-emerald-500 font-black uppercase tracking-widest">{engine} engine active</span>
@@ -396,18 +522,28 @@ export default function ModelTester() {
                         <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Zap size={14} /> Context Size</label>
                         <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{ctxSize}</span>
                       </div>
-                      <input type="range" min="1024" max="32768" step="1024" value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
-                      <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Memória da conversa. Valores altos gastam mais RAM.</p>
+                    <input type="range" min="1024" max={maxCtxSlider} step={ctxSliderStep} value={ctxSize} onChange={e => setCtxSize(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-2 font-medium">Memória da conversa (Max: {maxCtxSlider.toLocaleString('pt-PT')}). Valores altos gastam muita RAM/VRAM.</p>
                     </div>
                     <div>
                       <div className="flex justify-between items-center mb-4">
                         <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Server size={14} /> GPU Layers</label>
                         <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20">{gpuLayers}</span>
                       </div>
-                      <input type="range" min="0" max="99" step="1" value={gpuLayers} onChange={e => setGpuLayers(parseInt(e.target.value))} className="w-full accent-purple-500" />
-                      <p className="text-[10px] text-[var(--text-muted)] mt-2 font-medium">Camadas descarregadas na Placa de Vídeo. 99 = Full GPU.</p>
+                      <input type="range" min="0" max={maxGpuLayers} step="1" value={gpuLayers} onChange={e => setGpuLayers(parseInt(e.target.value))} className="w-full accent-purple-500" />
+                      <p className="text-[11px] text-[var(--text-secondary)] mt-2 font-medium">Camadas descarregadas na Placa de Vídeo. {maxGpuLayers === 99 ? '99 = Full GPU.' : `Máx. do modelo: ${maxGpuLayers}.`}</p>
                     </div>
                   </div>
+
+                  {engine === 'llama.cpp' && (
+                    <ConfigImpact
+                      ctxSize={ctxSize}
+                      gpuLayers={gpuLayers}
+                      modelPath={selectedModel?.path}
+                      kvBytesPerElement={0.5}
+                      onApplyRecommendation={(rec) => { setCtxSize(rec.ctx); setGpuLayers(rec.gpuLayers); }}
+                    />
+                  )}
 
                   <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest mb-4 flex items-center gap-2">
                     <MessageCircle size={14} className="text-blue-500" /> System Prompt (Comportamento Base)
@@ -440,7 +576,7 @@ export default function ModelTester() {
                  <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center my-4">
                     <div className="bg-purple-500/10 border border-purple-500/20 text-purple-400 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-3 backdrop-blur-md">
                        <Zap size={14} className="fill-purple-500/50" />
-                       {msg.content}
+                       {msg.text_content || msg.content}
                     </div>
                  </motion.div>
               );
@@ -478,7 +614,39 @@ export default function ModelTester() {
                          </div>
                        </details>
                      )}
-                     <span className="block mt-1">{msg.content}</span>
+                     {msg.image_url && (
+                       <img src={msg.image_url} alt="Attached" className="rounded-xl mb-3 max-w-xs border border-[var(--border)] shadow-sm" />
+                     )}
+                     {msg.role === 'user' ? (
+                       <span className="block mt-1 whitespace-pre-wrap">{msg.text_content || msg.content}</span>
+                     ) : (
+                       <div className="leading-relaxed mt-1">
+                         <ReactMarkdown
+                           remarkPlugins={[remarkGfm]}
+                           components={{
+                             h1: ({node, ...props}: any) => <h1 className="text-2xl font-bold mt-6 mb-4 text-[var(--text-primary)]" {...props} />,
+                             h2: ({node, ...props}: any) => <h2 className="text-xl font-bold mt-5 mb-3 text-[var(--text-primary)]" {...props} />,
+                             h3: ({node, ...props}: any) => <h3 className="text-lg font-bold mt-4 mb-2 text-[var(--text-primary)]" {...props} />,
+                             ul: ({node, ...props}: any) => <ul className="list-disc list-inside my-4 space-y-2 ml-4" {...props} />,
+                             ol: ({node, ...props}: any) => <ol className="list-decimal list-inside my-4 space-y-2 ml-4" {...props} />,
+                             p: ({node, ...props}: any) => <p className="mb-4 last:mb-0" {...props} />,
+                             a: ({node, ...props}: any) => <a className="text-blue-500 hover:underline" {...props} />,
+                             strong: ({node, ...props}: any) => <strong className="font-bold text-[var(--text-primary)]" {...props} />,
+                             code({node, className, children, ...props}: any) {
+                               const match = /language-(\w+)/.exec(className || '');
+                               const isBlock = match || String(children).includes('\n');
+                               return isBlock ? (
+                                 <SyntaxHighlighter {...props} children={String(children).replace(/\n$/, '')} style={vscDarkPlus as any} language={match ? match[1] : 'text'} PreTag="div" className="rounded-xl overflow-hidden my-4 border border-[var(--border)] text-sm shadow-xl" />
+                               ) : (
+                                 <code {...props} className={`${className || ''} bg-[var(--bg-input)] text-blue-400 px-1.5 py-0.5 rounded-md font-mono text-sm border border-[var(--border)]`}>{children}</code>
+                               );
+                             }
+                           }}
+                         >
+                           {msg.text_content || msg.content}
+                         </ReactMarkdown>
+                       </div>
+                     )}
                   </div>
                   {msg.metrics && (
                      <div className={`flex items-center gap-4 text-[10px] uppercase tracking-widest font-black text-[var(--text-muted)] ${msg.role === 'user' ? 'justify-end' : 'justify-start pl-4'}`}>
@@ -524,60 +692,49 @@ export default function ModelTester() {
         </div>
 
         <div className="p-4 md:p-6 border-t border-[var(--border)] bg-[var(--bg-surface)]/80 backdrop-blur-3xl shadow-[0_-20px_100px_rgba(0,0,0,0.05)] shrink-0 flex flex-col items-center">
-          {ragDocs.length > 0 && (
-              <div className="w-full max-w-5xl mb-2 flex justify-start gap-2 flex-wrap">
-                  {ragDocs.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg text-[10px] md:text-[11px] text-indigo-400 font-medium">
-                          <FileText size={12} />
-                          <span className="truncate max-w-[150px]">{doc.filename}</span>
-                          <button onClick={async () => {
-                              await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
-                              setRagDocs(prev => prev.filter(d => d.id !== doc.id));
-                          }} className="ml-2 hover:text-indigo-200 transition-colors">
-                              <Trash2 size={12} />
-                          </button>
-                      </div>
-                  ))}
-              </div>
-          )}
-          {ragUploading && (
+          <div className="w-full max-w-5xl flex justify-start"><RagUploader /></div>
+          {image && (
               <div className="w-full max-w-5xl mb-2 flex justify-start">
-                 <span className="text-[10px] text-indigo-400 animate-pulse uppercase tracking-widest font-black">Uploading Document...</span>
+                  <div className="relative w-20 h-20 bg-[var(--bg-surface)] rounded-xl border border-[var(--border)] p-1 shadow-sm">
+                      <img src={String(image)} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                      <button onClick={() => setImage(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-all">
+                          <X size={12} />
+                      </button>
+                  </div>
               </div>
           )}
 
           <div className="relative group max-w-5xl w-full mx-auto flex gap-3 md:gap-4 items-center">
             <div className="relative flex-1 min-w-0 flex items-center bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-full focus-within:ring-2 focus-within:ring-blue-600/50 transition-all shadow-premium">
-               <label className={`p-3 md:p-4 transition-colors shrink-0 ml-1 cursor-pointer ${ragDocs.length >= 5 ? 'text-red-400 opacity-50' : 'text-[var(--text-muted)] hover:text-blue-500'}`} title={ragDocs.length >= 5 ? "Limit of 5 documents reached" : "Upload PDF/TXT/DOCX for Knowledge Context"}>
-                 <UploadCloud size={20} />
-                 <input type="file" accept=".pdf,.txt,.docx" multiple disabled={ragDocs.length >= 5} className="hidden" onChange={async (e) => {
-                       if (!e.target.files || e.target.files.length === 0) return;
-                       const files = Array.from(e.target.files);
-                       setRagUploading(true);
-
-                       for (const file of files) {
-                           // Recheck limit before uploading next file in the loop
-                           if (ragDocs.length >= 5) break;
-
-                           const formData = new FormData();
-                           formData.append('document', file);
-                           try {
-                               const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
-                               const data = await res.json();
-                               if (data.success && data.document) {
-                                   setRagDocs(prev => {
-                                      if (prev.length >= 5) return prev;
-                                      return [...prev, data.document];
-                                   });
-                               } else {
-                                   alert(data.error || `Upload failed for ${file.name}`);
-                               }
-                           } catch(err) { alert(`Upload failed for ${file.name}`); }
-                       }
-                       // Clear the input so the same files can be selected again if deleted
-                       e.target.value = '';
-                       setRagUploading(false);
-                 }} />
+               <SlashCommands 
+                 input={input} 
+                 onSelect={(cmd) => {
+                if (cmd === '/clear') { setMessages([{ role: 'assistant', content: t('chat_welcome') || 'Hello!', text_content: t('chat_welcome') || 'Hello!' }]); setInput(''); }
+                else if (cmd === '/gsd') { setSystemPrompt("Você é um programador de elite. Forneça apenas código, sem explicações. Pense passo a passo mas mostre apenas a solução final."); setShowSettings(true); setInput(''); }
+                else if (cmd === '/compact') { setMessages(prev => prev.slice(-4)); setInput(''); }
+                else if (cmd === '/attach') { document.querySelector<HTMLInputElement>('input[accept=".pdf,.txt,.docx"]')?.click(); setInput(''); }
+                    else if (cmd === '/info') {
+                        const infoMsg = `🧠 **Modelo Ativo:** ${selectedModel?.name || 'Nenhum'}\n⚙️ **Motor:** ${engine}\n⚡ **Contexto Atual:** ${ctxSize} tokens`;
+                        setMessages(prev => [...prev, { role: 'system', content: infoMsg, text_content: infoMsg }]);
+                    setInput('');
+                    }
+                    else if (cmd === '/ajuda') {
+                    const helpMsg = `**Comandos Disponíveis:**\n- **/gsd**: Modo programador de elite\n- **/clear**: Limpa o chat\n- **/compact**: Limpa mensagens antigas para poupar VRAM\n- **/attach**: Anexar documentos (RAG)\n- **/analyze**: Analisar arquivo grande com Map-Reduce\n- **/info**: Status do modelo e motor\n- **/context**: Ajustar tamanho de contexto (Tokens)`;
+                        setMessages(prev => [...prev, { role: 'system', content: helpMsg, text_content: helpMsg }]);
+                    setInput('');
+                }
+                else if (cmd === '/analyze') {
+                    setInput('/analyze ');
+                    }
+                    else if (cmd === '/context') {
+                        setShowSettings(true);
+                    setInput('');
+                    }
+                 }} 
+               />
+               <label className="p-3 md:p-4 transition-colors shrink-0 cursor-pointer text-[var(--text-muted)] hover:text-blue-500" title="Anexar Imagem para Modelos de Visão">
+                 <Paperclip size={20} />
+                 <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                </label>
                <input 
                  type="text" 
@@ -599,7 +756,7 @@ export default function ModelTester() {
             ) : (
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() && !image}
                   className="w-12 h-12 md:w-14 md:h-14 bg-blue-600 text-white rounded-full shrink-0 flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
                 >
                   <Send size={20} className="ml-1" />
@@ -611,6 +768,3 @@ export default function ModelTester() {
     </motion.div>
   );
 }
-
-
-

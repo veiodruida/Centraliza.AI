@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { io } from 'socket.io-client';
-import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink } from 'lucide-react';
+import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PAGE_VARIANTS = {
@@ -49,12 +49,17 @@ export default function MyModels() {
   const [viewingModel, setViewingModel] = useState<Model | null>(null);
   const [description, setDescription] = useState('');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'Standalone': true,
+    'LM Studio / Hugging Face': true,
     'Ollama': true,
     'ComfyUI': true,
-    'LM Studio': true,
-    'Hugging Face': true
   });
-  const [sectionOrder, setSectionOrder] = useState<string[]>(['Ollama', 'ComfyUI', 'LM Studio', 'Hugging Face', 'Standalone']);
+  // Ordem padrão: Standalone → LM Studio / Hugging Face → Ollama → ComfyUI.
+  // O utilizador pode arrastar as secções para reordenar; a escolha fica
+  // gravada no servidor (config.json) e é restaurada ao voltar à página.
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['Standalone', 'LM Studio / Hugging Face', 'Ollama', 'ComfyUI']);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[]; initialAction?: 'delete' | 'decentralize' | 'centralize' | null }>({ isOpen: false, models: [], initialAction: null });
   const { showToast } = useToast();
 
@@ -74,12 +79,25 @@ export default function MyModels() {
     finally { setLoading(false); }
   };
 
+  // Grava preferências do utilizador (ordem das secções / estado recolhido)
+  // no servidor, para ficarem guardadas permanentemente em config.json.
+  const persistConfig = (patch: Record<string, unknown>) => {
+    fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    }).catch(() => {});
+  };
+
   useEffect(() => { 
     fetchModels(); 
     const socket = io();
     socket.on('models-updated', () => fetchModels());
     fetch('/api/config').then(res => res.json()).then(data => {
-      if (data.sectionOrder) setSectionOrder(data.sectionOrder);
+      if (Array.isArray(data.sectionOrder) && data.sectionOrder.length) setSectionOrder(data.sectionOrder);
+      if (data.expandedSections && typeof data.expandedSections === 'object') {
+        setExpandedSections(prev => ({ ...prev, ...data.expandedSections }));
+      }
     });
     return () => { socket.disconnect(); };
   }, []);
@@ -161,6 +179,38 @@ export default function MyModels() {
     return groups;
   }, [models, search]);
 
+  // Apenas as secções com modelos são renderizadas; a ordem persistida
+  // mantém as 4 origens para quando voltarem a ter conteúdo.
+  const visibleSources = useMemo(
+    () => sectionOrder.filter(s => (groupedModels[s] || []).length > 0),
+    [sectionOrder, groupedModels]
+  );
+
+  const toggleSection = (source: string) => {
+    setExpandedSections(prev => {
+      const next = { ...prev, [source]: !(prev[source] !== false) };
+      persistConfig({ expandedSections: next });
+      return next;
+    });
+  };
+
+  const handleDrop = (overIndex: number) => {
+    if (dragIndex === null || dragIndex === overIndex) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const from = visibleSources[dragIndex];
+    const to = visibleSources[overIndex];
+    const next = sectionOrder.filter(s => s !== from);
+    const insertAt = next.indexOf(to) + (dragIndex < overIndex ? 1 : 0);
+    next.splice(insertAt, 0, from);
+    setSectionOrder(next);
+    persistConfig({ sectionOrder: next });
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
   const formatSize = (bytes: number) => (bytes / (1024 ** 3)).toFixed(2) + ' GB';
 
   if (viewingModel) {
@@ -169,19 +219,19 @@ export default function MyModels() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
-        className="p-6 md:p-12 lg:p-16 max-w-7xl mx-auto pb-20"
+        className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-7xl mx-auto pb-20"
       >
-        <button onClick={() => setViewingModel(null)} className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-blue-500 mb-10 transition-all font-black text-xs uppercase tracking-[0.2em] group">
+        <button onClick={() => setViewingModel(null)} className="flex items-center gap-3 text-[var(--text-secondary)] hover:text-blue-500 mb-6 md:mb-10 transition-all font-black text-xs uppercase tracking-[0.2em] group">
           <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" /> {t('close')}
         </button>
-        
-        <div className="card-premium relative overflow-hidden backdrop-blur-3xl p-8 md:p-16">
+
+        <div className="card-premium relative overflow-hidden backdrop-blur-3xl p-4 sm:p-6 md:p-8 lg:p-16">
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full -mr-20 -mt-20" />
           
           <header className="border-b border-[var(--border)] pb-12 mb-12 flex justify-between items-start flex-wrap gap-10">
              <div className="space-y-6 min-w-0 flex-1">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-3xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-all">{viewingModel.name}</h2>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none uppercase break-words">{viewingModel.name}</h2>
                   <HelpTooltip text="Model details and management" />
                 </div>
                 <div className="flex gap-3 flex-wrap">
@@ -206,20 +256,20 @@ export default function MyModels() {
              </div>
           </header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10 lg:gap-16">
              <div className="lg:col-span-2 space-y-12">
                 <div>
                    <h3 className="text-[var(--text-muted)] font-black text-[11px] uppercase tracking-[0.5em] mb-8 flex items-center gap-4">
                       <FileText size={18} className="text-blue-500" /> {t('hub_details_desc')}
                    </h3>
-                   <div className="bg-[var(--bg-input)]/50 p-10 rounded-[3rem] border border-[var(--border)] max-h-[600px] overflow-y-auto custom-scrollbar">
+                   <div className="bg-[var(--bg-input)]/50 p-5 sm:p-7 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-[var(--border)] max-h-[600px] overflow-y-auto custom-scrollbar">
                       <pre className="whitespace-pre-wrap font-sans text-base text-[var(--text-secondary)] leading-relaxed font-medium">{description}</pre>
                    </div>
                 </div>
              </div>
 
              <div className="space-y-12">
-                <div className="bg-[var(--bg-input)]/50 p-10 rounded-[3rem] border border-[var(--border)] shadow-xl">
+                <div className="bg-[var(--bg-input)]/50 p-5 sm:p-7 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-[var(--border)] shadow-xl">
                    <h4 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-8 flex items-center gap-3">
                       <Info size={16} className="text-purple-500" /> Metadata
                    </h4>
@@ -240,7 +290,7 @@ export default function MyModels() {
                    )}
                 </div>
 
-                <div className="bg-red-500/5 p-10 rounded-[3rem] border border-red-500/10 shadow-xl">
+                <div className="bg-red-500/5 p-5 sm:p-7 md:p-10 rounded-[1.5rem] md:rounded-[3rem] border border-red-500/10 shadow-xl">
                    <h4 className="text-[11px] font-black text-red-500/70 uppercase tracking-widest mb-8 flex items-center gap-3">
                       <Terminal size={16} /> Danger Zone
                    </h4>
@@ -266,11 +316,11 @@ export default function MyModels() {
       initial="initial"
       animate="animate"
       exit="exit"
-      className="p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
+      className="p-4 sm:p-6 md:p-12 lg:p-16 max-w-[100rem] mx-auto pb-20"
     >
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end mb-16 gap-8">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end mb-8 md:mb-16 gap-6 md:gap-8">
         <div className="space-y-4">
-          <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-6 uppercase">
+          <h2 className="text-3xl md:text-4xl xl:text-5xl font-black text-[var(--text-primary)] tracking-tighter leading-none flex items-center gap-4 md:gap-6 uppercase break-words">
             {t('models_title')}
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
           </h2>
@@ -286,7 +336,7 @@ export default function MyModels() {
               placeholder={t('models_search')} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
-              className="w-full md:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-5 pl-16 pr-8 text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-xl transition-all font-medium" 
+              className="w-full md:w-60 xl:w-96 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base focus:outline-none focus:ring-4 focus:ring-blue-600/10 text-[var(--text-primary)] shadow-xl transition-all font-medium" 
              />
           </div>
           <button onClick={fetchModels} className="bg-[var(--bg-surface)] hover:bg-[var(--bg-input)] text-[var(--text-primary)] p-5 rounded-2xl border border-[var(--border)] transition-all shadow-xl active:scale-95">
@@ -322,20 +372,22 @@ export default function MyModels() {
           </motion.div>
         ) : (
           <div className="space-y-12">
-            {sectionOrder.map(source => {
+            {visibleSources.map((source, index) => {
               const items = groupedModels[source] || [];
-              if (items.length === 0) return null;
               const isExpanded = expandedSections[source] !== false;
+              const isDragTarget = dragOverIndex === index && dragIndex !== null && dragIndex !== index;
               return (
                 <motion.section 
                   key={source} 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group"
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dragIndex !== null && dragIndex !== index && dragOverIndex !== index) setDragOverIndex(index); }}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(index); }}
+                  className={`bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group transition-all duration-200 ${isDragTarget ? 'ring-2 ring-blue-500/60 border-blue-500/40 scale-[1.004] shadow-2xl' : ''}`}
                 >
                   <header 
-                    className="flex items-center justify-between p-8 md:p-12 cursor-pointer hover:bg-blue-600/5 transition-all" 
-                    onClick={() => setExpandedSections(prev => ({ ...prev, [source]: !isExpanded }))}
+                    className="flex items-center justify-between p-4 sm:p-6 md:p-8 lg:p-12 cursor-pointer hover:bg-blue-600/5 transition-all"
+                    onClick={() => toggleSection(source)}
                   >
                      <div className="flex items-center gap-10">
                         <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-2xl transition-all duration-700 ${isExpanded ? 'scale-110 rotate-3 shadow-blue-500/40' : 'scale-90 opacity-40 grayscale'} ${source === 'Ollama' ? 'bg-gradient-to-br from-blue-600 to-blue-400' : source === 'ComfyUI' ? 'bg-gradient-to-br from-purple-600 to-pink-500' : 'bg-gradient-to-br from-slate-800 to-slate-600'}`}>
@@ -349,8 +401,21 @@ export default function MyModels() {
                            </div>
                         </div>
                      </div>
-                     <div className={`w-14 h-14 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
-                        <ChevronDown size={24} />
+                     <div className="flex items-center gap-3">
+                        <div
+                          data-drag-handle
+                          draggable
+                          onDragStart={(e) => { setDragIndex(index); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(index)); }}
+                          onDragEnd={() => { setDragIndex(null); setDragOverIndex(null); }}
+                          onClick={(e) => e.stopPropagation()}
+                          title={t('models_dragHint')}
+                          className="w-11 h-11 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] cursor-grab hover:text-blue-500 hover:border-blue-500/40 hover:bg-blue-500/5 active:cursor-grabbing transition-all select-none"
+                        >
+                          <GripVertical size={18} />
+                        </div>
+                        <div className={`w-14 h-14 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <ChevronDown size={24} />
+                        </div>
                      </div>
                   </header>
 
@@ -366,14 +431,14 @@ export default function MyModels() {
                           variants={CONTAINER_VARIANTS}
                           initial="hidden"
                           animate="visible"
-                          className="border-t border-[var(--border)] p-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+                          className="border-t border-[var(--border)] p-4 sm:p-6 md:p-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8"
                         >
                            {items.map(m => (
                               <motion.div 
                                 key={m.path} 
                                 variants={ITEM_VARIANTS}
                                 onClick={() => setViewingModel(m)} 
-                                className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[2.5rem] p-8 hover:border-blue-500/50 transition-all cursor-pointer group/card relative overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 flex flex-col min-h-[320px]"
+                                className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] p-5 sm:p-6 md:p-8 hover:border-blue-500/50 transition-all cursor-pointer group/card relative overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 flex flex-col min-h-[280px] sm:min-h-[320px]"
                               >
                                  <div className="absolute top-0 right-0 p-8 opacity-0 group-hover/card:opacity-100 transition-all translate-x-4 group-hover/card:translate-x-0">
                                     <ExternalLink size={20} className="text-blue-500" />
@@ -438,11 +503,3 @@ export default function MyModels() {
     </motion.div>
   );
 }
-
-
-
-
-
-
-
-
