@@ -17,10 +17,66 @@
   "comfyDir": "C:\\ComfyUI_windows_portable",
   "sectionOrder": [
     "Ollama",
-    "ComfyUI",
+    "Standalone",
     "LM Studio / Hugging Face",
-    "Standalone"
+    "ComfyUI"
   ],
-  "activeRouterModel": "C:\\Users\\veio_\\.cache\\huggingface\\hub\\models--unsloth--Qwen3.6-27B-GGUF\\snapshots\\82d411acf4a06cfb8d9b073a5211bf410bfc29bf\\Qwen3.6-27B-UD-IQ2_XXS.gguf",
-  "vramShieldLimit": 32768
+  "activeRouterModel": "C:\\AI_Models\\Centraliza.ai\\Qwen3.8-27B-TurboFCFusion\\Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-Q4_K_M.gguf",
+  "vramShieldLimit": 32768,
+  "dshLocalPort": 3090,
+  "llamaCppBinary": "C:\\Users\\veio_\\llama.cpp\\build\\bin\\Release\\llama-server.exe",
+  "llamaCppArgs": "-t $physicalCores --flash-attn auto -ctk q4_0 -ctv q4_0 -b 2048 -ub 1024 --host 0.0.0.0 --port 8080 --alias qwen",
+  "llamaCppArgsList": [
+    {
+      "arg": "-t",
+      "value": "$physicalCores",
+      "enabled": true
+    },
+    {
+      "arg": "--flash-attn",
+      "value": "auto",
+      "enabled": true
+    },
+    {
+      "arg": "-ctk",
+      "value": "q4_0",
+      "enabled": true
+    },
+    {
+      "arg": "-ctv",
+      "value": "q4_0",
+      "enabled": true
+    },
+    {
+      "arg": "-b",
+      "value": "2048",
+      "enabled": true
+    },
+    {
+      "arg": "-ub",
+      "value": "1024",
+      "enabled": true
+    },
+    {
+      "arg": "--host",
+      "value": "0.0.0.0",
+      "enabled": true
+    },
+    {
+      "arg": "--port",
+      "value": "8080",
+      "enabled": true
+    },
+    {
+      "arg": "--alias",
+      "value": "qwen",
+      "enabled": true
+    }
+  ],
+  "expandedSections": {
+    "Standalone": true,
+    "LM Studio / Hugging Face": false,
+    "Ollama": true,
+    "ComfyUI": false
+  }
 }
