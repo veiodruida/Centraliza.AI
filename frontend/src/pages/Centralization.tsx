@@ -153,9 +153,9 @@ export default function Centralization() {
               {t('central_spaceSaved')}
               <HelpTooltip text={t('central_spaceSavedHelp')} />
             </h3>
-            <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-4xl sm:text-6xl md:text-7xl xl:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{(spaceSaved / (1024**3)).toFixed(1)}</p>
-               <span className="text-2xl font-black text-blue-500 uppercase tracking-widest">GB</span>
+            <div className="flex items-baseline gap-3 relative z-10 flex-wrap min-w-0">
+               <p className="num-fluid-hero font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{(spaceSaved / (1024**3)).toFixed(1)}</p>
+               <span className="text-2xl font-black text-blue-500 uppercase tracking-widest shrink-0">GB</span>
             </div>
             <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Recovered Storage Potential</p>
          </div>
@@ -165,9 +165,9 @@ export default function Centralization() {
               {t('central_standalone')}
               <HelpTooltip text={t('central_standaloneHelp')} />
             </h3>
-            <div className="flex items-baseline gap-3 relative z-10">
-               <p className="text-4xl sm:text-6xl md:text-7xl xl:text-9xl font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{standaloneCount}</p>
-               <span className="text-2xl font-black text-purple-500 uppercase tracking-widest">MODS</span>
+            <div className="flex items-baseline gap-3 relative z-10 flex-wrap min-w-0">
+               <p className="num-fluid-hero font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{standaloneCount}</p>
+               <span className="text-2xl font-black text-purple-500 uppercase tracking-widest shrink-0">MODS</span>
             </div>
             <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Pending Centralization</p>
          </div>
@@ -208,10 +208,10 @@ export default function Centralization() {
                   ))}
                </div>
                
-               <div className="flex flex-wrap gap-4 w-full xl:w-auto">
+               <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full xl:w-auto">
                   <button onClick={handleSelectAll} className="text-xs md:text-sm font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest flex items-center justify-center gap-4 px-8 py-5 bg-[var(--bg-input)] rounded-[2rem] transition-all active:scale-95 border border-[var(--border)] flex-1 xl:flex-none">
                      {selectedPaths.size === models.filter(m => !m.isSymlink).length ? <CheckSquare size={22} className="text-blue-500 shrink-0" /> : <Square size={22} className="shrink-0" />} 
-                     <span>{selectedPaths.size > 0 ? t('central_deselectAll') : t('central_selectAll')}</span>
+                     <span className="break-words min-w-0">{selectedPaths.size > 0 ? t('central_deselectAll') : t('central_selectAll')}</span>
                   </button>
 
                   <button 
@@ -220,7 +220,7 @@ export default function Centralization() {
                     className="btn-premium bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center gap-4 disabled:opacity-30 flex-1 xl:flex-none xl:min-w-[200px]"
                   >
                      {processing ? <RefreshCw size={20} className="animate-spin shrink-0" /> : <Zap size={20} className="shrink-0" />}
-                     <span>{t('central_centralizeBtn')} ({selectedPaths.size})</span>
+                     <span className="break-words min-w-0">{t('central_centralizeBtn')} ({selectedPaths.size})</span>
                   </button>
                </div>
             </div>
@@ -270,11 +270,11 @@ export default function Centralization() {
                                  {m.isSymlink ? t('central_centralized') : t('central_standalone')}
                               </span>
                            </div>
-                           <div className="flex items-center gap-3 min-w-0">
-                              <p className="text-sm font-mono text-[var(--text-primary)] truncate min-w-0 flex-1 font-bold tracking-normal" title={m.path}>{m.path}</p>
-                              <div className="flex items-center gap-2 shrink-0 bg-blue-500/5 px-3 py-1 rounded-lg border border-blue-500/10">
-                                 <Box size={14} className="text-blue-500" />
-                                 <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{m.source}</span>
+                           <div className="flex items-center gap-3 min-w-0 flex-wrap">
+                              <p className="text-sm font-mono text-[var(--text-primary)] truncate min-w-[8rem] flex-1 font-bold tracking-normal" title={m.path}>{m.path}</p>
+                              <div className="flex items-center gap-2 min-w-0 bg-blue-500/5 px-3 py-1 rounded-lg border border-blue-500/10" title={m.source}>
+                                 <Box size={14} className="text-blue-500 shrink-0" />
+                                 <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest truncate">{m.source}</span>
                               </div>
                            </div>
                         </div>

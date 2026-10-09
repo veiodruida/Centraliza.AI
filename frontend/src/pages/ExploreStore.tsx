@@ -675,39 +675,39 @@ export default function ExploreStore() {
             </h2>
             <p className="text-[var(--text-secondary)] text-lg md:text-2xl font-medium max-w-2xl opacity-80 leading-relaxed">{t('hub_subtitle')}</p>
           </div>
-          <div className="card-premium py-4 px-6 md:py-6 md:px-10 flex items-center gap-6 md:gap-10 shadow-premium backdrop-blur-3xl shrink-0 flex-wrap">
-             <div className="flex flex-col">
+          <div className="card-premium py-4 px-6 md:py-6 md:px-10 flex items-center gap-6 md:gap-10 shadow-premium backdrop-blur-3xl min-w-0 w-full sm:w-auto flex-wrap">
+             <div className="flex flex-col min-w-0">
                 <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_gpu')}</span>
-                <span className="text-lg font-black text-[var(--text-primary)] tracking-tighter uppercase">{sysInfo?.gpuName || 'Detecting...'}</span>
+                <span className="text-lg font-black text-[var(--text-primary)] tracking-tighter uppercase break-words min-w-0">{sysInfo?.gpuName || 'Detecting...'}</span>
              </div>
-             <div className="h-12 w-px bg-[var(--border)]"></div>
-             <div className="flex flex-col">
+             <div className="h-12 w-px bg-[var(--border)] shrink-0"></div>
+             <div className="flex flex-col min-w-0">
                 <span className="text-xs md:text-sm font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_vram')}</span>
-                <span className="text-3xl font-black text-blue-500 tracking-tighter leading-none">
+                <span className="text-3xl font-black text-blue-500 tracking-tighter leading-none break-words min-w-0">
                    {sysInfo ? `${(sysInfo.vram / (1024 ** 3)).toFixed(1)} GB` : '--'}
                 </span>
              </div>
           </div>
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-8 items-stretch xl:items-center">
-          <div className="relative flex-1 group">
+        <div className="flex flex-col 2xl:flex-row gap-8 items-stretch 2xl:items-center flex-wrap">
+          <div className="relative flex-1 group min-w-0">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" size={20} />
             <input 
               type="text" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('hub_search')} 
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all shadow-xl font-medium"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all shadow-xl font-medium min-w-0"
             />
           </div>
           
-          <div className="grid grid-cols-2 sm:flex sm:flex-row bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full xl:w-fit gap-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full 2xl:w-fit gap-2 flex-wrap">
             {filters.map(f => (
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-8 xl:py-4 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
+                className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-4 2xl:px-8 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
                   activeFilter === f ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
@@ -724,15 +724,15 @@ export default function ExploreStore() {
             </button>
           </div>
           {refreshMsg && (
-            <p className="text-xs font-black text-blue-500 uppercase tracking-widest text-center">{refreshMsg}</p>
+            <p className="text-xs font-black text-blue-500 uppercase tracking-widest text-center w-full">{refreshMsg}</p>
           )}
 
-          <div className="grid grid-cols-1 sm:flex sm:flex-row items-center gap-2 bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full xl:w-fit">
+          <div className="grid grid-cols-1 sm:flex sm:flex-row items-center gap-2 bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full 2xl:w-fit flex-wrap">
              {(['Best Fit', 'Popular', 'Newest'] as SortOption[]).map(s => (
                 <button
                  key={s}
                  onClick={() => setActiveSort(s)}
-                 className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-6 xl:py-4 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
+                 className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-4 2xl:px-6 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
                    activeSort === s ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-lg' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                  }`}
                 >
@@ -857,33 +857,33 @@ export default function ExploreStore() {
               key={model.name} 
               variants={ITEM_VARIANTS}
               onClick={() => openModelDetail(model)}
-              className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] p-5 sm:p-7 md:p-10 flex flex-col hover:border-blue-500/50 transition-all group backdrop-blur-3xl hover:shadow-2xl relative overflow-hidden cursor-pointer active:scale-[0.98] shadow-sm min-h-[360px] sm:min-h-[420px] md:min-h-[480px]"
+              className="bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] p-5 sm:p-7 md:p-10 flex flex-col hover:border-blue-500/50 transition-all group backdrop-blur-3xl hover:shadow-2xl relative overflow-hidden cursor-pointer active:scale-[0.98] shadow-sm min-h-[360px] sm:min-h-[420px] md:min-h-[480px] min-w-0"
             >
               <div className={`absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[100px] opacity-0 group-hover:opacity-10 transition-all duration-700 ${
                 score === 3 ? 'bg-emerald-500' : score === 2 ? 'bg-amber-500' : 'bg-red-500'
               }`} />
 
-              <div className="flex justify-between items-start mb-10 relative z-10">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+              <div className="flex justify-between items-start mb-10 relative z-10 gap-4 flex-wrap min-w-0">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 shrink-0">
                   {model.pipeline_tag?.includes('image') ? <ImageIcon size={28} className="text-rose-400" /> :
                    model.pipeline_tag?.includes('text') ? <MessageSquare size={28} className="text-blue-400" /> :
                    <Brain size={28} className="text-purple-400" /> }
                 </div>
                 {score === 3 ? (
-                  <div className="flex items-center gap-2 text-emerald-500 text-xs font-black uppercase tracking-widest bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20 shadow-sm">
-                    <CheckCircle size={14} /> {t('hub_perfectFit')}
+                  <div className="flex items-center gap-2 text-emerald-500 text-xs font-black uppercase tracking-widest bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20 shadow-sm min-w-0">
+                    <CheckCircle size={14} className="shrink-0" /> <span className="break-words">{t('hub_perfectFit')}</span>
                   </div>
                 ) : score === 2 ? (
-                  <div className="flex items-center gap-2 text-amber-500 text-xs font-black uppercase tracking-widest bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20 shadow-sm">
-                    <AlertTriangle size={14} /> {t('hub_needsRam')}
+                  <div className="flex items-center gap-2 text-amber-500 text-xs font-black uppercase tracking-widest bg-amber-500/10 px-4 py-2 rounded-full border border-amber-500/20 shadow-sm min-w-0">
+                    <AlertTriangle size={14} className="shrink-0" /> <span className="break-words">{t('hub_needsRam')}</span>
                   </div>
                 ) : score === 1 ? (
-                  <div className="flex items-center gap-2 text-red-500 text-xs font-black uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20 shadow-sm">
-                    <XCircle size={14} /> {t('hub_tooLarge')}
+                  <div className="flex items-center gap-2 text-red-500 text-xs font-black uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20 shadow-sm min-w-0">
+                    <XCircle size={14} className="shrink-0" /> <span className="break-words">{t('hub_tooLarge')}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-black uppercase tracking-widest bg-[var(--bg-surface)] px-4 py-2 rounded-full border border-[var(--border)] shadow-sm">
-                    <Zap size={14} /> Novo no HF
+                  <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-black uppercase tracking-widest bg-[var(--bg-surface)] px-4 py-2 rounded-full border border-[var(--border)] shadow-sm min-w-0">
+                    <Zap size={14} className="shrink-0" /> <span className="break-words">Novo no HF</span>
                   </div>
                 )}
               </div>
@@ -897,17 +897,17 @@ export default function ExploreStore() {
                 <h4 className="text-xl md:text-2xl lg:text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors tracking-tighter uppercase break-words line-clamp-3">{model.name.split('/').pop()}</h4>
                 <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-8 line-clamp-2 opacity-70">{model.use_case}</p>
                 
-                <div className="flex gap-4 mb-8 flex-wrap">
-                   <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner">
+                <div className="flex gap-4 mb-8 flex-wrap min-w-0">
+                   <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner shrink-0">
                       <Download size={14} className="text-blue-500" />
                       <span className="text-xs font-black text-[var(--text-secondary)]">{(model.hf_downloads / 1000).toFixed(0)}k</span>
                    </div>
-                   <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner">
+                   <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner shrink-0">
                       <Star size={14} className="text-yellow-500 fill-current" />
                       <span className="text-xs font-black text-[var(--text-secondary)]">{model.hf_likes || 0}</span>
                    </div>
                    {model.file_size_gb ? (
-                     <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner" title="Tamanho do ficheiro GGUF (estimado)">
+                     <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner shrink-0" title="Tamanho do ficheiro GGUF (estimado)">
                        <HardDrive size={14} className="text-purple-500" />
                        <span className="text-xs font-black text-[var(--text-secondary)]">{model.file_size_gb} GB</span>
                      </div>
@@ -915,10 +915,10 @@ export default function ExploreStore() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-auto relative z-10 gap-6 flex-wrap" onClick={(e) => e.stopPropagation()}>
-                <div className="flex flex-col">
+              <div className="flex items-center justify-between mt-auto relative z-10 gap-6 flex-wrap min-w-0" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col min-w-0">
                   <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('hub_details_vram')}</span>
-                  <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{model.min_vram_gb} <span className="text-xs text-[var(--text-secondary)]">GB</span></span>
+                  <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter break-words min-w-0">{model.min_vram_gb} <span className="text-xs text-[var(--text-secondary)]">GB</span></span>
                 </div>
                 {isDownloading ? (
                    <div className="flex flex-col gap-2 min-w-[160px]">
@@ -970,7 +970,7 @@ export default function ExploreStore() {
         <div className="flex justify-center mb-16">
           <button
             onClick={() => setVisibleCount(c => c + 24)}
-            className="btn-premium px-16 py-6 text-sm font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] hover:border-blue-500/50"
+            className="btn-premium px-8 sm:px-16 py-6 text-sm font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] hover:border-blue-500/50"
           >
             Mostrar mais ({filteredModels.length - visibleCount} restantes)
           </button>
@@ -1338,7 +1338,7 @@ export default function ExploreStore() {
                 onChange={e => { setCustomUrl(e.target.value); setCustomUrlError(''); }}
                 onKeyDown={e => e.key === 'Enter' && handleCustomUrl()}
                 placeholder="https://huggingface.co/unsloth/Llama-3.2-3B-Instruct-GGUF"
-                className="flex-1 bg-transparent border-none rounded-[2rem] px-10 py-5 text-lg focus:outline-none text-[var(--text-primary)] font-medium"
+                className="flex-1 min-w-0 bg-transparent border-none rounded-[2rem] px-6 sm:px-10 py-5 text-base sm:text-lg focus:outline-none text-[var(--text-primary)] font-medium"
               />
               <button
                 onClick={handleCustomUrl}

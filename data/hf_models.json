@@ -4737,8 +4737,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 8649679,
-    "hf_likes": 1099,
+    "hf_downloads": 5615277,
+    "hf_likes": 1123,
     "release_date": null,
     "gguf_sources": [
       {
@@ -4781,8 +4781,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 6237305,
-    "hf_likes": 4804,
+    "hf_downloads": 6452782,
+    "hf_likes": 4978,
     "release_date": null,
     "gguf_sources": [
       {
@@ -4821,8 +4821,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 2570756,
-    "hf_likes": 673,
+    "hf_downloads": 2550712,
+    "hf_likes": 675,
     "release_date": null,
     "gguf_sources": [
       {
@@ -4858,8 +4858,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 5051736,
-    "hf_likes": 477,
+    "hf_downloads": 5246166,
+    "hf_likes": 512,
     "release_date": null,
     "gguf_sources": [
       {
@@ -4895,8 +4895,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 3570548,
-    "hf_likes": 473,
+    "hf_downloads": 3746758,
+    "hf_likes": 494,
     "release_date": null,
     "gguf_sources": [
       {
@@ -4932,7 +4932,7 @@
     "capabilities": [],
     "pipeline_tag": "feature-extraction",
     "architecture": "",
-    "hf_downloads": 1983334,
+    "hf_downloads": 1933961,
     "hf_likes": 826,
     "release_date": null,
     "gguf_sources": [
@@ -4977,8 +4977,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1331633,
-    "hf_likes": 57,
+    "hf_downloads": 1210333,
+    "hf_likes": 61,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5014,8 +5014,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1679944,
-    "hf_likes": 1054,
+    "hf_downloads": 1658432,
+    "hf_likes": 1053,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5051,8 +5051,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 2182844,
-    "hf_likes": 1379,
+    "hf_downloads": 2357856,
+    "hf_likes": 1507,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5098,8 +5098,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1343669,
-    "hf_likes": 1291,
+    "hf_downloads": 1438032,
+    "hf_likes": 1342,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5143,8 +5143,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-speech",
     "architecture": "",
-    "hf_downloads": 5671783,
-    "hf_likes": 194,
+    "hf_downloads": 6300404,
+    "hf_likes": 215,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5186,8 +5186,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 2030881,
-    "hf_likes": 1067,
+    "hf_downloads": 2106914,
+    "hf_likes": 1237,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5230,7 +5230,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1962292,
+    "hf_downloads": 1780764,
     "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
@@ -5272,8 +5272,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1487199,
-    "hf_likes": 477,
+    "hf_downloads": 1279927,
+    "hf_likes": 478,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5323,8 +5323,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 4042863,
-    "hf_likes": 23,
+    "hf_downloads": 3705683,
+    "hf_likes": 25,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5367,7 +5367,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 1796437,
+    "hf_downloads": 1884919,
     "hf_likes": 12,
     "release_date": null,
     "gguf_sources": [
@@ -5442,8 +5442,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 2083782,
-    "hf_likes": 1575,
+    "hf_downloads": 2030607,
+    "hf_likes": 1710,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5490,8 +5490,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1303453,
-    "hf_likes": 956,
+    "hf_downloads": 1179612,
+    "hf_likes": 976,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5530,8 +5530,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1410392,
-    "hf_likes": 602,
+    "hf_downloads": 1266037,
+    "hf_likes": 646,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5576,7 +5576,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 1570880,
+    "hf_downloads": 1764587,
     "hf_likes": 9,
     "release_date": null,
     "gguf_sources": [
@@ -5662,8 +5662,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 921607,
-    "hf_likes": 3808,
+    "hf_downloads": 869877,
+    "hf_likes": 3860,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5709,7 +5709,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1025548,
+    "hf_downloads": 853139,
     "hf_likes": 92,
     "release_date": null,
     "gguf_sources": [
@@ -5792,8 +5792,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 630126,
-    "hf_likes": 565,
+    "hf_downloads": 475403,
+    "hf_likes": 576,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5835,7 +5835,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1095992,
+    "hf_downloads": 955532,
     "hf_likes": 62,
     "release_date": null,
     "gguf_sources": [
@@ -5881,8 +5881,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 967820,
-    "hf_likes": 103,
+    "hf_downloads": 2038795,
+    "hf_likes": 111,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5920,8 +5920,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1300182,
-    "hf_likes": 1653,
+    "hf_downloads": 1284200,
+    "hf_likes": 1667,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5964,8 +5964,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 804670,
-    "hf_likes": 961,
+    "hf_downloads": 648960,
+    "hf_likes": 962,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6007,7 +6007,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 317747,
+    "hf_downloads": 239359,
     "hf_likes": 61,
     "release_date": null,
     "gguf_sources": [
@@ -6071,8 +6071,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 888914,
-    "hf_likes": 20,
+    "hf_downloads": 722300,
+    "hf_likes": 21,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6112,8 +6112,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 558347,
-    "hf_likes": 2405,
+    "hf_downloads": 492477,
+    "hf_likes": 2424,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6179,8 +6179,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 249274,
-    "hf_likes": 557,
+    "hf_downloads": 217909,
+    "hf_likes": 561,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6222,8 +6222,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1066051,
-    "hf_likes": 360,
+    "hf_downloads": 992906,
+    "hf_likes": 368,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6279,8 +6279,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 783906,
-    "hf_likes": 1365,
+    "hf_downloads": 644671,
+    "hf_likes": 1416,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6327,8 +6327,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1912225,
-    "hf_likes": 907,
+    "hf_downloads": 2019260,
+    "hf_likes": 998,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6443,8 +6443,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-video",
     "architecture": "",
-    "hf_downloads": 661500,
-    "hf_likes": 143,
+    "hf_downloads": 366473,
+    "hf_likes": 144,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6490,7 +6490,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1051100,
+    "hf_downloads": 1076929,
     "hf_likes": 5,
     "release_date": null,
     "gguf_sources": [
@@ -6530,7 +6530,7 @@
     "capabilities": [],
     "pipeline_tag": "token-classification",
     "architecture": "",
-    "hf_downloads": 653851,
+    "hf_downloads": 429423,
     "hf_likes": 1,
     "release_date": null,
     "gguf_sources": [
@@ -6576,7 +6576,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1260187,
+    "hf_downloads": 1215989,
     "hf_likes": 40,
     "release_date": null,
     "gguf_sources": [
@@ -6614,8 +6614,8 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 1240287,
-    "hf_likes": 1157,
+    "hf_downloads": 1287498,
+    "hf_likes": 1181,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6710,8 +6710,8 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 978058,
-    "hf_likes": 3,
+    "hf_downloads": 1041143,
+    "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6765,8 +6765,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1492974,
-    "hf_likes": 1102,
+    "hf_downloads": 1304726,
+    "hf_likes": 1160,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6802,8 +6802,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1024272,
-    "hf_likes": 449,
+    "hf_downloads": 1150979,
+    "hf_likes": 465,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6842,8 +6842,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 922239,
-    "hf_likes": 31,
+    "hf_downloads": 847018,
+    "hf_likes": 32,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6931,8 +6931,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 706465,
-    "hf_likes": 2184,
+    "hf_downloads": 709237,
+    "hf_likes": 2239,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6974,8 +6974,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 1158572,
-    "hf_likes": 93,
+    "hf_downloads": 625490,
+    "hf_likes": 95,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7013,8 +7013,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 845954,
-    "hf_likes": 1322,
+    "hf_downloads": 634189,
+    "hf_likes": 1324,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7056,7 +7056,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 495495,
+    "hf_downloads": 289734,
     "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
@@ -7096,8 +7096,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 804673,
-    "hf_likes": 315,
+    "hf_downloads": 764469,
+    "hf_likes": 330,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7136,8 +7136,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 669265,
-    "hf_likes": 81,
+    "hf_downloads": 566685,
+    "hf_likes": 84,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7190,8 +7190,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-speech",
     "architecture": "",
-    "hf_downloads": 259016,
-    "hf_likes": 53,
+    "hf_downloads": 268806,
+    "hf_likes": 59,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7244,8 +7244,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1109325,
-    "hf_likes": 967,
+    "hf_downloads": 1006288,
+    "hf_likes": 978,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7287,8 +7287,8 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 569291,
-    "hf_likes": 1170,
+    "hf_downloads": 599478,
+    "hf_likes": 1181,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7378,8 +7378,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-video",
     "architecture": "",
-    "hf_downloads": 1431348,
-    "hf_likes": 320,
+    "hf_downloads": 1731695,
+    "hf_likes": 343,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7421,8 +7421,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 544741,
-    "hf_likes": 453,
+    "hf_downloads": 436051,
+    "hf_likes": 461,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7464,8 +7464,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 525515,
-    "hf_likes": 1173,
+    "hf_downloads": 568481,
+    "hf_likes": 1198,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7507,8 +7507,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 415868,
-    "hf_likes": 201,
+    "hf_downloads": 293697,
+    "hf_likes": 205,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7550,7 +7550,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 590476,
+    "hf_downloads": 537878,
     "hf_likes": 178,
     "release_date": null,
     "gguf_sources": [
@@ -7584,7 +7584,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 492861,
+    "hf_downloads": 425299,
     "hf_likes": 137,
     "release_date": null,
     "gguf_sources": [
@@ -7624,8 +7624,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 746897,
-    "hf_likes": 142,
+    "hf_downloads": 723961,
+    "hf_likes": 147,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7663,8 +7663,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 665054,
-    "hf_likes": 17,
+    "hf_downloads": 664995,
+    "hf_likes": 18,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7705,8 +7705,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 628497,
-    "hf_likes": 1403,
+    "hf_downloads": 600510,
+    "hf_likes": 1413,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7754,8 +7754,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 475858,
-    "hf_likes": 293,
+    "hf_downloads": 408153,
+    "hf_likes": 298,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7805,8 +7805,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 491009,
-    "hf_likes": 211,
+    "hf_downloads": 371849,
+    "hf_likes": 219,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7849,8 +7849,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 710251,
-    "hf_likes": 1632,
+    "hf_downloads": 624378,
+    "hf_likes": 1654,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7896,7 +7896,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 454677,
+    "hf_downloads": 420252,
     "hf_likes": 72,
     "release_date": null,
     "gguf_sources": [
@@ -7933,8 +7933,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-video",
     "architecture": "",
-    "hf_downloads": 121916,
-    "hf_likes": 283,
+    "hf_downloads": 133477,
+    "hf_likes": 284,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7973,8 +7973,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 107366,
-    "hf_likes": 76,
+    "hf_downloads": 92756,
+    "hf_likes": 78,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8007,8 +8007,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 457535,
-    "hf_likes": 67,
+    "hf_downloads": 430795,
+    "hf_likes": 69,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8044,8 +8044,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-video",
     "architecture": "",
-    "hf_downloads": 397427,
-    "hf_likes": 303,
+    "hf_downloads": 137038,
+    "hf_likes": 304,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8081,8 +8081,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 399995,
-    "hf_likes": 323,
+    "hf_downloads": 378853,
+    "hf_likes": 334,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8123,7 +8123,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 575793,
+    "hf_downloads": 613068,
     "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
@@ -8202,8 +8202,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 432980,
-    "hf_likes": 86,
+    "hf_downloads": 303896,
+    "hf_likes": 87,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8246,8 +8246,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 666186,
-    "hf_likes": 160,
+    "hf_downloads": 569001,
+    "hf_likes": 169,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8293,8 +8293,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 427188,
-    "hf_likes": 174,
+    "hf_downloads": 333496,
+    "hf_likes": 184,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8333,8 +8333,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 621812,
-    "hf_likes": 158,
+    "hf_downloads": 509474,
+    "hf_likes": 159,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8381,8 +8381,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 375753,
-    "hf_likes": 215,
+    "hf_downloads": 346215,
+    "hf_likes": 217,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8437,8 +8437,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 490693,
-    "hf_likes": 849,
+    "hf_downloads": 488787,
+    "hf_likes": 861,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8479,8 +8479,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 554441,
-    "hf_likes": 2785,
+    "hf_downloads": 509760,
+    "hf_likes": 2806,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8531,8 +8531,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 616504,
-    "hf_likes": 639,
+    "hf_downloads": 594705,
+    "hf_likes": 644,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8573,8 +8573,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 473045,
-    "hf_likes": 135,
+    "hf_downloads": 375727,
+    "hf_likes": 144,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8613,8 +8613,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 405736,
-    "hf_likes": 2918,
+    "hf_downloads": 313389,
+    "hf_likes": 2926,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8658,7 +8658,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 546249,
+    "hf_downloads": 588988,
     "hf_likes": 0,
     "release_date": null,
     "gguf_sources": [
@@ -8797,7 +8797,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 539863,
+    "hf_downloads": 502481,
     "hf_likes": 14,
     "release_date": null,
     "gguf_sources": [
@@ -8828,7 +8828,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 170296,
+    "hf_downloads": 74853,
     "hf_likes": 298,
     "release_date": null,
     "gguf_sources": [
@@ -8870,8 +8870,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 710080,
-    "hf_likes": 353,
+    "hf_downloads": 732358,
+    "hf_likes": 355,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8910,8 +8910,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 675501,
-    "hf_likes": 285,
+    "hf_downloads": 608513,
+    "hf_likes": 298,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8957,7 +8957,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 455969,
+    "hf_downloads": 316272,
     "hf_likes": 5,
     "release_date": null,
     "gguf_sources": [
@@ -9014,8 +9014,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 460159,
-    "hf_likes": 325,
+    "hf_downloads": 369061,
+    "hf_likes": 330,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9078,8 +9078,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 442310,
-    "hf_likes": 246,
+    "hf_downloads": 465647,
+    "hf_likes": 247,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9122,8 +9122,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 651414,
-    "hf_likes": 51,
+    "hf_downloads": 749359,
+    "hf_likes": 55,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9158,7 +9158,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 433334,
+    "hf_downloads": 395840,
     "hf_likes": 53,
     "release_date": null,
     "gguf_sources": [
@@ -9196,8 +9196,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 389168,
-    "hf_likes": 247,
+    "hf_downloads": 355079,
+    "hf_likes": 248,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9257,8 +9257,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 321559,
-    "hf_likes": 763,
+    "hf_downloads": 233249,
+    "hf_likes": 768,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9329,8 +9329,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 520168,
-    "hf_likes": 145,
+    "hf_downloads": 409667,
+    "hf_likes": 152,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9370,8 +9370,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 348992,
-    "hf_likes": 19,
+    "hf_downloads": 268352,
+    "hf_likes": 21,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9419,8 +9419,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 404412,
-    "hf_likes": 276,
+    "hf_downloads": 399787,
+    "hf_likes": 291,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9468,8 +9468,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 524276,
-    "hf_likes": 66,
+    "hf_downloads": 546694,
+    "hf_likes": 67,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9500,7 +9500,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 385592,
+    "hf_downloads": 257256,
     "hf_likes": 321,
     "release_date": null,
     "gguf_sources": [
@@ -9543,8 +9543,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 380942,
-    "hf_likes": 394,
+    "hf_downloads": 331269,
+    "hf_likes": 398,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9582,8 +9582,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 347002,
-    "hf_likes": 132,
+    "hf_downloads": 260553,
+    "hf_likes": 134,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9662,8 +9662,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 534666,
-    "hf_likes": 109,
+    "hf_downloads": 490181,
+    "hf_likes": 113,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9713,8 +9713,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1678428,
-    "hf_likes": 1892,
+    "hf_downloads": 1490741,
+    "hf_likes": 2095,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9761,7 +9761,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 221900,
+    "hf_downloads": 130306,
     "hf_likes": 503,
     "release_date": null,
     "gguf_sources": [
@@ -9801,8 +9801,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 423614,
-    "hf_likes": 362,
+    "hf_downloads": 338670,
+    "hf_likes": 361,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9853,8 +9853,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 326993,
-    "hf_likes": 625,
+    "hf_downloads": 284535,
+    "hf_likes": 629,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9934,7 +9934,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 351580,
+    "hf_downloads": 291804,
     "hf_likes": 17,
     "release_date": null,
     "gguf_sources": [
@@ -9976,8 +9976,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 124053,
-    "hf_likes": 12,
+    "hf_downloads": 112184,
+    "hf_likes": 14,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10010,8 +10010,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 425798,
-    "hf_likes": 883,
+    "hf_downloads": 408407,
+    "hf_likes": 894,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10058,8 +10058,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 353739,
-    "hf_likes": 247,
+    "hf_downloads": 316703,
+    "hf_likes": 250,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10105,8 +10105,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 886048,
-    "hf_likes": 393,
+    "hf_downloads": 985800,
+    "hf_likes": 416,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10153,8 +10153,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 173706,
-    "hf_likes": 205,
+    "hf_downloads": 147182,
+    "hf_likes": 207,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10233,7 +10233,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 400835,
+    "hf_downloads": 418605,
     "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
@@ -10290,8 +10290,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1497794,
-    "hf_likes": 873,
+    "hf_downloads": 1633432,
+    "hf_likes": 885,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10333,7 +10333,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 415769,
+    "hf_downloads": 434506,
     "hf_likes": 26,
     "release_date": null,
     "gguf_sources": [
@@ -10368,8 +10368,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 277177,
-    "hf_likes": 30,
+    "hf_downloads": 260883,
+    "hf_likes": 31,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10410,7 +10410,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 427844,
+    "hf_downloads": 355590,
     "hf_likes": 63,
     "release_date": null,
     "gguf_sources": [
@@ -10450,8 +10450,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 475716,
-    "hf_likes": 198,
+    "hf_downloads": 492986,
+    "hf_likes": 202,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10489,8 +10489,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 507168,
-    "hf_likes": 309,
+    "hf_downloads": 365041,
+    "hf_likes": 318,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10539,8 +10539,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 179377,
-    "hf_likes": 70,
+    "hf_downloads": 84625,
+    "hf_likes": 69,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10578,7 +10578,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 615520,
+    "hf_downloads": 684381,
     "hf_likes": 7,
     "release_date": null,
     "gguf_sources": [
@@ -10608,8 +10608,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 228651,
-    "hf_likes": 60,
+    "hf_downloads": 142519,
+    "hf_likes": 65,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10646,7 +10646,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 370807,
+    "hf_downloads": 340063,
     "hf_likes": 138,
     "release_date": null,
     "gguf_sources": [
@@ -10708,8 +10708,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 244829,
-    "hf_likes": 328,
+    "hf_downloads": 155033,
+    "hf_likes": 334,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10768,8 +10768,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 190838,
-    "hf_likes": 196,
+    "hf_downloads": 198600,
+    "hf_likes": 207,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10809,8 +10809,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 166780,
-    "hf_likes": 25,
+    "hf_downloads": 77000,
+    "hf_likes": 27,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10891,8 +10891,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 360570,
-    "hf_likes": 196,
+    "hf_downloads": 337563,
+    "hf_likes": 199,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10938,7 +10938,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 402570,
+    "hf_downloads": 101867,
     "hf_likes": 79,
     "release_date": null,
     "gguf_sources": [
@@ -10978,7 +10978,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 312572,
+    "hf_downloads": 221078,
     "hf_likes": 336,
     "release_date": null,
     "gguf_sources": [
@@ -11039,7 +11039,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 221244,
+    "hf_downloads": 134274,
     "hf_likes": 435,
     "release_date": null,
     "gguf_sources": [
@@ -11105,8 +11105,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 324023,
-    "hf_likes": 647,
+    "hf_downloads": 298560,
+    "hf_likes": 648,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11147,7 +11147,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 365040,
+    "hf_downloads": 353146,
     "hf_likes": 12,
     "release_date": null,
     "gguf_sources": [
@@ -11321,8 +11321,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 262944,
-    "hf_likes": 20,
+    "hf_downloads": 238920,
+    "hf_likes": 21,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11358,7 +11358,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 437702,
+    "hf_downloads": 421447,
     "hf_likes": 38,
     "release_date": null,
     "gguf_sources": [
@@ -11447,8 +11447,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 307561,
-    "hf_likes": 18,
+    "hf_downloads": 219980,
+    "hf_likes": 20,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11494,7 +11494,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 384832,
+    "hf_downloads": 287788,
     "hf_likes": 195,
     "release_date": null,
     "gguf_sources": [
@@ -11529,7 +11529,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 157013,
+    "hf_downloads": 72384,
     "hf_likes": 998,
     "release_date": null,
     "gguf_sources": [
@@ -11577,8 +11577,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 297807,
-    "hf_likes": 14,
+    "hf_downloads": 211984,
+    "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11625,8 +11625,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 313246,
-    "hf_likes": 137,
+    "hf_downloads": 274169,
+    "hf_likes": 140,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11669,7 +11669,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 294587,
+    "hf_downloads": 207749,
     "hf_likes": 21,
     "release_date": null,
     "gguf_sources": [
@@ -11716,7 +11716,7 @@
     "capabilities": [],
     "pipeline_tag": "token-classification",
     "architecture": "",
-    "hf_downloads": 254087,
+    "hf_downloads": 166825,
     "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
@@ -11776,8 +11776,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 338280,
-    "hf_likes": 195,
+    "hf_downloads": 313479,
+    "hf_likes": 196,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11868,8 +11868,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 504101,
-    "hf_likes": 304,
+    "hf_downloads": 551991,
+    "hf_likes": 314,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11908,8 +11908,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 265881,
-    "hf_likes": 2,
+    "hf_downloads": 203354,
+    "hf_likes": 3,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12016,8 +12016,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 371478,
-    "hf_likes": 163,
+    "hf_downloads": 366799,
+    "hf_likes": 168,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12062,8 +12062,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 274291,
-    "hf_likes": 219,
+    "hf_downloads": 244880,
+    "hf_likes": 221,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12111,8 +12111,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 84377,
-    "hf_likes": 177,
+    "hf_downloads": 92068,
+    "hf_likes": 181,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12159,7 +12159,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 262895,
+    "hf_downloads": 201416,
     "hf_likes": 5,
     "release_date": null,
     "gguf_sources": [
@@ -12216,8 +12216,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 314695,
-    "hf_likes": 92,
+    "hf_downloads": 265886,
+    "hf_likes": 93,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12264,7 +12264,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 182877,
+    "hf_downloads": 84377,
     "hf_likes": 10,
     "release_date": null,
     "gguf_sources": [
@@ -12301,8 +12301,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 472740,
-    "hf_likes": 173,
+    "hf_downloads": 543251,
+    "hf_likes": 179,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12341,7 +12341,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 267859,
+    "hf_downloads": 241968,
     "hf_likes": 187,
     "release_date": null,
     "gguf_sources": [
@@ -12378,8 +12378,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 350989,
-    "hf_likes": 224,
+    "hf_downloads": 337761,
+    "hf_likes": 225,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12428,8 +12428,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 271788,
-    "hf_likes": 330,
+    "hf_downloads": 247087,
+    "hf_likes": 332,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12475,7 +12475,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 356384,
+    "hf_downloads": 347331,
     "hf_likes": 12,
     "release_date": null,
     "gguf_sources": [
@@ -12518,8 +12518,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 2035504,
-    "hf_likes": 1348,
+    "hf_downloads": 2000216,
+    "hf_likes": 1603,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12587,7 +12587,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 354171,
+    "hf_downloads": 345453,
     "hf_likes": 7,
     "release_date": null,
     "gguf_sources": [
@@ -12629,7 +12629,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 229942,
+    "hf_downloads": 151916,
     "hf_likes": 66,
     "release_date": null,
     "gguf_sources": [
@@ -12669,7 +12669,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 347811,
+    "hf_downloads": 340402,
     "hf_likes": 63,
     "release_date": null,
     "gguf_sources": [
@@ -12712,8 +12712,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 297063,
-    "hf_likes": 71,
+    "hf_downloads": 275116,
+    "hf_likes": 73,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12762,8 +12762,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 228269,
-    "hf_likes": 183,
+    "hf_downloads": 224987,
+    "hf_likes": 186,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12860,8 +12860,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 181593,
-    "hf_likes": 162,
+    "hf_downloads": 182654,
+    "hf_likes": 165,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12899,8 +12899,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 296211,
-    "hf_likes": 58,
+    "hf_downloads": 251467,
+    "hf_likes": 59,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12952,8 +12952,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 146811,
-    "hf_likes": 228,
+    "hf_downloads": 206820,
+    "hf_likes": 230,
     "release_date": null,
     "gguf_sources": [
       {
@@ -12987,7 +12987,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 258298,
+    "hf_downloads": 182127,
     "hf_likes": 127,
     "release_date": null,
     "gguf_sources": [
@@ -13048,8 +13048,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 219288,
-    "hf_likes": 215,
+    "hf_downloads": 148907,
+    "hf_likes": 216,
     "release_date": null,
     "gguf_sources": [
       {
@@ -13112,7 +13112,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 341294,
+    "hf_downloads": 366780,
     "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
@@ -13252,7 +13252,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 176952,
+    "hf_downloads": 99855,
     "hf_likes": 176,
     "release_date": null,
     "gguf_sources": [
@@ -13294,8 +13294,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 214247,
-    "hf_likes": 393,
+    "hf_downloads": 140418,
+    "hf_likes": 392,
     "release_date": null,
     "gguf_sources": [
       {
@@ -13415,7 +13415,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 328499,
+    "hf_downloads": 346168,
     "hf_likes": 75,
     "release_date": null,
     "gguf_sources": [
@@ -13534,7 +13534,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 170480,
+    "hf_downloads": 96262,
     "hf_likes": 109,
     "release_date": null,
     "gguf_sources": [
@@ -13580,7 +13580,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 170329,
+    "hf_downloads": 97112,
     "hf_likes": 227,
     "release_date": null,
     "gguf_sources": [
@@ -13640,7 +13640,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 171394,
+    "hf_downloads": 97879,
     "hf_likes": 125,
     "release_date": null,
     "gguf_sources": [
@@ -13701,7 +13701,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 169693,
+    "hf_downloads": 96790,
     "hf_likes": 120,
     "release_date": null,
     "gguf_sources": [
@@ -13857,7 +13857,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 424166,
+    "hf_downloads": 757550,
     "hf_likes": 96,
     "release_date": null,
     "gguf_sources": [
@@ -13908,7 +13908,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 312631,
+    "hf_downloads": 337946,
     "hf_likes": 2,
     "release_date": null,
     "gguf_sources": [
@@ -14048,8 +14048,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 331492,
-    "hf_likes": 230,
+    "hf_downloads": 305717,
+    "hf_likes": 239,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14129,8 +14129,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 324430,
-    "hf_likes": 50,
+    "hf_downloads": 327753,
+    "hf_likes": 51,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14164,8 +14164,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 139402,
-    "hf_likes": 1288,
+    "hf_downloads": 115822,
+    "hf_likes": 1417,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14218,8 +14218,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 485003,
-    "hf_likes": 407,
+    "hf_downloads": 485211,
+    "hf_likes": 414,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14269,7 +14269,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 291886,
+    "hf_downloads": 274726,
     "hf_likes": 78,
     "release_date": null,
     "gguf_sources": [
@@ -14353,8 +14353,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 157530,
-    "hf_likes": 779,
+    "hf_downloads": 128521,
+    "hf_likes": 780,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14393,8 +14393,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 231933,
-    "hf_likes": 32,
+    "hf_downloads": 192884,
+    "hf_likes": 35,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14432,8 +14432,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 421762,
-    "hf_likes": 358,
+    "hf_downloads": 341913,
+    "hf_likes": 373,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14524,8 +14524,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-image",
     "architecture": "",
-    "hf_downloads": 470099,
-    "hf_likes": 619,
+    "hf_downloads": 477622,
+    "hf_likes": 631,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14610,7 +14610,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 267516,
+    "hf_downloads": 287095,
     "hf_likes": 0,
     "release_date": null,
     "gguf_sources": [
@@ -14703,8 +14703,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 123783,
-    "hf_likes": 28,
+    "hf_downloads": 119297,
+    "hf_likes": 31,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14786,8 +14786,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 577370,
-    "hf_likes": 97,
+    "hf_downloads": 473577,
+    "hf_likes": 104,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14828,7 +14828,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 277657,
+    "hf_downloads": 251240,
     "hf_likes": 65,
     "release_date": null,
     "gguf_sources": [
@@ -14867,7 +14867,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 284895,
+    "hf_downloads": 293129,
     "hf_likes": 38,
     "release_date": null,
     "gguf_sources": [
@@ -14909,8 +14909,8 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 331849,
-    "hf_likes": 632,
+    "hf_downloads": 292592,
+    "hf_likes": 635,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14982,8 +14982,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 152296,
-    "hf_likes": 24,
+    "hf_downloads": 120463,
+    "hf_likes": 25,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15021,8 +15021,8 @@
     "capabilities": [],
     "pipeline_tag": "feature-extraction",
     "architecture": "",
-    "hf_downloads": 206142,
-    "hf_likes": 5,
+    "hf_downloads": 193893,
+    "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15065,8 +15065,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1513460,
-    "hf_likes": 234,
+    "hf_downloads": 1761406,
+    "hf_likes": 258,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15162,7 +15162,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 262493,
+    "hf_downloads": 226050,
     "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
@@ -15207,7 +15207,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 289113,
+    "hf_downloads": 250383,
     "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
@@ -15252,7 +15252,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 266395,
+    "hf_downloads": 230440,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -15297,7 +15297,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 288797,
+    "hf_downloads": 242606,
     "hf_likes": 143,
     "release_date": null,
     "gguf_sources": [
@@ -15337,8 +15337,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 314271,
-    "hf_likes": 159,
+    "hf_downloads": 341413,
+    "hf_likes": 161,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15425,7 +15425,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 259241,
+    "hf_downloads": 222706,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -15513,8 +15513,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 317229,
-    "hf_likes": 504,
+    "hf_downloads": 314870,
+    "hf_likes": 522,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15560,8 +15560,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 205685,
-    "hf_likes": 230,
+    "hf_downloads": 209091,
+    "hf_likes": 234,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15600,7 +15600,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 257931,
+    "hf_downloads": 221250,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -15645,7 +15645,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 254376,
+    "hf_downloads": 217971,
     "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
@@ -15689,7 +15689,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 253826,
+    "hf_downloads": 217343,
     "hf_likes": 2,
     "release_date": null,
     "gguf_sources": [
@@ -15733,7 +15733,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 289438,
+    "hf_downloads": 242654,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -15773,7 +15773,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 243600,
+    "hf_downloads": 179872,
     "hf_likes": 38,
     "release_date": null,
     "gguf_sources": [
@@ -15813,8 +15813,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 181242,
-    "hf_likes": 78,
+    "hf_downloads": 193196,
+    "hf_likes": 79,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15853,8 +15853,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-image",
     "architecture": "",
-    "hf_downloads": 315966,
-    "hf_likes": 229,
+    "hf_downloads": 338995,
+    "hf_likes": 233,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15896,8 +15896,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 187137,
-    "hf_likes": 1455,
+    "hf_downloads": 184328,
+    "hf_likes": 1461,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15982,7 +15982,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 187728,
+    "hf_downloads": 153896,
     "hf_likes": 10,
     "release_date": null,
     "gguf_sources": [
@@ -16035,7 +16035,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 271094,
+    "hf_downloads": 230928,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -16123,7 +16123,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-speech",
     "architecture": "",
-    "hf_downloads": 279067,
+    "hf_downloads": 289987,
     "hf_likes": 7,
     "release_date": null,
     "gguf_sources": [
@@ -16265,7 +16265,7 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 266581,
+    "hf_downloads": 266730,
     "hf_likes": 2,
     "release_date": null,
     "gguf_sources": [
@@ -16318,8 +16318,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-video",
     "architecture": "",
-    "hf_downloads": 367777,
-    "hf_likes": 423,
+    "hf_downloads": 438079,
+    "hf_likes": 436,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16356,8 +16356,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 210906,
-    "hf_likes": 96,
+    "hf_downloads": 190898,
+    "hf_likes": 99,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16470,7 +16470,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 197569,
+    "hf_downloads": 164427,
     "hf_likes": 144,
     "release_date": null,
     "gguf_sources": [
@@ -16524,8 +16524,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 136501,
-    "hf_likes": 53,
+    "hf_downloads": 143847,
+    "hf_likes": 55,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16569,8 +16569,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 752373,
-    "hf_likes": 115,
+    "hf_downloads": 745902,
+    "hf_likes": 117,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16616,8 +16616,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 147546,
-    "hf_likes": 83,
+    "hf_downloads": 91001,
+    "hf_likes": 84,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16661,8 +16661,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 415134,
-    "hf_likes": 91,
+    "hf_downloads": 319149,
+    "hf_likes": 92,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16700,8 +16700,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 196122,
-    "hf_likes": 7,
+    "hf_downloads": 166531,
+    "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16744,7 +16744,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 230768,
+    "hf_downloads": 226959,
     "hf_likes": 48,
     "release_date": null,
     "gguf_sources": [
@@ -16788,8 +16788,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 148381,
-    "hf_likes": 723,
+    "hf_downloads": 165160,
+    "hf_likes": 725,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16831,7 +16831,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 421666,
+    "hf_downloads": 350231,
     "hf_likes": 19,
     "release_date": null,
     "gguf_sources": [
@@ -16868,7 +16868,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 121913,
+    "hf_downloads": 118085,
     "hf_likes": 32,
     "release_date": null,
     "gguf_sources": [
@@ -16905,8 +16905,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 327555,
-    "hf_likes": 16,
+    "hf_downloads": 262270,
+    "hf_likes": 17,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16945,8 +16945,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 184478,
-    "hf_likes": 589,
+    "hf_downloads": 197101,
+    "hf_likes": 606,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16986,8 +16986,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 145086,
-    "hf_likes": 355,
+    "hf_downloads": 113096,
+    "hf_likes": 359,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17022,8 +17022,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-image",
     "architecture": "",
-    "hf_downloads": 92161,
-    "hf_likes": 166,
+    "hf_downloads": 86658,
+    "hf_likes": 167,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17060,7 +17060,7 @@
     "capabilities": [],
     "pipeline_tag": "image-to-image",
     "architecture": "",
-    "hf_downloads": 110787,
+    "hf_downloads": 106888,
     "hf_likes": 357,
     "release_date": null,
     "gguf_sources": [
@@ -17096,7 +17096,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 199199,
+    "hf_downloads": 204884,
     "hf_likes": 52,
     "release_date": null,
     "gguf_sources": [
@@ -17161,8 +17161,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-video",
     "architecture": "",
-    "hf_downloads": 376062,
-    "hf_likes": 579,
+    "hf_downloads": 371191,
+    "hf_likes": 581,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17222,8 +17222,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 259291,
-    "hf_likes": 868,
+    "hf_downloads": 899198,
+    "hf_likes": 867,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17263,7 +17263,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 195152,
+    "hf_downloads": 201055,
     "hf_likes": 3,
     "release_date": null,
     "gguf_sources": [
@@ -17337,8 +17337,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-video",
     "architecture": "",
-    "hf_downloads": 254181,
-    "hf_likes": 72,
+    "hf_downloads": 336680,
+    "hf_likes": 76,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17380,8 +17380,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 326723,
-    "hf_likes": 27,
+    "hf_downloads": 273492,
+    "hf_likes": 34,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17464,8 +17464,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 128776,
-    "hf_likes": 16,
+    "hf_downloads": 117236,
+    "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17548,7 +17548,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 152577,
+    "hf_downloads": 144370,
     "hf_likes": 79,
     "release_date": null,
     "gguf_sources": [
@@ -17587,8 +17587,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-audio",
     "architecture": "",
-    "hf_downloads": 561794,
-    "hf_likes": 30,
+    "hf_downloads": 596700,
+    "hf_likes": 33,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17624,8 +17624,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 156366,
-    "hf_likes": 863,
+    "hf_downloads": 143321,
+    "hf_likes": 873,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17665,8 +17665,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 281027,
-    "hf_likes": 166,
+    "hf_downloads": 301376,
+    "hf_likes": 170,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17706,8 +17706,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 211652,
-    "hf_likes": 139,
+    "hf_downloads": 237576,
+    "hf_likes": 142,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17747,8 +17747,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1012847,
-    "hf_likes": 442,
+    "hf_downloads": 999574,
+    "hf_likes": 459,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17788,7 +17788,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 94091,
+    "hf_downloads": 89924,
     "hf_likes": 70,
     "release_date": null,
     "gguf_sources": [
@@ -17873,8 +17873,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 443807,
-    "hf_likes": 76,
+    "hf_downloads": 364045,
+    "hf_likes": 80,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17919,8 +17919,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 318057,
-    "hf_likes": 33,
+    "hf_downloads": 269187,
+    "hf_likes": 37,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17959,7 +17959,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 198459,
+    "hf_downloads": 168454,
     "hf_likes": 3,
     "release_date": null,
     "gguf_sources": [
@@ -18035,8 +18035,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 204354,
-    "hf_likes": 136,
+    "hf_downloads": 211073,
+    "hf_likes": 137,
     "release_date": null,
     "gguf_sources": [
       {
@@ -18074,8 +18074,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 177106,
-    "hf_likes": 46,
+    "hf_downloads": 178083,
+    "hf_likes": 47,
     "release_date": null,
     "gguf_sources": [
       {
@@ -18118,8 +18118,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-video",
     "architecture": "",
-    "hf_downloads": 184448,
-    "hf_likes": 2088,
+    "hf_downloads": 99929,
+    "hf_likes": 2127,
     "release_date": null,
     "gguf_sources": [
       {
@@ -18155,7 +18155,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 292507,
+    "hf_downloads": 216056,
     "hf_likes": 100,
     "release_date": null,
     "gguf_sources": [
@@ -18188,7 +18188,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 213272,
+    "hf_downloads": 212996,
     "hf_likes": 52,
     "release_date": null,
     "gguf_sources": [
@@ -18278,7 +18278,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 149319,
+    "hf_downloads": 125051,
     "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
@@ -18319,7 +18319,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 127391,
+    "hf_downloads": 155530,
     "hf_likes": 182,
     "release_date": null,
     "gguf_sources": [
@@ -18358,8 +18358,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 177753,
-    "hf_likes": 235,
+    "hf_downloads": 183690,
+    "hf_likes": 236,
     "release_date": null,
     "gguf_sources": [
       {
@@ -18404,7 +18404,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 158555,
+    "hf_downloads": 137725,
     "hf_likes": 147,
     "release_date": null,
     "gguf_sources": [
@@ -18455,7 +18455,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 170818,
+    "hf_downloads": 153361,
     "hf_likes": 103,
     "release_date": null,
     "gguf_sources": [
@@ -18508,7 +18508,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 159753,
+    "hf_downloads": 137706,
     "hf_likes": 34,
     "release_date": null,
     "gguf_sources": [
@@ -18552,7 +18552,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 157546,
+    "hf_downloads": 135582,
     "hf_likes": 78,
     "release_date": null,
     "gguf_sources": [
@@ -18605,7 +18605,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 154935,
+    "hf_downloads": 134088,
     "hf_likes": 59,
     "release_date": null,
     "gguf_sources": [
@@ -18649,7 +18649,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 159018,
+    "hf_downloads": 136963,
     "hf_likes": 18,
     "release_date": null,
     "gguf_sources": [
@@ -18794,7 +18794,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 155856,
+    "hf_downloads": 135404,
     "hf_likes": 20,
     "release_date": null,
     "gguf_sources": [
@@ -18887,7 +18887,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 148546,
+    "hf_downloads": 128635,
     "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
@@ -18932,7 +18932,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 156145,
+    "hf_downloads": 135926,
     "hf_likes": 40,
     "release_date": null,
     "gguf_sources": [
@@ -19021,7 +19021,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 166348,
+    "hf_downloads": 146306,
     "hf_likes": 55,
     "release_date": null,
     "gguf_sources": [
@@ -19065,7 +19065,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 146343,
+    "hf_downloads": 126144,
     "hf_likes": 22,
     "release_date": null,
     "gguf_sources": [
@@ -19109,7 +19109,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 151281,
+    "hf_downloads": 131594,
     "hf_likes": 12,
     "release_date": null,
     "gguf_sources": [
@@ -19155,7 +19155,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 152227,
+    "hf_downloads": 132695,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -19200,7 +19200,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 155295,
+    "hf_downloads": 134972,
     "hf_likes": 29,
     "release_date": null,
     "gguf_sources": [
@@ -19243,7 +19243,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 148465,
+    "hf_downloads": 129021,
     "hf_likes": 16,
     "release_date": null,
     "gguf_sources": [
@@ -19286,7 +19286,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 165224,
+    "hf_downloads": 145113,
     "hf_likes": 20,
     "release_date": null,
     "gguf_sources": [
@@ -19331,7 +19331,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 152040,
+    "hf_downloads": 131565,
     "hf_likes": 11,
     "release_date": null,
     "gguf_sources": [
@@ -19376,7 +19376,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 146593,
+    "hf_downloads": 126860,
     "hf_likes": 12,
     "release_date": null,
     "gguf_sources": [
@@ -19421,7 +19421,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 146307,
+    "hf_downloads": 126315,
     "hf_likes": 13,
     "release_date": null,
     "gguf_sources": [
@@ -19466,7 +19466,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 147425,
+    "hf_downloads": 127227,
     "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
@@ -19512,7 +19512,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 155788,
+    "hf_downloads": 136052,
     "hf_likes": 10,
     "release_date": null,
     "gguf_sources": [
@@ -19555,7 +19555,7 @@
     "capabilities": [],
     "pipeline_tag": "sentence-similarity",
     "architecture": "",
-    "hf_downloads": 176076,
+    "hf_downloads": 173517,
     "hf_likes": 73,
     "release_date": null,
     "gguf_sources": [
@@ -19603,7 +19603,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 221016,
+    "hf_downloads": 201354,
     "hf_likes": 9,
     "release_date": null,
     "gguf_sources": [
@@ -19648,7 +19648,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 145189,
+    "hf_downloads": 125043,
     "hf_likes": 83,
     "release_date": null,
     "gguf_sources": [
@@ -19701,7 +19701,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144874,
+    "hf_downloads": 125040,
     "hf_likes": 19,
     "release_date": null,
     "gguf_sources": [
@@ -19746,7 +19746,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 167099,
+    "hf_downloads": 147228,
     "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
@@ -19789,7 +19789,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 145358,
+    "hf_downloads": 125290,
     "hf_likes": 9,
     "release_date": null,
     "gguf_sources": [
@@ -19842,7 +19842,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 159706,
+    "hf_downloads": 139909,
     "hf_likes": 10,
     "release_date": null,
     "gguf_sources": [
@@ -19890,7 +19890,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 147710,
+    "hf_downloads": 128086,
     "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
@@ -19935,7 +19935,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144344,
+    "hf_downloads": 124201,
     "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
@@ -19980,7 +19980,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144936,
+    "hf_downloads": 125035,
     "hf_likes": 2,
     "release_date": null,
     "gguf_sources": [
@@ -20076,7 +20076,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144226,
+    "hf_downloads": 124063,
     "hf_likes": 41,
     "release_date": null,
     "gguf_sources": [
@@ -20129,7 +20129,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144738,
+    "hf_downloads": 124582,
     "hf_likes": 14,
     "release_date": null,
     "gguf_sources": [
@@ -20177,7 +20177,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 142808,
+    "hf_downloads": 122628,
     "hf_likes": 23,
     "release_date": null,
     "gguf_sources": [
@@ -20216,7 +20216,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 163639,
+    "hf_downloads": 143797,
     "hf_likes": 19,
     "release_date": null,
     "gguf_sources": [
@@ -20336,7 +20336,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 142458,
+    "hf_downloads": 122635,
     "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
@@ -20380,7 +20380,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 142146,
+    "hf_downloads": 122289,
     "hf_likes": 2,
     "release_date": null,
     "gguf_sources": [
@@ -20422,7 +20422,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 152139,
+    "hf_downloads": 132202,
     "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
@@ -20505,7 +20505,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 141937,
+    "hf_downloads": 122159,
     "hf_likes": 3,
     "release_date": null,
     "gguf_sources": [
@@ -20547,7 +20547,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 141917,
+    "hf_downloads": 121817,
     "hf_likes": 15,
     "release_date": null,
     "gguf_sources": [
@@ -20596,8 +20596,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 105513,
-    "hf_likes": 31,
+    "hf_downloads": 98992,
+    "hf_likes": 32,
     "release_date": null,
     "gguf_sources": [
       {
@@ -20680,7 +20680,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 110032,
+    "hf_downloads": 101097,
     "hf_likes": 13,
     "release_date": null,
     "gguf_sources": [
@@ -20728,8 +20728,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-image",
     "architecture": "",
-    "hf_downloads": 344856,
-    "hf_likes": 359,
+    "hf_downloads": 359191,
+    "hf_likes": 367,
     "release_date": null,
     "gguf_sources": [
       {
@@ -20771,8 +20771,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 357673,
-    "hf_likes": 39,
+    "hf_downloads": 353199,
+    "hf_likes": 40,
     "release_date": null,
     "gguf_sources": [
       {
@@ -20889,8 +20889,8 @@
     "capabilities": [],
     "pipeline_tag": "sentence-similarity",
     "architecture": "",
-    "hf_downloads": 313050,
-    "hf_likes": 137,
+    "hf_downloads": 305754,
+    "hf_likes": 138,
     "release_date": null,
     "gguf_sources": [
       {
@@ -20925,8 +20925,8 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 141419,
-    "hf_likes": 3,
+    "hf_downloads": 151268,
+    "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21036,7 +21036,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 158533,
+    "hf_downloads": 156482,
     "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
@@ -21091,8 +21091,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 191956,
-    "hf_likes": 481,
+    "hf_downloads": 499273,
+    "hf_likes": 699,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21144,7 +21144,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 98338,
+    "hf_downloads": 92297,
     "hf_likes": 10,
     "release_date": null,
     "gguf_sources": [
@@ -21325,7 +21325,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 120659,
+    "hf_downloads": 100716,
     "hf_likes": 66,
     "release_date": null,
     "gguf_sources": [
@@ -21365,7 +21365,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 96790,
+    "hf_downloads": 92880,
     "hf_likes": 19,
     "release_date": null,
     "gguf_sources": [
@@ -21402,8 +21402,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144194,
-    "hf_likes": 1251,
+    "hf_downloads": 132690,
+    "hf_likes": 1257,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21466,8 +21466,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 86865,
-    "hf_likes": 332,
+    "hf_downloads": 83599,
+    "hf_likes": 340,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21511,8 +21511,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 100458,
-    "hf_likes": 87,
+    "hf_downloads": 93173,
+    "hf_likes": 88,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21548,8 +21548,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 631661,
-    "hf_likes": 272,
+    "hf_downloads": 922986,
+    "hf_likes": 275,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21589,7 +21589,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 94503,
+    "hf_downloads": 97859,
     "hf_likes": 0,
     "release_date": null,
     "gguf_sources": [
@@ -21674,8 +21674,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 106254,
-    "hf_likes": 181,
+    "hf_downloads": 151125,
+    "hf_likes": 182,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21770,8 +21770,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 216437,
-    "hf_likes": 109,
+    "hf_downloads": 255040,
+    "hf_likes": 111,
     "release_date": null,
     "gguf_sources": [
       {
@@ -21811,7 +21811,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 102699,
+    "hf_downloads": 87009,
     "hf_likes": 21,
     "release_date": null,
     "gguf_sources": [
@@ -21933,8 +21933,8 @@
     "capabilities": [],
     "pipeline_tag": "sentence-similarity",
     "architecture": "",
-    "hf_downloads": 102925,
-    "hf_likes": 5,
+    "hf_downloads": 87284,
+    "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22014,7 +22014,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 104114,
+    "hf_downloads": 87905,
     "hf_likes": 62,
     "release_date": null,
     "gguf_sources": [
@@ -22227,8 +22227,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 117304,
-    "hf_likes": 790,
+    "hf_downloads": 117021,
+    "hf_likes": 791,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22274,7 +22274,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 123501,
+    "hf_downloads": 131361,
     "hf_likes": 1,
     "release_date": null,
     "gguf_sources": [
@@ -22323,8 +22323,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 314434,
-    "hf_likes": 424,
+    "hf_downloads": 322546,
+    "hf_likes": 427,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22363,8 +22363,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 104754,
-    "hf_likes": 18,
+    "hf_downloads": 92957,
+    "hf_likes": 19,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22407,8 +22407,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 128905,
-    "hf_likes": 27,
+    "hf_downloads": 135917,
+    "hf_likes": 30,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22488,7 +22488,7 @@
     "capabilities": [],
     "pipeline_tag": "feature-extraction",
     "architecture": "",
-    "hf_downloads": 124802,
+    "hf_downloads": 132570,
     "hf_likes": 25,
     "release_date": null,
     "gguf_sources": [
@@ -22529,7 +22529,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 134783,
+    "hf_downloads": 131867,
     "hf_likes": 60,
     "release_date": null,
     "gguf_sources": [
@@ -22615,7 +22615,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 189817,
+    "hf_downloads": 117491,
     "hf_likes": 38,
     "release_date": null,
     "gguf_sources": [
@@ -22687,8 +22687,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 287528,
-    "hf_likes": 243,
+    "hf_downloads": 97839,
+    "hf_likes": 245,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22753,8 +22753,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 202601,
-    "hf_likes": 209,
+    "hf_downloads": 243131,
+    "hf_likes": 214,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22868,8 +22868,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 97317,
-    "hf_likes": 120,
+    "hf_downloads": 142630,
+    "hf_likes": 122,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22910,8 +22910,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 105202,
-    "hf_likes": 120,
+    "hf_downloads": 132215,
+    "hf_likes": 132,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22957,8 +22957,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1273416,
-    "hf_likes": 214,
+    "hf_downloads": 1475073,
+    "hf_likes": 226,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23044,8 +23044,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 138028,
-    "hf_likes": 239,
+    "hf_downloads": 154809,
+    "hf_likes": 246,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23094,7 +23094,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-speech",
     "architecture": "",
-    "hf_downloads": 139739,
+    "hf_downloads": 129760,
     "hf_likes": 6,
     "release_date": null,
     "gguf_sources": [
@@ -23177,8 +23177,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 106651,
-    "hf_likes": 232,
+    "hf_downloads": 118422,
+    "hf_likes": 237,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23224,8 +23224,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 345227,
-    "hf_likes": 87,
+    "hf_downloads": 335221,
+    "hf_likes": 89,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23262,8 +23262,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 127007,
-    "hf_likes": 539,
+    "hf_downloads": 136881,
+    "hf_likes": 541,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23338,7 +23338,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 109984,
+    "hf_downloads": 104051,
     "hf_likes": 9,
     "release_date": null,
     "gguf_sources": [
@@ -23462,8 +23462,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 145983,
-    "hf_likes": 577,
+    "hf_downloads": 156365,
+    "hf_likes": 579,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23500,8 +23500,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 117206,
-    "hf_likes": 151,
+    "hf_downloads": 115242,
+    "hf_likes": 153,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23705,8 +23705,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 137417,
-    "hf_likes": 182,
+    "hf_downloads": 146222,
+    "hf_likes": 185,
     "release_date": null,
     "gguf_sources": [
       {
@@ -23784,7 +23784,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 222304,
+    "hf_downloads": 273242,
     "hf_likes": 190,
     "release_date": null,
     "gguf_sources": [
@@ -23935,7 +23935,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 111491,
+    "hf_downloads": 95672,
     "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
@@ -24013,7 +24013,7 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 90002,
+    "hf_downloads": 94360,
     "hf_likes": 1,
     "release_date": null,
     "gguf_sources": [
@@ -24600,8 +24600,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 122377,
-    "hf_likes": 1503,
+    "hf_downloads": 117007,
+    "hf_likes": 1505,
     "release_date": null,
     "gguf_sources": [
       {
@@ -24771,8 +24771,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 317829,
-    "hf_likes": 160,
+    "hf_downloads": 400328,
+    "hf_likes": 165,
     "release_date": null,
     "gguf_sources": [
       {
@@ -24855,7 +24855,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 118197,
+    "hf_downloads": 139247,
     "hf_likes": 141,
     "release_date": null,
     "gguf_sources": [
@@ -24935,8 +24935,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 144683,
-    "hf_likes": 53,
+    "hf_downloads": 130351,
+    "hf_likes": 54,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25020,8 +25020,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 109225,
-    "hf_likes": 99,
+    "hf_downloads": 102225,
+    "hf_likes": 101,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25114,8 +25114,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 91853,
-    "hf_likes": 294,
+    "hf_downloads": 83354,
+    "hf_likes": 295,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25157,8 +25157,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 95330,
-    "hf_likes": 74,
+    "hf_downloads": 94269,
+    "hf_likes": 76,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25309,8 +25309,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 134493,
-    "hf_likes": 85,
+    "hf_downloads": 159463,
+    "hf_likes": 92,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25386,8 +25386,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 166305,
-    "hf_likes": 63,
+    "hf_downloads": 169772,
+    "hf_likes": 65,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25429,7 +25429,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 81592,
+    "hf_downloads": 89627,
     "hf_likes": 44,
     "release_date": null,
     "gguf_sources": [
@@ -25466,7 +25466,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 79939,
+    "hf_downloads": 73213,
     "hf_likes": 264,
     "release_date": null,
     "gguf_sources": [
@@ -25728,7 +25728,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 99116,
+    "hf_downloads": 93649,
     "hf_likes": 8,
     "release_date": null,
     "gguf_sources": [
@@ -25765,7 +25765,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 86632,
+    "hf_downloads": 73318,
     "hf_likes": 7,
     "release_date": null,
     "gguf_sources": [
@@ -25808,8 +25808,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 85950,
-    "hf_likes": 3,
+    "hf_downloads": 73150,
+    "hf_likes": 4,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25853,7 +25853,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 85880,
+    "hf_downloads": 72899,
     "hf_likes": 1,
     "release_date": null,
     "gguf_sources": [
@@ -25896,8 +25896,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 79969,
-    "hf_likes": 100,
+    "hf_downloads": 74806,
+    "hf_likes": 102,
     "release_date": null,
     "gguf_sources": [
       {
@@ -25990,7 +25990,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 963843,
+    "hf_downloads": 896439,
     "hf_likes": 2,
     "release_date": null,
     "gguf_sources": [
@@ -26306,7 +26306,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 105746,
+    "hf_downloads": 118128,
     "hf_likes": 30,
     "release_date": null,
     "gguf_sources": [
@@ -26336,7 +26336,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 91625,
+    "hf_downloads": 95868,
     "hf_likes": 206,
     "release_date": null,
     "gguf_sources": [
@@ -26445,8 +26445,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 80161,
-    "hf_likes": 26,
+    "hf_downloads": 81263,
+    "hf_likes": 27,
     "release_date": null,
     "gguf_sources": [
       {
@@ -26482,8 +26482,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 88880,
-    "hf_likes": 156,
+    "hf_downloads": 90659,
+    "hf_likes": 155,
     "release_date": null,
     "gguf_sources": [
       {
@@ -26563,7 +26563,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 82979,
+    "hf_downloads": 73630,
     "hf_likes": 43,
     "release_date": null,
     "gguf_sources": [
@@ -26645,8 +26645,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 103768,
-    "hf_likes": 31,
+    "hf_downloads": 87685,
+    "hf_likes": 32,
     "release_date": null,
     "gguf_sources": [
       {
@@ -26690,8 +26690,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 77884,
-    "hf_likes": 173,
+    "hf_downloads": 75722,
+    "hf_likes": 177,
     "release_date": null,
     "gguf_sources": [
       {
@@ -26863,8 +26863,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 73811,
-    "hf_likes": 187,
+    "hf_downloads": 81284,
+    "hf_likes": 193,
     "release_date": null,
     "gguf_sources": [
       {
@@ -27179,7 +27179,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 271853,
+    "hf_downloads": 287740,
     "hf_likes": 0,
     "release_date": null,
     "gguf_sources": [
@@ -27395,7 +27395,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 72999,
+    "hf_downloads": 74308,
     "hf_likes": 102,
     "release_date": null,
     "gguf_sources": [
@@ -27434,8 +27434,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-video",
     "architecture": "",
-    "hf_downloads": 142207,
-    "hf_likes": 231,
+    "hf_downloads": 223715,
+    "hf_likes": 232,
     "release_date": null,
     "gguf_sources": [
       {
@@ -27473,8 +27473,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 72732,
-    "hf_likes": 236,
+    "hf_downloads": 80099,
+    "hf_likes": 237,
     "release_date": null,
     "gguf_sources": [
       {
@@ -27634,7 +27634,7 @@
     "capabilities": [],
     "pipeline_tag": "sentence-similarity",
     "architecture": "",
-    "hf_downloads": 417697,
+    "hf_downloads": 348155,
     "hf_likes": 9,
     "release_date": null,
     "gguf_sources": [
@@ -27694,8 +27694,8 @@
     "capabilities": [],
     "pipeline_tag": "text-ranking",
     "architecture": "",
-    "hf_downloads": 82168,
-    "hf_likes": 28,
+    "hf_downloads": 90203,
+    "hf_likes": 29,
     "release_date": null,
     "gguf_sources": [
       {
@@ -27735,7 +27735,7 @@
     "capabilities": [],
     "pipeline_tag": "video-to-video",
     "architecture": "",
-    "hf_downloads": 117996,
+    "hf_downloads": 119189,
     "hf_likes": 84,
     "release_date": null,
     "gguf_sources": [
@@ -27975,8 +27975,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 117099,
-    "hf_likes": 109,
+    "hf_downloads": 135885,
+    "hf_likes": 113,
     "release_date": null,
     "gguf_sources": [
       {
@@ -28056,8 +28056,8 @@
     "capabilities": [],
     "pipeline_tag": "sentence-similarity",
     "architecture": "",
-    "hf_downloads": 111301,
-    "hf_likes": 30,
+    "hf_downloads": 101454,
+    "hf_likes": 31,
     "release_date": null,
     "gguf_sources": [
       {
@@ -28105,7 +28105,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 83121,
+    "hf_downloads": 76867,
     "hf_likes": 1,
     "release_date": null,
     "gguf_sources": [
@@ -28136,8 +28136,8 @@
     "capabilities": [],
     "pipeline_tag": "object-detection",
     "architecture": "",
-    "hf_downloads": 8561972,
-    "hf_likes": 19,
+    "hf_downloads": 12329349,
+    "hf_likes": 24,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -28175,8 +28175,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1305398,
-    "hf_likes": 55,
+    "hf_downloads": 1694196,
+    "hf_likes": 57,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -28262,8 +28262,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 3869715,
-    "hf_likes": 2344,
+    "hf_downloads": 4389072,
+    "hf_likes": 2568,
     "hf_library": "llama.cpp",
     "hf_tags": [
       "llama.cpp",
@@ -28310,7 +28310,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 342903,
+    "hf_downloads": 254175,
     "hf_likes": 1,
     "hf_library": null,
     "hf_tags": [
@@ -28344,7 +28344,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 492609,
+    "hf_downloads": 523061,
     "hf_likes": 18,
     "hf_library": "gguf",
     "hf_tags": [
@@ -28389,8 +28389,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 634102,
-    "hf_likes": 170,
+    "hf_downloads": 745089,
+    "hf_likes": 177,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -28434,8 +28434,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 466393,
-    "hf_likes": 256,
+    "hf_downloads": 492234,
+    "hf_likes": 270,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -28478,8 +28478,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 605848,
-    "hf_likes": 25,
+    "hf_downloads": 611623,
+    "hf_likes": 26,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -28526,8 +28526,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-speech",
     "architecture": "",
-    "hf_downloads": 430717,
-    "hf_likes": 63,
+    "hf_downloads": 520762,
+    "hf_likes": 68,
     "hf_library": "sanotts",
     "hf_tags": [
       "sanotts",
@@ -28571,8 +28571,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 373392,
-    "hf_likes": 96,
+    "hf_downloads": 473516,
+    "hf_likes": 98,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -28617,8 +28617,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 189884,
-    "hf_likes": 31,
+    "hf_downloads": 194264,
+    "hf_likes": 35,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -28657,7 +28657,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 219053,
+    "hf_downloads": 195820,
     "hf_likes": 6,
     "hf_library": "ggml",
     "hf_tags": [
@@ -28691,8 +28691,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 218829,
-    "hf_likes": 207,
+    "hf_downloads": 231672,
+    "hf_likes": 217,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -28761,7 +28761,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 310411,
+    "hf_downloads": 312573,
     "hf_likes": 11,
     "hf_library": "transformers",
     "hf_tags": [
@@ -28799,8 +28799,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 260224,
-    "hf_likes": 346,
+    "hf_downloads": 255391,
+    "hf_likes": 362,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -28855,7 +28855,7 @@
     "capabilities": [],
     "pipeline_tag": "feature-extraction",
     "architecture": "",
-    "hf_downloads": 238659,
+    "hf_downloads": 229995,
     "hf_likes": 8,
     "hf_library": "sentence-transformers",
     "hf_tags": [
@@ -28896,8 +28896,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 268862,
-    "hf_likes": 39,
+    "hf_downloads": 277684,
+    "hf_likes": 41,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -28945,8 +28945,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 148889,
-    "hf_likes": 45,
+    "hf_downloads": 131002,
+    "hf_likes": 48,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29000,8 +29000,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 991481,
-    "hf_likes": 208,
+    "hf_downloads": 1379820,
+    "hf_likes": 219,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -29046,7 +29046,7 @@
     "capabilities": [],
     "pipeline_tag": "image-to-video",
     "architecture": "",
-    "hf_downloads": 152317,
+    "hf_downloads": 170427,
     "hf_likes": 22,
     "hf_library": null,
     "hf_tags": [
@@ -29084,8 +29084,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-video",
     "architecture": "",
-    "hf_downloads": 124351,
-    "hf_likes": 307,
+    "hf_downloads": 136723,
+    "hf_likes": 309,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29123,8 +29123,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 296501,
-    "hf_likes": 445,
+    "hf_downloads": 435039,
+    "hf_likes": 456,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -29168,7 +29168,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 245828,
+    "hf_downloads": 317758,
     "hf_likes": 35,
     "hf_library": null,
     "hf_tags": [
@@ -29255,7 +29255,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 109578,
+    "hf_downloads": 126491,
     "hf_likes": 7,
     "hf_library": null,
     "hf_tags": [
@@ -29295,8 +29295,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-video",
     "architecture": "",
-    "hf_downloads": 198272,
-    "hf_likes": 17,
+    "hf_downloads": 252596,
+    "hf_likes": 20,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -29334,8 +29334,8 @@
     "capabilities": [],
     "pipeline_tag": "image-to-3d",
     "architecture": "",
-    "hf_downloads": 116168,
-    "hf_likes": 11,
+    "hf_downloads": 120416,
+    "hf_likes": 15,
     "hf_library": "trellis",
     "hf_tags": [
       "trellis",
@@ -29368,7 +29368,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 92937,
+    "hf_downloads": 108021,
     "hf_likes": 6,
     "hf_library": null,
     "hf_tags": [
@@ -29405,8 +29405,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 97898,
-    "hf_likes": 18,
+    "hf_downloads": 97627,
+    "hf_likes": 19,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29445,8 +29445,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 135394,
-    "hf_likes": 12,
+    "hf_downloads": 189666,
+    "hf_likes": 13,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29482,8 +29482,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 256578,
-    "hf_likes": 23,
+    "hf_downloads": 318878,
+    "hf_likes": 24,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -29524,8 +29524,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 107452,
-    "hf_likes": 140,
+    "hf_downloads": 100904,
+    "hf_likes": 150,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -29571,7 +29571,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-audio",
     "architecture": "",
-    "hf_downloads": 124844,
+    "hf_downloads": 133667,
     "hf_likes": 0,
     "hf_library": "gguf",
     "hf_tags": [
@@ -29723,8 +29723,8 @@
     "capabilities": [],
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
-    "hf_downloads": 74551,
-    "hf_likes": 2,
+    "hf_downloads": 74421,
+    "hf_likes": 3,
     "hf_library": "transcribe.cpp",
     "hf_tags": [
       "transcribe.cpp",
@@ -29766,8 +29766,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 112066,
-    "hf_likes": 94,
+    "hf_downloads": 89859,
+    "hf_likes": 111,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29815,8 +29815,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 73067,
-    "hf_likes": 72,
+    "hf_downloads": 119721,
+    "hf_likes": 73,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29945,8 +29945,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 71610,
-    "hf_likes": 146,
+    "hf_downloads": 80264,
+    "hf_likes": 149,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -29983,8 +29983,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 163165,
-    "hf_likes": 24,
+    "hf_downloads": 183259,
+    "hf_likes": 25,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30028,8 +30028,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 2532192,
-    "hf_likes": 0,
+    "hf_downloads": 2536734,
+    "hf_likes": 2,
     "hf_library": null,
     "hf_tags": [
       "safetensors",
@@ -30092,8 +30092,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 1376248,
-    "hf_likes": 2766,
+    "hf_downloads": 2013268,
+    "hf_likes": 3759,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30130,8 +30130,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 1113514,
-    "hf_likes": 8,
+    "hf_downloads": 1695079,
+    "hf_likes": 9,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30177,8 +30177,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 1141018,
-    "hf_likes": 444,
+    "hf_downloads": 3559321,
+    "hf_likes": 744,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30224,8 +30224,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-speech",
     "architecture": "",
-    "hf_downloads": 778314,
-    "hf_likes": 65,
+    "hf_downloads": 949678,
+    "hf_likes": 67,
     "hf_library": null,
     "hf_tags": [
       "onnx",
@@ -30267,8 +30267,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 692879,
-    "hf_likes": 149,
+    "hf_downloads": 1152450,
+    "hf_likes": 160,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -30312,8 +30312,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 553715,
-    "hf_likes": 2,
+    "hf_downloads": 555748,
+    "hf_likes": 3,
     "hf_library": null,
     "hf_tags": [
       "safetensors",
@@ -30379,8 +30379,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 479410,
-    "hf_likes": 167,
+    "hf_downloads": 750445,
+    "hf_likes": 196,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30427,8 +30427,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 379473,
-    "hf_likes": 76,
+    "hf_downloads": 659031,
+    "hf_likes": 78,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30468,8 +30468,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 412350,
-    "hf_likes": 324,
+    "hf_downloads": 849988,
+    "hf_likes": 375,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30508,8 +30508,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 310741,
-    "hf_likes": 76,
+    "hf_downloads": 313939,
+    "hf_likes": 79,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -30563,8 +30563,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 319064,
-    "hf_likes": 83,
+    "hf_downloads": 524507,
+    "hf_likes": 89,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30601,8 +30601,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 286701,
-    "hf_likes": 125,
+    "hf_downloads": 521055,
+    "hf_likes": 143,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30644,8 +30644,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 269785,
-    "hf_likes": 36,
+    "hf_downloads": 448678,
+    "hf_likes": 40,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30685,8 +30685,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 284203,
-    "hf_likes": 197,
+    "hf_downloads": 657814,
+    "hf_likes": 311,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30734,8 +30734,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 227740,
-    "hf_likes": 408,
+    "hf_downloads": 245669,
+    "hf_likes": 409,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30777,8 +30777,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 240660,
-    "hf_likes": 516,
+    "hf_downloads": 358096,
+    "hf_likes": 692,
     "hf_library": "diffusers",
     "hf_tags": [
       "diffusers",
@@ -30824,8 +30824,8 @@
     "capabilities": [],
     "pipeline_tag": "audio-text-to-text",
     "architecture": "",
-    "hf_downloads": 228702,
-    "hf_likes": 2,
+    "hf_downloads": 469026,
+    "hf_likes": 3,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30863,8 +30863,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 193920,
-    "hf_likes": 332,
+    "hf_downloads": 225658,
+    "hf_likes": 350,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -30904,8 +30904,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 193510,
-    "hf_likes": 48,
+    "hf_downloads": 235192,
+    "hf_likes": 53,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -30950,8 +30950,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 192879,
-    "hf_likes": 119,
+    "hf_downloads": 281367,
+    "hf_likes": 162,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -30992,8 +30992,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 203411,
-    "hf_likes": 179,
+    "hf_downloads": 395319,
+    "hf_likes": 205,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -31043,8 +31043,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 182459,
-    "hf_likes": 65,
+    "hf_downloads": 297909,
+    "hf_likes": 70,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -31086,7 +31086,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 161884,
+    "hf_downloads": 165865,
     "hf_likes": 76,
     "hf_library": null,
     "hf_tags": [
@@ -31125,7 +31125,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 157422,
+    "hf_downloads": 158328,
     "hf_likes": 175,
     "hf_library": "transformers",
     "hf_tags": [
@@ -31165,7 +31165,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 152535,
+    "hf_downloads": 152140,
     "hf_likes": 231,
     "hf_library": "ggml",
     "hf_tags": [
@@ -31201,7 +31201,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 152195,
+    "hf_downloads": 152782,
     "hf_likes": 0,
     "hf_library": "transformers",
     "hf_tags": [
@@ -31256,8 +31256,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 261136,
-    "hf_likes": 190,
+    "hf_downloads": 622990,
+    "hf_likes": 364,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -31304,8 +31304,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 182498,
-    "hf_likes": 51,
+    "hf_downloads": 417594,
+    "hf_likes": 59,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -31369,8 +31369,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-audio",
     "architecture": "",
-    "hf_downloads": 150563,
-    "hf_likes": 89,
+    "hf_downloads": 186269,
+    "hf_likes": 94,
     "hf_library": "audio.cpp",
     "hf_tags": [
       "audio.cpp",
@@ -31408,7 +31408,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 135010,
+    "hf_downloads": 220100,
     "hf_likes": 21,
     "hf_library": null,
     "hf_tags": [
@@ -31445,8 +31445,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 138598,
-    "hf_likes": 211,
+    "hf_downloads": 212047,
+    "hf_likes": 227,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -31490,8 +31490,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 162507,
-    "hf_likes": 58,
+    "hf_downloads": 385989,
+    "hf_likes": 76,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -31532,8 +31532,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 127458,
-    "hf_likes": 70,
+    "hf_downloads": 140502,
+    "hf_likes": 75,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -31570,8 +31570,8 @@
     "capabilities": [],
     "pipeline_tag": "video-to-video",
     "architecture": "",
-    "hf_downloads": 126095,
-    "hf_likes": 227,
+    "hf_downloads": 177701,
+    "hf_likes": 230,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -31608,7 +31608,7 @@
     "capabilities": [],
     "pipeline_tag": "image-to-image",
     "architecture": "",
-    "hf_downloads": 122722,
+    "hf_downloads": 131254,
     "hf_likes": 93,
     "hf_library": "ggml",
     "hf_tags": [
@@ -31648,8 +31648,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 147149,
-    "hf_likes": 83,
+    "hf_downloads": 321725,
+    "hf_likes": 87,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -31689,7 +31689,7 @@
     "capabilities": [],
     "pipeline_tag": "sentence-similarity",
     "architecture": "",
-    "hf_downloads": 116726,
+    "hf_downloads": 75414,
     "hf_likes": 13,
     "hf_library": "llama.cpp",
     "hf_tags": [
@@ -31738,7 +31738,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 120078,
+    "hf_downloads": 122947,
     "hf_likes": 198,
     "hf_library": "ggml",
     "hf_tags": [
@@ -31777,8 +31777,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 118867,
-    "hf_likes": 57,
+    "hf_downloads": 119926,
+    "hf_likes": 60,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -31831,8 +31831,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 141413,
-    "hf_likes": 102,
+    "hf_downloads": 326908,
+    "hf_likes": 118,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -31877,8 +31877,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 120231,
-    "hf_likes": 60,
+    "hf_downloads": 154764,
+    "hf_likes": 78,
     "hf_library": "llama.cpp",
     "hf_tags": [
       "llama.cpp",
@@ -31922,8 +31922,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 114156,
-    "hf_likes": 64,
+    "hf_downloads": 117772,
+    "hf_likes": 65,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -31965,7 +31965,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-image",
     "architecture": "",
-    "hf_downloads": 107724,
+    "hf_downloads": 109957,
     "hf_likes": 68,
     "hf_library": "ggml",
     "hf_tags": [
@@ -32006,7 +32006,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 109979,
+    "hf_downloads": 141825,
     "hf_likes": 43,
     "hf_library": null,
     "hf_tags": [
@@ -32042,8 +32042,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 104074,
-    "hf_likes": 6,
+    "hf_downloads": 113176,
+    "hf_likes": 9,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -32082,7 +32082,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 103275,
+    "hf_downloads": 100745,
     "hf_likes": 94,
     "hf_library": null,
     "hf_tags": [
@@ -32118,7 +32118,7 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 102593,
+    "hf_downloads": 103396,
     "hf_likes": 49,
     "hf_library": "transformers",
     "hf_tags": [
@@ -32161,8 +32161,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 97619,
-    "hf_likes": 16,
+    "hf_downloads": 104759,
+    "hf_likes": 17,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -32210,8 +32210,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 114993,
-    "hf_likes": 83,
+    "hf_downloads": 292602,
+    "hf_likes": 154,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -32258,7 +32258,7 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 94164,
+    "hf_downloads": 93858,
     "hf_likes": 10,
     "hf_library": null,
     "hf_tags": [
@@ -32299,8 +32299,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 95918,
-    "hf_likes": 54,
+    "hf_downloads": 106448,
+    "hf_likes": 57,
     "hf_library": "comfyui",
     "hf_tags": [
       "comfyui",
@@ -32334,8 +32334,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 92566,
-    "hf_likes": 17,
+    "hf_downloads": 96562,
+    "hf_likes": 20,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -32373,8 +32373,8 @@
     "capabilities": [],
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
-    "hf_downloads": 96510,
-    "hf_likes": 135,
+    "hf_downloads": 187540,
+    "hf_likes": 183,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -32419,7 +32419,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 98406,
+    "hf_downloads": 165750,
     "hf_likes": 3,
     "hf_library": null,
     "hf_tags": [
@@ -32455,7 +32455,7 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 86253,
+    "hf_downloads": 121999,
     "hf_likes": 76,
     "hf_library": "transformers",
     "hf_tags": [
@@ -32498,8 +32498,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 83205,
-    "hf_likes": 244,
+    "hf_downloads": 91652,
+    "hf_likes": 245,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -32532,8 +32532,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 85839,
-    "hf_likes": 157,
+    "hf_downloads": 97482,
+    "hf_likes": 160,
     "hf_library": "llama.cpp",
     "hf_tags": [
       "llama.cpp",
@@ -32584,8 +32584,8 @@
     "capabilities": [],
     "pipeline_tag": "text-to-image",
     "architecture": "",
-    "hf_downloads": 79298,
-    "hf_likes": 159,
+    "hf_downloads": 74997,
+    "hf_likes": 166,
     "hf_library": "diffusers",
     "hf_tags": [
       "diffusers",
@@ -32620,8 +32620,8 @@
     "capabilities": [],
     "pipeline_tag": "any-to-any",
     "architecture": "",
-    "hf_downloads": 90368,
-    "hf_likes": 45,
+    "hf_downloads": 242089,
+    "hf_likes": 46,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -32664,8 +32664,8 @@
     "capabilities": [],
     "pipeline_tag": "text-generation",
     "architecture": "",
-    "hf_downloads": 86933,
-    "hf_likes": 29,
+    "hf_downloads": 149261,
+    "hf_likes": 36,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -32704,5 +32704,1174 @@
       }
     ],
     "from_live": true
+  },
+  {
+    "name": "SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF",
+    "provider": "SC117",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "",
+    "hf_downloads": 684487,
+    "hf_likes": 169,
+    "hf_library": "gguf",
+    "hf_tags": [
+      "gguf",
+      "llama-cpp",
+      "abliterated",
+      "uncensored",
+      "quantization",
+      "tensor-transplant",
+      "gsq",
+      "rco",
+      "moe",
+      "mixture-of-experts",
+      "qwen3.8",
+      "flash-next",
+      "long-context",
+      "reasoning",
+      "red-teaming",
+      "image-text-to-text",
+      "en",
+      "zh",
+      "arxiv:2604.18556",
+      "arxiv:2605.00649",
+      "base_model:ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+      "base_model:quantized:ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF",
+        "provider": "SC117"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-Hermes-GGUF",
+    "provider": "LuffyTheFox",
+    "parameter_count": "35B",
+    "parameters_raw": 35,
+    "min_vram_gb": 22.9,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "",
+    "hf_downloads": 567520,
+    "hf_likes": 677,
+    "hf_library": "hermes",
+    "hf_tags": [
+      "hermes",
+      "gguf",
+      "uncensored",
+      "qwen3.6",
+      "moe",
+      "vision",
+      "multimodal",
+      "genesis",
+      "agentic",
+      "image-text-to-text",
+      "conversational",
+      "en",
+      "zh",
+      "multilingual",
+      "dataset:NousResearch/hermes-function-calling-v1",
+      "base_model:HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive",
+      "base_model:quantized:HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "LuffyTheFox/Qwen3.6-35B-A3B-Uncensored-Genesis-Hermes-GGUF",
+        "provider": "LuffyTheFox"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 21.4,
+    "params_estimated": true
+  },
+  {
+    "name": "BoldingBuilds/orcarouter_GLM-5.3-Flash-Uncensored-GGUF",
+    "provider": "BoldingBuilds",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 480949,
+    "hf_likes": 17,
+    "hf_library": "gguf",
+    "hf_tags": [
+      "gguf",
+      "uncensored",
+      "abliterated",
+      "moe",
+      "glm",
+      "imatrix",
+      "image-text-to-text",
+      "vision",
+      "text-generation",
+      "base_model:orcarouter/GLM-5.3-Flash-Uncensored-FP8",
+      "base_model:quantized:orcarouter/GLM-5.3-Flash-Uncensored-FP8",
+      "license:mit",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "BoldingBuilds/orcarouter_GLM-5.3-Flash-Uncensored-GGUF",
+        "provider": "BoldingBuilds"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "mradermacher/Cyber-Ornith-1.5-9B-OBLITERATED-i1-GGUF",
+    "provider": "mradermacher",
+    "parameter_count": "9B",
+    "parameters_raw": 9,
+    "min_vram_gb": 7,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 259771,
+    "hf_likes": 31,
+    "hf_library": "transformers",
+    "hf_tags": [
+      "transformers",
+      "gguf",
+      "DuoNeural",
+      "cybersecurity",
+      "agentic",
+      "qlora",
+      "unsloth",
+      "qwen3_5",
+      "obliterated",
+      "terminal",
+      "cli",
+      "reasoning",
+      "function-calling",
+      "tool-use",
+      "en",
+      "dataset:oi-uae/cyber-security",
+      "dataset:hotdogs/uka-cyber-dataset",
+      "dataset:trend-cybertron/Primus-Reasoning",
+      "dataset:Lite-Coder/LiteCoder-Terminal-SFT",
+      "dataset:rajistics/openhands-synthetic-conversations",
+      "dataset:emirkaanozdemr/bash_command_data_6K",
+      "dataset:NousResearch/hermes-function-calling-v1",
+      "dataset:open-thoughts/OpenThoughts3-1.2M",
+      "base_model:DuoNeural/Cyber-Ornith-1.5-9B-OBLITERATED",
+      "base_model:quantized:DuoNeural/Cyber-Ornith-1.5-9B-OBLITERATED",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Cyber-Ornith-1.5-9B-OBLITERATED-i1-GGUF",
+        "provider": "mradermacher"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 5.5,
+    "params_estimated": true
+  },
+  {
+    "name": "jimmy31chen/RVN-Qwen3.8-Flash-Next-Abliterated-Uncensored-IQ3_S-Strata",
+    "provider": "jimmy31chen",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 178342,
+    "hf_likes": 5,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "strata",
+      "abliterated",
+      "uncensored",
+      "moe",
+      "qwen",
+      "text-generation",
+      "en",
+      "zh",
+      "base_model:0bserverx/RVN-Qwen3.8-Flash-Next-Abliterated-Uncensored",
+      "base_model:quantized:0bserverx/RVN-Qwen3.8-Flash-Next-Abliterated-Uncensored",
+      "license:apache-2.0",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "jimmy31chen/RVN-Qwen3.8-Flash-Next-Abliterated-Uncensored-IQ3_S-Strata",
+        "provider": "jimmy31chen"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "ukisai/Swift-1.5-Qwen3.8-Flash-Next-GGUF",
+    "provider": "ukisai",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "",
+    "hf_downloads": 141607,
+    "hf_likes": 52,
+    "hf_library": "gguf",
+    "hf_tags": [
+      "gguf",
+      "llama.cpp",
+      "qwen3_8",
+      "moe",
+      "reasoning",
+      "efficient-thinking",
+      "token-efficient",
+      "post-training",
+      "agentic",
+      "terminal-bench",
+      "image-text-to-text",
+      "dataset:ukisai/Qwen3.8-27B-multi-turn-agent-sft",
+      "base_model:ukisai/Swift-Qwen3.8-Flash-Next",
+      "base_model:quantized:ukisai/Swift-Qwen3.8-Flash-Next",
+      "license:other",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "ukisai/Swift-1.5-Qwen3.8-Flash-Next-GGUF",
+        "provider": "ukisai"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "audio-cpp/AuK-Base-and-Flash-GGUF",
+    "provider": "audio-cpp",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-to-speech",
+    "architecture": "",
+    "hf_downloads": 116364,
+    "hf_likes": 4,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "audio",
+      "speech",
+      "text-to-speech",
+      "zero-shot-tts",
+      "voice-cloning",
+      "speech-generation",
+      "speech-editing",
+      "speech-enhancement",
+      "source-separation",
+      "speech-separation",
+      "instruction-guided",
+      "diffusion",
+      "audio.cpp",
+      "base_model:tencent/AuK",
+      "base_model:quantized:tencent/AuK",
+      "license:mit",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "audio-cpp/AuK-Base-and-Flash-GGUF",
+        "provider": "audio-cpp"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "mradermacher/Hemmingway-1-GGUF",
+    "provider": "mradermacher",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 107963,
+    "hf_likes": 6,
+    "hf_library": "transformers",
+    "hf_tags": [
+      "transformers",
+      "gguf",
+      "qwen3.8",
+      "chat",
+      "creative-writing",
+      "altworld",
+      "en",
+      "base_model:Altworld/Hemmingway-1",
+      "base_model:quantized:Altworld/Hemmingway-1",
+      "license:cc-by-nc-4.0",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Hemmingway-1-GGUF",
+        "provider": "mradermacher"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "pentacoxian-dev/Qwen3.8-Flash-Next-IQ3E-Q8D-MTP-GGUF",
+    "provider": "pentacoxian-dev",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 102982,
+    "hf_likes": 19,
+    "hf_library": "gguf",
+    "hf_tags": [
+      "gguf",
+      "qwen4exp",
+      "mtp",
+      "speculative-decoding",
+      "llama.cpp",
+      "text-generation",
+      "base_model:Qwen/Qwen3.8-Flash-Next",
+      "base_model:quantized:Qwen/Qwen3.8-Flash-Next",
+      "license:other",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "pentacoxian-dev/Qwen3.8-Flash-Next-IQ3E-Q8D-MTP-GGUF",
+        "provider": "pentacoxian-dev"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "mradermacher/Huihui-Qwen3.8-Flash-Next-abliterated-i1-GGUF",
+    "provider": "mradermacher",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 101222,
+    "hf_likes": 0,
+    "hf_library": "transformers",
+    "hf_tags": [
+      "transformers",
+      "gguf",
+      "abliterated",
+      "uncensored",
+      "huihui",
+      "qwen3",
+      "en",
+      "base_model:huihui-ai/Huihui-Qwen3.8-Flash-Next-abliterated",
+      "base_model:quantized:huihui-ai/Huihui-Qwen3.8-Flash-Next-abliterated",
+      "license:other",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Huihui-Qwen3.8-Flash-Next-abliterated-i1-GGUF",
+        "provider": "mradermacher"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "Abiray/Qwen-Image-2.1-GGUF",
+    "provider": "Abiray",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-to-image",
+    "architecture": "",
+    "hf_downloads": 93415,
+    "hf_likes": 110,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "text-to-image",
+      "image-to-image",
+      "comfyui",
+      "image-generation",
+      "quantized",
+      "base_model:Qwen/Qwen-Image-2.1",
+      "base_model:quantized:Qwen/Qwen-Image-2.1",
+      "license:other",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "Abiray/Qwen-Image-2.1-GGUF",
+        "provider": "Abiray"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF",
+    "provider": "unsloth",
+    "parameter_count": "8B",
+    "parameters_raw": 8,
+    "min_vram_gb": 6.4,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 93241,
+    "hf_likes": 463,
+    "hf_library": "transformers",
+    "hf_tags": [
+      "transformers",
+      "gguf",
+      "qwen3",
+      "text-generation",
+      "unsloth",
+      "deepseek",
+      "qwen",
+      "arxiv:2501.12948",
+      "base_model:deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
+      "base_model:quantized:deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
+      "license:mit",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF",
+        "provider": "unsloth"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 4.9,
+    "params_estimated": true
+  },
+  {
+    "name": "programasweights/paw-programs",
+    "provider": "programasweights",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 85175,
+    "hf_likes": 4,
+    "hf_library": null,
+    "hf_tags": [
+      "safetensors",
+      "gguf",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "programasweights/paw-programs",
+        "provider": "programasweights"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "audio-cpp/VibeVoice-ASR-Streaming-7B-GGUF",
+    "provider": "audio-cpp",
+    "parameter_count": "7B",
+    "parameters_raw": 7,
+    "min_vram_gb": 5.8,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "automatic-speech-recognition",
+    "architecture": "",
+    "hf_downloads": 85113,
+    "hf_likes": 3,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "audio.cpp",
+      "asr",
+      "streaming",
+      "speaker-attributed-transcription",
+      "automatic-speech-recognition",
+      "en",
+      "zh",
+      "es",
+      "pt",
+      "de",
+      "ja",
+      "ko",
+      "fr",
+      "ru",
+      "it",
+      "base_model:microsoft/VibeVoice-ASR-Streaming-7B",
+      "base_model:quantized:microsoft/VibeVoice-ASR-Streaming-7B",
+      "license:mit",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "audio-cpp/VibeVoice-ASR-Streaming-7B-GGUF",
+        "provider": "audio-cpp"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 4.3,
+    "params_estimated": true
+  },
+  {
+    "name": "unsloth/gemma-3-12b-it-qat-GGUF",
+    "provider": "unsloth",
+    "parameter_count": "12B",
+    "parameters_raw": 12,
+    "min_vram_gb": 8.9,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "",
+    "hf_downloads": 83206,
+    "hf_likes": 55,
+    "hf_library": "transformers",
+    "hf_tags": [
+      "transformers",
+      "gguf",
+      "gemma3",
+      "image-text-to-text",
+      "unsloth",
+      "gemma",
+      "google",
+      "arxiv:1905.07830",
+      "arxiv:1905.10044",
+      "arxiv:1911.11641",
+      "arxiv:1904.09728",
+      "arxiv:1705.03551",
+      "arxiv:1911.01547",
+      "arxiv:1907.10641",
+      "arxiv:1903.00161",
+      "arxiv:2009.03300",
+      "arxiv:2304.06364",
+      "arxiv:2103.03874",
+      "arxiv:2110.14168",
+      "arxiv:2311.12022",
+      "arxiv:2108.07732",
+      "arxiv:2107.03374",
+      "arxiv:2210.03057",
+      "arxiv:2106.03193",
+      "arxiv:1910.11856",
+      "arxiv:2502.12404",
+      "arxiv:2502.21228",
+      "arxiv:2404.16816",
+      "arxiv:2104.12756",
+      "arxiv:2311.16502",
+      "arxiv:2203.10244",
+      "arxiv:2404.12390",
+      "arxiv:1810.12440",
+      "arxiv:1908.02660",
+      "arxiv:2312.11805",
+      "base_model:google/gemma-3-12b-it-qat-q4_0-unquantized",
+      "base_model:quantized:google/gemma-3-12b-it-qat-q4_0-unquantized",
+      "license:gemma",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/gemma-3-12b-it-qat-GGUF",
+        "provider": "unsloth"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 7.4,
+    "params_estimated": true
+  },
+  {
+    "name": "ggml-org/Qwen3-1.7B-GGUF",
+    "provider": "ggml-org",
+    "parameter_count": "1.7B",
+    "parameters_raw": 1.7,
+    "min_vram_gb": 2.5,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 82412,
+    "hf_likes": 14,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "base_model:Qwen/Qwen3-1.7B",
+      "base_model:quantized:Qwen/Qwen3-1.7B",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "ggml-org/Qwen3-1.7B-GGUF",
+        "provider": "ggml-org"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 1,
+    "params_estimated": true
+  },
+  {
+    "name": "leejet/Z-Image-Turbo-GGUF",
+    "provider": "leejet",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-to-image",
+    "architecture": "",
+    "hf_downloads": 81380,
+    "hf_likes": 60,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "text-to-image",
+      "image-generation",
+      "stable-diffusion.cpp",
+      "z-image-turbo",
+      "z-image",
+      "en",
+      "zh",
+      "base_model:Tongyi-MAI/Z-Image-Turbo",
+      "base_model:quantized:Tongyi-MAI/Z-Image-Turbo",
+      "license:apache-2.0",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "leejet/Z-Image-Turbo-GGUF",
+        "provider": "leejet"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "bartowski/Qwen2.5-1.5B-Instruct-GGUF",
+    "provider": "bartowski",
+    "parameter_count": "1.5B",
+    "parameters_raw": 1.5,
+    "min_vram_gb": 2.4,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 79489,
+    "hf_likes": 21,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "chat",
+      "text-generation",
+      "en",
+      "base_model:Qwen/Qwen2.5-1.5B-Instruct",
+      "base_model:quantized:Qwen/Qwen2.5-1.5B-Instruct",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/Qwen2.5-1.5B-Instruct-GGUF",
+        "provider": "bartowski"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 0.9,
+    "params_estimated": true
+  },
+  {
+    "name": "BigDannyPt/Wan-2.2-Remix-GGUF",
+    "provider": "BigDannyPt",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 79316,
+    "hf_likes": 121,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "license:apache-2.0",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "BigDannyPt/Wan-2.2-Remix-GGUF",
+        "provider": "BigDannyPt"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "zaakirio/gemma-4-12b-it-uncensored-GGUF",
+    "provider": "zaakirio",
+    "parameter_count": "12B",
+    "parameters_raw": 12,
+    "min_vram_gb": 8.9,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "",
+    "hf_downloads": 79267,
+    "hf_likes": 68,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "llama.cpp",
+      "gemma",
+      "gemma4",
+      "heretic",
+      "abliterated",
+      "uncensored",
+      "decensored",
+      "conversational",
+      "multimodal",
+      "audio",
+      "image-text-to-text",
+      "arxiv:2512.13655",
+      "arxiv:2406.11717",
+      "base_model:zaakirio/gemma-4-12b-it-uncensored",
+      "base_model:quantized:zaakirio/gemma-4-12b-it-uncensored",
+      "license:gemma",
+      "endpoints_compatible",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "zaakirio/gemma-4-12b-it-uncensored-GGUF",
+        "provider": "zaakirio"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 7.4,
+    "params_estimated": true
+  },
+  {
+    "name": "BoldingBuilds/Ternary-Bonsai-2-27B-Abliterated-PTQ1_0-GGUF",
+    "provider": "BoldingBuilds",
+    "parameter_count": "27B",
+    "parameters_raw": 27,
+    "min_vram_gb": 18,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 78899,
+    "hf_likes": 74,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "llama.cpp",
+      "abliteration",
+      "ternary",
+      "ptq1_0",
+      "uncensored",
+      "prism",
+      "bonsai",
+      "qwen35",
+      "text-generation",
+      "base_model:prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "base_model:quantized:prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "BoldingBuilds/Ternary-Bonsai-2-27B-Abliterated-PTQ1_0-GGUF",
+        "provider": "BoldingBuilds"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 16.5,
+    "params_estimated": true
+  },
+  {
+    "name": "unsloth/Qwen-Image-GGUF",
+    "provider": "unsloth",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-to-image",
+    "architecture": "",
+    "hf_downloads": 78367,
+    "hf_likes": 33,
+    "hf_library": "ggml",
+    "hf_tags": [
+      "ggml",
+      "gguf",
+      "quantized",
+      "text-to-image",
+      "en",
+      "zh",
+      "arxiv:2508.02324",
+      "base_model:Qwen/Qwen-Image",
+      "base_model:quantized:Qwen/Qwen-Image",
+      "license:apache-2.0",
+      "region:us"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "unsloth/Qwen-Image-GGUF",
+        "provider": "unsloth"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "bartowski/microsoft_Phi-4-mini-instruct-GGUF",
+    "provider": "bartowski",
+    "parameter_count": "?",
+    "parameters_raw": 0,
+    "min_vram_gb": 0,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose text generation",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 78099,
+    "hf_likes": 48,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "text-generation",
+      "base_model:microsoft/Phi-4-mini-instruct",
+      "base_model:quantized:microsoft/Phi-4-mini-instruct",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "bartowski/microsoft_Phi-4-mini-instruct-GGUF",
+        "provider": "bartowski"
+      }
+    ],
+    "from_live": true
+  },
+  {
+    "name": "mradermacher/Huihui-Qwen3.5-9B-abliterated-GGUF",
+    "provider": "mradermacher",
+    "parameter_count": "9B",
+    "parameters_raw": 9,
+    "min_vram_gb": 7,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 77471,
+    "hf_likes": 48,
+    "hf_library": "transformers",
+    "hf_tags": [
+      "transformers",
+      "gguf",
+      "abliterated",
+      "uncensored",
+      "en",
+      "base_model:huihui-ai/Huihui-Qwen3.5-9B-abliterated",
+      "base_model:quantized:huihui-ai/Huihui-Qwen3.5-9B-abliterated",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "mradermacher/Huihui-Qwen3.5-9B-abliterated-GGUF",
+        "provider": "mradermacher"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 5.5,
+    "params_estimated": true
+  },
+  {
+    "name": "ggml-org/Qwen2.5-VL-3B-Instruct-GGUF",
+    "provider": "ggml-org",
+    "parameter_count": "3B",
+    "parameters_raw": 3,
+    "min_vram_gb": 3.3,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "text-generation",
+    "architecture": "",
+    "hf_downloads": 74977,
+    "hf_likes": 17,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "base_model:Qwen/Qwen2.5-VL-3B-Instruct",
+      "base_model:quantized:Qwen/Qwen2.5-VL-3B-Instruct",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "ggml-org/Qwen2.5-VL-3B-Instruct-GGUF",
+        "provider": "ggml-org"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 1.8,
+    "params_estimated": true
+  },
+  {
+    "name": "DavidAU/Qwen3.8-27B-TWIN-TURBO-Fable-Cold-Fusion-709-ULTRA-HERETIC-Uncensored-NM-DAU-NEO-MTP-GGUF",
+    "provider": "DavidAU",
+    "parameter_count": "27B",
+    "parameters_raw": 27,
+    "min_vram_gb": 18,
+    "recommended_ram_gb": 0,
+    "quantization": "Q4_K_M",
+    "format": "gguf",
+    "context_length": 0,
+    "use_case": "General purpose",
+    "capabilities": [],
+    "pipeline_tag": "image-text-to-text",
+    "architecture": "",
+    "hf_downloads": 72359,
+    "hf_likes": 75,
+    "hf_library": null,
+    "hf_tags": [
+      "gguf",
+      "unsloth",
+      "fine tune",
+      "heretic",
+      "uncensored",
+      "abliterated",
+      "ara",
+      "MTP GGUF Quants",
+      "Regular GGUF Quants",
+      "qwen3_8",
+      "qwen3_6",
+      "qwen3_5",
+      "multi-stage tuned",
+      "thinking",
+      "reasoning",
+      "all use cases",
+      "coder",
+      "creative",
+      "creative writing",
+      "all genres",
+      "story",
+      "writing",
+      "fiction",
+      "roleplaying",
+      "bfloat16",
+      "multi-stage-tune",
+      "multi-state-merge",
+      "image-text-to-text",
+      "en",
+      "zh",
+      "dataset:DavidAU/Polar-STRICT-Datasets",
+      "dataset:DavidAU/F451-STRICT-Datasets",
+      "dataset:DavidAU/THE-DECKARD-Datasets",
+      "base_model:DavidAU/Qwen3.8-27B-TWIN-TURBO-Fable-Cold-Fusion-709-ULTRA-HERETIC-Uncensored",
+      "base_model:quantized:DavidAU/Qwen3.8-27B-TWIN-TURBO-Fable-Cold-Fusion-709-ULTRA-HERETIC-Uncensored",
+      "license:apache-2.0",
+      "endpoints_compatible",
+      "region:us",
+      "imatrix",
+      "conversational"
+    ],
+    "release_date": null,
+    "gguf_sources": [
+      {
+        "repo": "DavidAU/Qwen3.8-27B-TWIN-TURBO-Fable-Cold-Fusion-709-ULTRA-HERETIC-Uncensored-NM-DAU-NEO-MTP-GGUF",
+        "provider": "DavidAU"
+      }
+    ],
+    "from_live": true,
+    "file_size_gb": 16.5,
+    "params_estimated": true
   }
 ]

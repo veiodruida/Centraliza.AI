@@ -311,7 +311,7 @@ export default function ModelTester() {
       className="flex flex-col lg:flex-row absolute inset-0 bg-[var(--bg-base)] overflow-hidden"
     >
       {/* Sidebar */}
-      <div className="w-full lg:w-[24rem] xl:w-[26rem] lg:border-r border-b lg:border-b-0 border-[var(--border)] flex flex-col p-4 md:p-6 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20 overflow-y-auto max-h-[40vh] lg:max-h-full custom-scrollbar">
+      <div className="w-full lg:w-[18rem] xl:w-[22rem] lg:border-r border-b lg:border-b-0 border-[var(--border)] flex flex-col p-4 md:p-6 bg-[var(--bg-surface)]/40 backdrop-blur-3xl shrink-0 z-20 overflow-y-auto max-h-[40vh] lg:max-h-full custom-scrollbar min-w-0">
         <h3 className="text-[var(--text-primary)] font-black text-[10px] md:text-xs uppercase tracking-widest mb-6 flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500 shadow-premium border border-blue-500/20">
              <Server size={14} />
@@ -428,21 +428,21 @@ export default function ModelTester() {
           )}
         </AnimatePresence>
 
-        <header className="h-20 md:h-28 border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6 md:px-10 xl:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium">
-           <div className="flex items-center gap-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-premium">
-                 <Bot size={32} />
+        <header className="h-20 md:h-28 border-b border-[var(--border)] flex items-center justify-between px-4 sm:px-6 md:px-10 xl:px-16 bg-[var(--bg-surface)]/60 backdrop-blur-3xl shrink-0 z-10 shadow-premium gap-4">
+           <div className="flex items-center gap-4 md:gap-8 min-w-0 flex-1">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-premium shrink-0">
+                 <Bot size={28} className="sm:w-8 sm:h-8" />
               </div>
-              <div className="hidden sm:block">
-                <div className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--text-primary)] truncate max-w-[12rem] sm:max-w-xs md:max-w-lg lg:max-w-2xl tracking-tighter leading-none mb-1 uppercase">{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
+              <div className="hidden sm:block min-w-0">
+                <div className="text-lg sm:text-xl md:text-2xl font-black text-[var(--text-primary)] truncate max-w-[10rem] sm:max-w-[12rem] md:max-w-[16rem] lg:max-w-2xl tracking-tighter leading-none mb-1 uppercase" title={selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}>{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
                  <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
-                    <span className="text-xs text-emerald-500 font-black uppercase tracking-widest">{engine} engine active</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)] shrink-0"></span>
+                    <span className="text-xs text-emerald-500 font-black uppercase tracking-widest truncate" title={`${engine} engine active`}>{engine} engine active</span>
                  </div>
               </div>
            </div>
            
-           <div className="flex gap-4">
+           <div className="flex gap-4 shrink-0">
               <button 
                 onClick={() => setMessages([{ role: 'assistant', content: t('chat_welcome') }])} 
                 className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all border border-[var(--border)] active:scale-90 shadow-lg group"
@@ -516,7 +516,7 @@ export default function ModelTester() {
                 </div>
 
                 <div className="xl:col-span-2 flex flex-col min-w-0">
-                  <div className="grid grid-cols-2 gap-8 mb-8 p-6 bg-purple-500/5 border border-purple-500/20 rounded-[2rem]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 p-6 bg-purple-500/5 border border-purple-500/20 rounded-[2rem]">
                     <div>
                       <div className="flex justify-between items-center mb-4">
                         <label className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-2"><Zap size={14} /> Context Size</label>

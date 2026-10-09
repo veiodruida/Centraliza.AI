@@ -386,22 +386,22 @@ export default function MyModels() {
                   className={`bg-[var(--bg-surface)]/80 border border-[var(--border)] rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-premium backdrop-blur-3xl group transition-all duration-200 ${isDragTarget ? 'ring-2 ring-blue-500/60 border-blue-500/40 scale-[1.004] shadow-2xl' : ''}`}
                 >
                   <header 
-                    className="flex items-center justify-between p-4 sm:p-6 md:p-8 lg:p-12 cursor-pointer hover:bg-blue-600/5 transition-all"
+                    className="flex flex-wrap items-center justify-between p-4 sm:p-6 md:p-8 lg:p-12 cursor-pointer hover:bg-blue-600/5 transition-all gap-4"
                     onClick={() => toggleSection(source)}
                   >
-                     <div className="flex items-center gap-10">
-                        <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-2xl transition-all duration-700 ${isExpanded ? 'scale-110 rotate-3 shadow-blue-500/40' : 'scale-90 opacity-40 grayscale'} ${source === 'Ollama' ? 'bg-gradient-to-br from-blue-600 to-blue-400' : source === 'ComfyUI' ? 'bg-gradient-to-br from-purple-600 to-pink-500' : 'bg-gradient-to-br from-slate-800 to-slate-600'}`}>
-                          <Box size={36} />
+                     <div className="flex items-center gap-4 sm:gap-10 min-w-0 flex-1 flex-wrap">
+                        <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-2xl transition-all duration-700 shrink-0 ${isExpanded ? 'scale-110 rotate-3 shadow-blue-500/40' : 'scale-90 opacity-40 grayscale'} ${source === 'Ollama' ? 'bg-gradient-to-br from-blue-600 to-blue-400' : source === 'ComfyUI' ? 'bg-gradient-to-br from-purple-600 to-pink-500' : 'bg-gradient-to-br from-slate-800 to-slate-600'}`}>
+                           <Box size={36} />
                         </div>
-                        <div>
-                           <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase">{source}</h3>
+                        <div className="min-w-0">
+                           <h3 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase break-words min-w-0">{source}</h3>
                            <div className="flex items-center gap-3 mt-1">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                              <p className="text-xs text-[var(--text-muted)] font-black uppercase tracking-widest">{items.length} MODELS DETECTED</p>
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                              <p className="text-xs text-[var(--text-muted)] font-black uppercase tracking-widest break-words">{items.length} MODELS DETECTED</p>
                            </div>
                         </div>
                      </div>
-                     <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-3 shrink-0">
                         <div
                           data-drag-handle
                           draggable
@@ -444,11 +444,11 @@ export default function MyModels() {
                                     <ExternalLink size={20} className="text-blue-500" />
                                  </div>
                                  
-                                 <div className="mb-8 flex justify-between items-start">
-                                    <div className={`p-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)] text-blue-500`}>
+                                 <div className="mb-8 flex justify-between items-start gap-4 flex-wrap min-w-0">
+                                    <div className={`p-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)] text-blue-500 shrink-0`}>
                                       <Terminal size={20} />
                                     </div>
-                                    <span className={`text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest border shadow-sm ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
+                                    <span className={`text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest border shadow-sm break-words ${m.isSymlink ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
                                        {m.isSymlink ? 'Centralized' : 'Local Only'}
                                     </span>
                                  </div>
@@ -460,12 +460,12 @@ export default function MyModels() {
                                     <p className="text-sm md:text-base font-mono break-all font-bold text-[var(--text-primary)] leading-relaxed">{m.path}</p>
                                  </div>
                                  
-                                 <div className="flex justify-between items-end mt-auto gap-4">
-                                    <div className="flex flex-col gap-1">
+                                 <div className="flex justify-between items-end mt-auto gap-4 flex-wrap min-w-0">
+                                    <div className="flex flex-col gap-1 min-w-0">
                                        <span className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Storage</span>
-                                       <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter">{formatSize(m.size)}</span>
+                                       <span className="text-2xl font-black text-[var(--text-primary)] tracking-tighter break-words min-w-0">{formatSize(m.size)}</span>
                                     </div>
-                                    <div className="flex gap-3 relative z-10">
+                                    <div className="flex gap-3 relative z-10 shrink-0">
                                        <button 
                                         onClick={(e) => { e.stopPropagation(); handleOpenFolder(m.path); }} 
                                         className="w-12 h-12 bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-blue-500 rounded-2xl border border-[var(--border)] flex items-center justify-center transition-all hover:shadow-lg active:scale-90"

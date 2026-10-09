@@ -480,13 +480,13 @@ export default function Coder() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Cérebro (IA Local) */}
                 <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl relative overflow-hidden flex flex-col group">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <Box size={28} className="text-purple-500 group-hover:rotate-12 transition-transform" />
-                            <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Cérebro (IA Local)</h2>
+                    <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <Box size={28} className="text-purple-500 group-hover:rotate-12 transition-transform shrink-0" />
+                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">Cérebro (IA Local)</h2>
                         </div>
                         {needsEngine && (
-                            <button onClick={() => setShowSettings(!showSettings)} className={`p-2.5 rounded-xl transition-colors border active:scale-95 ${showSettings ? 'bg-blue-600 text-white border-blue-500' : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border-[var(--border)]'}`} title="Configurações do Motor">
+                            <button onClick={() => setShowSettings(!showSettings)} className={`p-2.5 rounded-xl transition-colors border active:scale-95 shrink-0 ${showSettings ? 'bg-blue-600 text-white border-blue-500' : 'bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border-[var(--border)]'}`} title="Configurações do Motor">
                                 <Settings2 size={18} />
                             </button>
                         )}
@@ -736,16 +736,16 @@ export default function Coder() {
                 <div className="space-y-8">
                     {/* Agente CLI */}
                     <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl flex flex-col relative group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <Terminal size={28} className="text-blue-500 group-hover:-translate-y-1 transition-transform" />
-                                <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Agente CLI</h2>
+                        <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <Terminal size={28} className="text-blue-500 group-hover:-translate-y-1 transition-transform shrink-0" />
+                                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">Agente CLI</h2>
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 {coderStatus.installed ? (
                                     <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 border border-emerald-500/20">
-                                        <CheckCircle2 size={14} />
-                                        {t('coder_status_installed' as any, { version: coderStatus.version })}
+                                        <CheckCircle2 size={14} className="shrink-0" />
+                                        <span className="truncate max-w-[14rem]">{t('coder_status_installed' as any, { version: coderStatus.version })}</span>
                                     </span>
                                 ) : (
                                     <span className="px-4 py-1.5 bg-[var(--bg-input)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest rounded-full border border-[var(--border)]">
@@ -771,28 +771,28 @@ export default function Coder() {
 
                     {/* DeepSeek Harness (Agente) */}
                     <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl flex flex-col relative group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <Terminal size={28} className="text-purple-500 group-hover:-translate-y-1 transition-transform" />
-                                <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">DeepSeek Harness (Agente)</h2>
-                            </div>
-                            <div className="flex gap-2">
-                                <span className="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-purple-500/20 flex items-center gap-2">
-                                    <CheckCircle2 size={14} />
-                                    Modelo Local ({llamaArgList.find(p => p.arg === '--alias')?.value || 'qwen'})
-                                </span>
-                                {dshStatus.dshRunning ? (
-                                    <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 border border-emerald-500/20">
-                                        <CheckCircle2 size={14} />
-                                        Em execução ({dshStatus.url})
-                                    </span>
-                                ) : (
-                                    <span className="px-3 py-1.5 bg-[var(--bg-input)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest rounded-full border border-[var(--border)]">
-                                        Parado
-                                    </span>
-                                )}
-                            </div>
+                        <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <Terminal size={28} className="text-purple-500 group-hover:-translate-y-1 transition-transform shrink-0" />
+                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">DeepSeek Harness (Agente)</h2>
                         </div>
+                        <div className="flex flex-wrap gap-2 justify-end">
+                            <span className="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-purple-500/20 flex items-center gap-2">
+                                <CheckCircle2 size={14} className="shrink-0" />
+                                <span className="truncate max-w-[12rem]">Modelo Local ({llamaArgList.find(p => p.arg === '--alias')?.value || 'qwen'})</span>
+                            </span>
+                            {dshStatus.dshRunning ? (
+                                <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 border border-emerald-500/20">
+                                    <CheckCircle2 size={14} className="shrink-0" />
+                                    <span className="truncate max-w-[16rem]">Em execução ({dshStatus.url})</span>
+                                </span>
+                            ) : (
+                                <span className="px-3 py-1.5 bg-[var(--bg-input)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest rounded-full border border-[var(--border)]">
+                                    Parado
+                                </span>
+                            )}
+                        </div>
+                    </div>
 
                         <p className="text-[var(--text-secondary)] leading-relaxed mb-8">
                             <span className="text-purple-500 font-bold">Agente</span> do DeepSeek Harness usando o seu modelo local do Centraliza Coder.

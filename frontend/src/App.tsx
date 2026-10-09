@@ -52,7 +52,7 @@ function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
       </AnimatePresence>
       
       <motion.aside 
-        className={`fixed lg:static inset-y-0 left-0 w-72 bg-[var(--bg-surface)] border-r border-[var(--border)] flex flex-col shrink-0 z-[110] shadow-2xl transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed lg:static inset-y-0 left-0 w-72 lg:w-64 xl:w-72 2xl:w-80 bg-[var(--bg-surface)] border-r border-[var(--border)] flex flex-col shrink-0 z-[110] shadow-2xl transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="p-8 flex items-center justify-between">
           <div className="flex flex-col">
@@ -141,37 +141,37 @@ function Dashboard() {
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-12">
-         <div className="card-premium p-6 sm:p-8 md:p-10 lg:p-16 flex flex-col justify-between overflow-hidden relative group">
+         <div className="card-premium p-6 sm:p-8 md:p-10 lg:p-16 flex flex-col justify-between overflow-hidden relative group min-w-0">
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity"><HardDrive size={240} /></div>
-            <div className="relative z-10 flex items-center justify-between mb-12">
-               <div className="flex flex-col">
+            <div className="relative z-10 flex items-center justify-between mb-12 gap-4 flex-wrap min-w-0">
+               <div className="flex flex-col min-w-0">
                   <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{t('dash_diskAnalysis')}</span>
-                  <span className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase">Local Storage</span>
+                  <span className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase break-words min-w-0">Local Storage</span>
                </div>
-               <div className="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10">Real-time Stream</div>
+               <div className="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10 shrink-0">Real-time Stream</div>
             </div>
-            <div className="relative z-10 h-80">
+            <div className="relative z-10 h-80 min-w-0">
                <DiskUsageGraph />
             </div>
          </div>
 
-         <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8 md:p-12 lg:p-16 flex flex-col justify-center shadow-premium relative overflow-hidden group">
+         <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8 md:p-12 lg:p-16 flex flex-col justify-center shadow-premium relative overflow-hidden group min-w-0">
             <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
             <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
             
-            <div className="relative z-10 space-y-8">
-               <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white tracking-tighter leading-[0.9] uppercase">
+            <div className="relative z-10 space-y-8 min-w-0">
+               <h3 className="heading-fluid font-black text-white tracking-tighter uppercase">
                  {t('dash_deploy')}
                </h3>
-               <div className="space-y-6">
-                 <p className="text-blue-100 text-base md:text-lg xl:text-xl leading-relaxed font-bold">
+               <div className="space-y-6 min-w-0">
+                 <p className="text-blue-100 text-base md:text-lg xl:text-xl leading-relaxed font-bold break-words">
                    {t('dash_deployDesc')}
                  </p>
-                 <p className="text-blue-200/60 text-base md:text-lg leading-relaxed font-medium italic border-l-4 border-blue-500/30 pl-6">
+                 <p className="text-blue-200/60 text-base md:text-lg leading-relaxed font-medium italic border-l-4 border-blue-500/30 pl-6 break-words">
                    {t('dash_purposeDetail')}
                  </p>
                </div>
-               <div className="flex flex-wrap gap-6 pt-4">
+               <div className="flex flex-wrap gap-6 pt-4 min-w-0">
                  <Link to="/explore" className="btn-premium bg-white text-blue-900 hover:bg-blue-50 flex items-center gap-4 w-fit px-6 sm:px-8 md:px-10 py-4 md:py-5 shadow-2xl">
                     {t('dash_openHub')} <ArrowRight size={18} />
                  </Link>
@@ -186,38 +186,38 @@ function Dashboard() {
       {/* Benefits Section */}
       <section className="space-y-12">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase">{t('dash_benefitTitle')}</h2>
+          <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase break-words">{t('dash_benefitTitle')}</h2>
           <div className="w-20 h-1 bg-blue-600 mx-auto rounded-full" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
           {[1, 2, 3].map(i => (
-            <div key={i} className="card-premium p-6 md:p-10 space-y-4 md:space-y-6 hover:translate-y-[-8px] transition-transform">
+            <div key={i} className="card-premium p-6 md:p-10 space-y-4 md:space-y-6 hover:translate-y-[-8px] transition-transform min-w-0">
               <div className="w-14 h-14 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-500">
                 {i === 1 ? <Zap size={28} /> : i === 2 ? <Box size={28} /> : <Info size={28} />}
               </div>
-              <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{t(`dash_benefit${i}` as any)}</h3>
-              <p className="text-[var(--text-secondary)] text-lg leading-relaxed opacity-80">{t(`dash_benefit${i}Desc` as any)}</p>
+              <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words">{t(`dash_benefit${i}` as any)}</h3>
+              <p className="text-[var(--text-secondary)] text-lg leading-relaxed opacity-80 break-words">{t(`dash_benefit${i}Desc` as any)}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Tutorial Section */}
-      <section className="bg-[var(--bg-input)]/30 rounded-[2rem] md:rounded-[3.5rem] p-6 sm:p-8 md:p-12 lg:p-20 border border-[var(--border)] relative overflow-hidden">
+      <section className="bg-[var(--bg-input)]/30 rounded-[2rem] md:rounded-[3.5rem] p-6 sm:p-8 md:p-12 lg:p-20 border border-[var(--border)] relative overflow-hidden min-w-0">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full" />
-        <h2 className="text-2xl md:text-3xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase mb-8 md:mb-16 flex items-center gap-4 md:gap-6">
+        <h2 className="heading-fluid font-black text-[var(--text-primary)] tracking-tighter uppercase mb-8 md:mb-16 flex items-center gap-4 md:gap-6">
           <Terminal size={32} className="text-blue-500 shrink-0" />
-          {t('dash_tutorialTitle')}
+          <span className="min-w-0">{t('dash_tutorialTitle')}</span>
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12 relative">
           <div className="absolute hidden lg:block top-10 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-blue-500/0" />
           {[1, 2, 3].map(i => (
-            <div key={i} className="relative space-y-6">
+            <div key={i} className="relative space-y-6 min-w-0">
               <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-xl shadow-xl shadow-blue-600/20 z-10 relative">
                 {i}
               </div>
-              <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{t(`dash_step${i}` as any)}</h3>
-              <p className="text-[var(--text-secondary)] text-lg leading-relaxed opacity-80">{t(`dash_step${i}Desc` as any)}</p>
+              <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words">{t(`dash_step${i}` as any)}</h3>
+              <p className="text-[var(--text-secondary)] text-lg leading-relaxed opacity-80 break-words">{t(`dash_step${i}Desc` as any)}</p>
             </div>
           ))}
         </div>
@@ -225,15 +225,15 @@ function Dashboard() {
 
       {/* FAQ Section */}
       <section className="max-w-4xl mx-auto space-y-12 pb-10">
-        <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase text-center">{t('dash_faqTitle')}</h2>
+        <h2 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tighter uppercase text-center break-words">{t('dash_faqTitle')}</h2>
         <div className="space-y-6">
           {[1, 2].map(i => (
-            <div key={i} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[1.5rem] md:rounded-[2rem] p-5 sm:p-6 md:p-8 lg:p-12 space-y-4 hover:border-blue-500/30 transition-colors">
-              <h4 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-4">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <div key={i} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[1.5rem] md:rounded-[2rem] p-5 sm:p-6 md:p-8 lg:p-12 space-y-4 hover:border-blue-500/30 transition-colors min-w-0">
+              <h4 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-4 break-words">
+                <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                 {t(`dash_faqQ${i}` as any)}
               </h4>
-              <p className="text-[var(--text-secondary)] text-lg leading-relaxed pl-6 border-l-2 border-[var(--border)]">{t(`dash_faqA${i}` as any)}</p>
+              <p className="text-[var(--text-secondary)] text-lg leading-relaxed pl-6 border-l-2 border-[var(--border)] break-words">{t(`dash_faqA${i}` as any)}</p>
             </div>
           ))}
         </div>
@@ -249,22 +249,22 @@ function AppContent() {
 
   return (
     <ToastProvider>
-      <div className={`flex h-screen bg-[var(--bg-base)] text-[var(--text-primary)] overflow-hidden font-sans selection:bg-blue-500/30 antialiased`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className={`flex h-dvh bg-[var(--bg-base)] text-[var(--text-primary)] overflow-hidden font-sans selection:bg-blue-500/30 antialiased min-w-0`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
         
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[var(--bg-base)] flex flex-col relative no-scrollbar">
+        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden bg-[var(--bg-base)] flex flex-col relative no-scrollbar">
           {/* Mobile Header */}
           <header className="lg:hidden flex items-center justify-between p-6 bg-[var(--bg-surface)]/80 border-b border-[var(--border)] sticky top-0 z-[100] backdrop-blur-3xl">
-             <h1 className="text-2xl font-black tracking-tighter bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 bg-clip-text text-transparent">Centraliza.ai</h1>
+             <h1 className="text-2xl font-black tracking-tighter bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 bg-clip-text text-transparent min-w-0 truncate">Centraliza.ai</h1>
              <button 
                onClick={() => setIsMobileMenuOpen(true)}
-               className="p-3 bg-[var(--bg-input)] rounded-2xl border border-[var(--border)] text-[var(--text-primary)] active:scale-90 transition-all shadow-xl"
+               className="p-3 bg-[var(--bg-input)] rounded-2xl border border-[var(--border)] text-[var(--text-primary)] active:scale-90 transition-all shadow-xl shrink-0"
              >
                <Menu size={20} />
              </button>
           </header>
 
-          <div className="flex-1">
+          <div className="flex-1 relative min-w-0 min-h-0">
             <AnimatePresence mode="wait">
               <Routes location={location} key={location.pathname}>
                 <Route path="/" element={<Dashboard />} />

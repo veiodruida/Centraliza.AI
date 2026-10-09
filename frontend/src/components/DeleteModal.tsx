@@ -53,7 +53,7 @@ export default function DeleteModal({ isOpen, models, onClose, onConfirm, initia
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-slate-900 border border-slate-800 rounded-lg p-2 max-w-full shadow-xl animate-in scale-100 duration-200">
+      <div className="relative bg-slate-900 border border-slate-800 rounded-lg p-2 max-w-full w-[min(94vw,34rem)] max-h-[90vh] overflow-y-auto shadow-xl animate-in scale-100 duration-200">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 p-1 text-xs text-slate-300 hover:text-white transition-colors"
