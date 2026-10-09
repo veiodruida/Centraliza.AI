@@ -32,10 +32,10 @@ export default function HelpTooltip({ text }: HelpTooltipProps) {
       
       {show && createPortal(
         <div 
-          className="fixed w-64 p-5 bg-[var(--bg-surface)]/95 backdrop-blur-2xl border border-[var(--border)] rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[99999] animate-in fade-in zoom-in-95 duration-300 pointer-events-none"
+          className="fixed w-64 max-w-[calc(100vw-2rem)] p-5 bg-[var(--bg-surface)]/95 backdrop-blur-2xl border border-[var(--border)] rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[99999] animate-in fade-in zoom-in-95 duration-300 pointer-events-none"
           style={{
             top: coords.top - 16,
-            left: coords.left,
+            left: `clamp(8rem, ${coords.left}px, calc(100vw - 8rem))`,
             transform: 'translate(-50%, -100%)'
           }}
         >

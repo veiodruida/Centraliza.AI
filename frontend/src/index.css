@@ -66,9 +66,10 @@
 
 @layer components {
   .btn-premium {
-    @apply relative overflow-hidden px-6 py-4 md:px-8 md:py-5 rounded-2xl font-black text-[11px] md:text-xs uppercase tracking-wider transition-all active:scale-95 shadow-xl hover:shadow-blue-500/20 hover:-translate-y-0.5 flex items-center justify-center gap-3 shrink-0;
+    @apply relative overflow-hidden px-6 py-4 md:px-8 md:py-5 rounded-2xl font-black text-[11px] md:text-xs uppercase tracking-wider transition-all active:scale-95 shadow-xl hover:shadow-blue-500/20 hover:-translate-y-0.5 flex items-center justify-center gap-3;
     flex-wrap: wrap;
-    min-width: max-content;
+    min-width: 0;
+    max-width: 100%;
   }
 
   @media (max-width: 400px) {
@@ -81,6 +82,33 @@
 
   .card-premium {
     @apply bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2.5rem] p-6 md:p-10 shadow-premium hover:border-blue-500/30 transition-all duration-500 backdrop-blur-xl;
+  }
+
+  /* Fluid big numbers: always shrink to fit the card, never clipped */
+  .num-fluid {
+    font-size: clamp(1.75rem, 4.5vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .num-fluid-hero {
+    font-size: clamp(2rem, 8vw, 7rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* Fluid section headings */
+  .heading-fluid {
+    font-size: clamp(1.5rem, 4.5vw, 3.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .text-glow {

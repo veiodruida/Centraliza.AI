@@ -34,6 +34,19 @@ Sliders respect the model's real limits: GPU layers are capped at the model's ac
 
 ---
 
+## 📱 Responsive & Cross-Resolution UI (v0.4.1)
+
+The entire dashboard is now **proof against window resizes and screen resolutions** — every page adapts from 360px (mobile) up to 2560px (large monitors) with nothing clipped:
+
+- **Big numbers never cut off**: on the Hardware and Centralization pages, VRAM/RAM/storage values use fluid typography (`clamp()`) — they shrink to fit narrow cards and grow on large screens, always fully visible.
+- **Dynamic root layout**: `100dvh` height (correct on mobile browsers), adaptive sidebar (`lg:64 · xl:72 · 2xl:80`), and `min-width: 0` on the main content so nothing overflows.
+- **Model Hub reordered**: the search/filters/sort toolbar only sits in a single row from `2xl` up; below that it stacks with `flex-wrap` (the 1280px filter-bar overflow is gone).
+- **Chat (ModelTester)**: narrower sidebar at `lg` and an overflow-free chat header at 1024px; model names get a `title` tooltip when truncated.
+- **Resilient headers, cards, buttons and modals**: section headers wrap, badges ellipsize, `.btn-premium` no longer enforces a rigid `min-width`, the delete modal is width-limited with scroll, and help tooltips never leave the viewport.
+- **Automated regression testing** with Playwright lives in `scripts/` (`resp-scan`, `resp-verify`, `resp-resize`, `resp-debug`, `final-shots`).
+
+---
+
 ## 🛠️ Installation & Setup
 
 ### Requirements
@@ -100,7 +113,7 @@ Three-layer design, all served from a single process on **port 4000**:
 | Layer | Technology |
 | :--- | :--- |
 | **Backend** | Node.js + Express + Socket.io |
-| **Frontend** | React 18 + Vite + TypeScript |
+| **Frontend** | React 19 + Vite + TypeScript |
 | **Styling** | Tailwind CSS + CSS variables (glassmorphic design system) |
 | **Realtime** | Socket.io (download progress, UI sync) |
 | **Storage** | NTFS hardlinks / symlinks (fallback) |
@@ -167,6 +180,8 @@ npm test
 
 - **6 server tests** — GGUF parser (synthetic + local file), endpoint validation, system-info and models.
 - **7 estimation engine tests** — context classification, KV cache, recommendations and warnings.
+- **1 frontend smoke test** — component renders.
+- **Responsiveness suite (Playwright)** — `scripts/resp-scan.mjs` / `resp-verify.mjs` / `resp-resize.mjs`: 9 pages × 13 viewports plus live resize cycles, asserting zero horizontal overflow, zero clipped numbers and zero clipped text without a tooltip.
 
 ---
 
@@ -174,6 +189,7 @@ npm test
 
 - [Architecture](documentation/ARCHITECTURE.md) — technical reference, API surface, caching and operational rules
 - [Development Guide](documentation/DEVELOPMENT_GUIDE.md) — contributor guide
+- [Release Notes v0.4.1](RELEASE_NOTES_v0.4.1.md) — what's new in the responsive release
 - [Release Notes v0.4.0](RELEASE_NOTES_v0.4.0.md) — what's new in the hardware-aware release
 
 ---
