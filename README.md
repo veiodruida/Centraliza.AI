@@ -1,81 +1,74 @@
-# 🌌 Centraliza.ai - The Ultimate Local AI Orchestrator
+# 🌌 Centraliza.ai — The Ultimate Local AI Orchestrator
 
-**Centraliza.ai** é um dashboard premium para unificar o teu ecossistema de IA local — **LM Studio**, **Ollama**, **ComfyUI** e **Llama.cpp** — gerindo modelos sem redundância de disco.
+![Centraliza.ai](centraliza_hero.png)
 
----
+**Centraliza.ai** is a premium dashboard that unifies your local AI ecosystem — **LM Studio**, **Ollama**, **ComfyUI**, **Llama.cpp** and **Hugging Face** — into a single control center, managing models with **zero disk duplication**.
 
-## 📦 Notas da Versão v0.4.0 — Configuração Inteligente de Hardware
-
-> Comparação com a versão anterior (**v0.3.1**).
-
-### ✨ Novidades
-
-- **Painel "Impacto no Hardware"** (novo): ao ajustar **Context Size** e **GPU Layers**, o painel mostra em tempo real — com base no teu hardware real (VRAM, RAM, GPU) e nos metadados do modelo:
-  - **Velocidade estimada** (tokens/segundo) com classificação (Muito rápido / Bom / Lento / Muito lento);
-  - **Memória**: VRAM e RAM usadas vs. disponíveis (pesos do modelo + cache KV do contexto);
-  - **Adequação do contexto**: Chat rápido · Uso geral/Programação · Programação/Documentos · Documentos longos/RAG · Contexto extremo (1M);
-  - **Avisos** quando a configuração estoura a VRAM/RAM, excede o máximo do modelo ou fica demasiado lenta;
-  - **Recomendação automática** de contexto + camadas GPU para o teu hardware, com botão **Aplicar**.
-- **Leitura de metadados GGUF** (novo endpoint `/api/gguf/meta`): nº real de camadas, contexto máximo, arquitetura e quantização de cada modelo local — a base de todas as estimativas.
-- **Sliders com limites reais do modelo**: as camadas GPU limitam-se ao nº real de camadas do modelo e o contexto vai até ao **máximo suportado (até 1M tokens)**.
-- **Contexto grande a funcionar de verdade**: o VRAM Shield do gateway passa a respeitar o contexto que alocas ao motor nativo (antes limitava a 32K mesmo com contexto maior escolhido).
-- **Atualização ao vivo com destaque**: os valores "acendem" sempre que mudam, tornando visível o recálculo automático ao arrastar os sliders.
-
-### 🛠️ Melhorias
-
-- Legibilidade reforçada no painel de impacto (textos maiores e com mais contraste).
-- Servidor aceita `PORT` por variável de ambiente (ex.: `PORT=4001 node server.js`).
-- `/api/system-info` mais robusto (fallback gracioso quando o `nvidia-smi` não está disponível).
-
-### 🧪 Testes
-
-- **6 testes do servidor**: parser GGUF (sintético + ficheiro local), validação do endpoint, system-info e models.
-- **7 testes do motor de estimativa**: classificação de contexto, cache KV, recomendações e avisos.
-
-### 🔁 Comparação rápida v0.3.1 → v0.4.0
-
-| Área | v0.3.1 | v0.4.0 |
-| :--- | :--- | :--- |
-| Contexto máximo no seletor | 131 072 (128K) fixo | **até 1M** (limitado ao máximo real do modelo) |
-| Camadas GPU | 0–99 arbitrário | **0–nº real de camadas do modelo** |
-| Feedback de desempenho | nenhum | **t/s estimado + classificação em tempo real** |
-| Memória prevista | nenhuma | **VRAM/RAM (pesos + cache KV) com barras** |
-| Recomendação de hardware | nenhuma | **automática + botão "Aplicar"** |
-| Contexto no gateway | limitado a 32K (VRAM Shield) | **respeita o contexto alocado ao motor nativo** |
-| Metadados do modelo | só tamanho do ficheiro | **GGUF: camadas, contexto máx., quantização** |
+> **100% local.** Your data, models, and conversations never leave your machine.
 
 ---
 
-## 🚀 Key Features
+## ✨ Key Features
 
-- **Smart Link Technology**: Share models across different engines (LM Studio <-> Ollama) without duplicating files. Save hundreds of GBs.
-- **One-Click Launch**: Start Ollama, Llama.cpp, or ComfyUI environments directly from one unified dashboard.
-- **Hardware Intelligence**: Real-time VRAM telemetry, hardware-specific model recommendations and an **Impact Panel** that estimates speed and memory before you load a model.
-- **Privacy First**: 100% local. Your data, models, and conversations never leave your machine.
+- **Smart Link Technology** — Share models across different engines (LM Studio ↔ Ollama, ComfyUI, Llama.cpp) using NTFS hardlinks (with symlink fallback). No more duplicated files: save **hundreds of GBs** of disk space.
+- **One-Click Launch** — Start Ollama, Llama.cpp, ComfyUI or LM Studio environments directly from one unified dashboard.
+- **Hardware Intelligence** — Real-time VRAM/GPU telemetry, hardware-specific model recommendations, and an **Impact Panel** that estimates speed and memory *before* you load a model.
+- **GGUF Metadata Reader** — Reads real layer counts, maximum context, architecture and quantization straight from each local model file.
+- **Large Context Support** — Context windows up to **1M tokens** (limited to what the model actually supports), respected end-to-end by the gateway's VRAM Shield.
+- **Document Analysis** — Map-Reduce analysis for large documents with intelligent context summarization and VRAM-aware compaction.
+- **Privacy First** — Everything runs locally. No cloud dependencies for core functionality.
+
+---
+
+## 🧠 Hardware Impact Panel (v0.4.0)
+
+When you adjust **Context Size** or **GPU Layers**, the Impact Panel recalculates in real time, based on your actual hardware (VRAM, RAM, GPU) and the model's GGUF metadata:
+
+- **Estimated speed** (tokens/second) with rating (Very fast / Good / Slow / Very slow);
+- **Memory forecast**: VRAM and RAM used vs. available (model weights + KV cache);
+- **Context fit**: Quick chat · General/Programming · Programming/Documents · Long documents/RAG · Extreme context (1M);
+- **Warnings** when the configuration exceeds VRAM/RAM, goes past the model's maximum, or becomes too slow;
+- **Automatic recommendation** of context + GPU layers for your hardware, with an **Apply** button.
+
+Sliders respect the model's real limits: GPU layers are capped at the model's actual layer count and context extends to the model's real maximum (up to 1M tokens).
 
 ---
 
 ## 🛠️ Installation & Setup
 
-### 1. Automated Setup (instalação completa)
+### Requirements
+
+- **Node.js** (18+ recommended)
+- **Windows** (10/11) — the project uses `.bat` launchers, PowerShell pickers and `nvidia-smi` telemetry
+- At least one AI engine installed: [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), [ComfyUI](https://github.com/comfyanonymous/ComfyUI), or [Llama.cpp](https://github.com/ggml-org/llama.cpp)
+
+### 1. Automated Setup
+
 Run the setup script to install everything in one go:
-`bash
+
+```bat
 .\setup.bat
-`
-O **setup.bat** faz tudo de forma consolidada:
-1. Verifica o Node.js;
-2. Instala as dependências do Root e do Frontend;
-3. Compila a interface (build);
-4. Adiciona o comando `central` ao PATH do utilizador;
-5. **Cria o atalho "Centraliza.ai" no Ambiente de Trabalho** (aponta para o `start.bat`).
+```
+
+`setup.bat` handles the full installation:
+
+1. Verifies Node.js;
+2. Installs root and frontend dependencies;
+3. Builds the frontend (`dist/`);
+4. Adds the `central` command to the user PATH;
+5. Creates a **"Centraliza.ai" desktop shortcut** (pointing to `start.bat`).
 
 ### 2. Quick Start
-Depois de instalado, podes iniciar a aplicação de qualquer uma destas formas (equivalentes):
-- **Atalho "Centraliza.ai"** no Ambiente de Trabalho;
-- comando `central` (após reabrir o terminal);
-- `.\start.bat` a partir da raiz.
 
-O **start.bat** é o lançador único: encerra qualquer instância anterior na porta 4000, abre o dashboard no browser e inicia o servidor (fechar a janela do servidor para parar a aplicação).
+After installing, launch the app any of these equivalent ways:
+
+- The **"Centraliza.ai"** desktop shortcut;
+- The `central` command (after reopening your terminal);
+- `.\start.bat` from the project root.
+
+`start.bat` is the single launcher: it kills any previous instance on port 4000, opens the dashboard in your browser, and starts the server (close the server window to stop the app).
+
+> 💡 Tip: the server port can be overridden with the `PORT` environment variable, e.g. `PORT=4001 node server.js`.
 
 ---
 
@@ -83,22 +76,111 @@ O **start.bat** é o lançador único: encerra qualquer instância anterior na p
 
 | Command | Action |
 | :--- | :--- |
-| central | Launches the Centraliza.ai Dashboard (equivale ao start.bat) |
-| .\setup.bat | Instala dependências, compila, configura o PATH e cria o atalho no Ambiente de Trabalho |
-| .\start.bat | Lançador único: inicia o servidor e abre o dashboard |
-| .\start_app.bat | Alias de compatibilidade do start.bat |
-| .\create-shortcut.ps1 | (Re)cria o atalho "Centraliza.ai" no Ambiente de Trabalho |
+| `central` | Launches the Centraliza.ai dashboard (equivalent to `start.bat`) |
+| `.\setup.bat` | Installs dependencies, builds, configures PATH and creates the desktop shortcut |
+| `.\start.bat` | Single launcher: starts the server and opens the dashboard |
+| `.\start_app.bat` | Compatibility alias for `start.bat` |
+| `.\create-shortcut.ps1` | (Re)creates the "Centraliza.ai" desktop shortcut |
+| `npm test` | Runs the test suite (server + estimation engine) |
+
+---
+
+## 🏗️ Architecture
+
+Three-layer design, all served from a single process on **port 4000**:
+
+| Layer | Role |
+| :--- | :--- |
+| **Scan Engine** | Recursively scans configured directories (`.gguf`, `.safetensors`, `.ckpt`, `.bin`, `.pt`, `.pth`), resolves Ollama manifest hashes into readable names, and returns a normalized model list. |
+| **Centralization Engine** | Creates NTFS **hardlinks** (`fs.link`) with symlink fallback (`fs.symlink`), validating via inode or `size + mtime` comparison. Destination: `{centralDir}/Centraliza.ai/{modelBaseName}/{fileName}`. |
+| **Orchestration Engine** | Launches and manages inference: `ollama run`, `llama-cli`/`llama-server` with configurable args (threads, GPU layers, context), ComfyUI via `run_nvidia_gpu.bat`, LM Studio via `lms.exe`, plus a transparent chat proxy to `localhost:11434/api/generate`. |
+
+### Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Backend** | Node.js + Express + Socket.io |
+| **Frontend** | React 18 + Vite + TypeScript |
+| **Styling** | Tailwind CSS + CSS variables (glassmorphic design system) |
+| **Realtime** | Socket.io (download progress, UI sync) |
+| **Storage** | NTFS hardlinks / symlinks (fallback) |
+| **Charts** | Recharts (disk usage graphs) |
+| **i18n** | Custom reactive engine — 11 languages + RTL (Arabic) |
+
+### API Overview (selected endpoints)
+
+| Route | Method | Description |
+| :--- | :--- | :--- |
+| `/api/models` | GET | List all detected models (10s cache) |
+| `/api/system-info` | GET | CPU/RAM/GPU/VRAM telemetry |
+| `/api/gguf/meta` | GET | GGUF metadata: layers, max context, architecture, quantization |
+| `/api/system/disk` | GET | Disk usage and central folder size |
+| `/api/registry` | GET | Local Hugging Face catalog |
+| `/api/centralize` | POST | Create a hardlink for a model |
+| `/api/download` | POST | Start a model download (`ollama pull`) |
+| `/api/launch` | POST | Launch an inference engine |
+| `/api/chat` | POST | Proxy chat to a local model |
+| `/api/auto-detect` | POST | Auto-detect AI installation paths |
+| `/api/models/rename` / `/api/models/move` | POST | Rename / move a model on the filesystem |
+| `/api/models/sanity-check` | POST | Clean up broken hardlinks |
+| `/api/models` | DELETE | Remove a model (Ollama RM + unlink) |
+
+See [documentation/ARCHITECTURE.md](documentation/ARCHITECTURE.md) for the full API surface, caching rules, WebSocket events and operational guidelines.
 
 ---
 
 ## 📂 Project Structure
 
-- **/frontend**: React + Vite dashboard with modern UI.
-  - **src/components/ConfigImpact.tsx**: painel "Impacto no Hardware" (recomendação, velocidade, memória).
-  - **src/utils/configAdvisor.ts**: motor de estimativa (t/s, VRAM/RAM, contexto) e recomendação.
-  - **src/utils/useGGUFMeta.ts**: hook de carregamento dos metadados GGUF.
-- **/server.js**: gateway + parser GGUF (`/api/gguf/meta`) + API de hardware (`/api/system-info`).
-- **/scripts**: automação e scripts de verificação (Playwright, exec-compat).
+```
+Centraliza.AI/
+├── server.js                  # Express + Socket.io backend (port 4000)
+├── config.json                # Configuration persistence (gitignored)
+├── package.json               # Backend dependencies
+├── setup.bat                  # Zero-config installer
+├── start.bat / start_app.bat  # Launchers
+├── central.bat                # Global `central` command
+├── picker.ps1                 # Native folder picker (PowerShell -sta)
+├── centraliza_hero.png        # Hero image
+├── data/
+│   ├── hf_models.json         # Local Hugging Face catalog
+│   └── models.json            # Detected models index
+├── frontend/                  # React + Vite + TypeScript dashboard
+│   └── src/
+│       ├── App.tsx            # Router + Dashboard + Sidebar
+│       ├── pages/             # MyModels, ExploreStore, HardwareLab, Centralization, Extensions, Settings…
+│       ├── components/        # Impact Panel, DiskUsageGraph, DownloadTracker, SlashCommands…
+│       ├── context/           # AppContext (global state + i18n)
+│       └── i18n/              # Translations (11 languages + RTL)
+├── documentation/
+│   ├── ARCHITECTURE.md        # System architecture reference
+│   └── DEVELOPMENT_GUIDE.md   # Development guide
+└── screenshots/               # UI screenshots
+```
+
+---
+
+## 🧪 Tests
+
+```bat
+npm test
+```
+
+- **6 server tests** — GGUF parser (synthetic + local file), endpoint validation, system-info and models.
+- **7 estimation engine tests** — context classification, KV cache, recommendations and warnings.
+
+---
+
+## 🧭 Further Reading
+
+- [Architecture](documentation/ARCHITECTURE.md) — technical reference, API surface, caching and operational rules
+- [Development Guide](documentation/DEVELOPMENT_GUIDE.md) — contributor guide
+- [Release Notes v0.4.0](RELEASE_NOTES_v0.4.0.md) — what's new in the hardware-aware release
+
+---
+
+## 📄 License
+
+ISC
 
 ---
 
