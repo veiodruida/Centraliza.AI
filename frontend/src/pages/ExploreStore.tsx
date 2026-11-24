@@ -34,6 +34,10 @@ interface RegistryModel {
   quantization?: string;
   context_length?: number;
   from_live?: boolean;
+  // Subcategorias calculadas pelo backend (RF-003)
+  is_abliterated?: boolean;
+  is_uncensored?: boolean;
+  flavors?: string[];
 }
 
 interface HfGgufFile {
@@ -220,7 +224,22 @@ export default function ExploreStore() {
     };
   }, []);
 
-  const filters = ['All', 'Chat', 'Coding', 'Image', 'Reasoning', 'Vision'];
+  // Subcategorias de primeira classe (RF-002): Abliterated e Uncensored.
+  const filters = ['All', 'Chat', 'Coding', 'Image', 'Reasoning', 'Vision', 'Abliterated', 'Uncensored'];
+
+  const filterLabel = (f: string) => {
+    const map: Record<string, string> = {
+      All: 'hub_filterAll', Chat: 'hub_filterChat', Coding: 'hub_filterCoding',
+      Image: 'hub_filterImage', Reasoning: 'hub_filterReasoning', Vision: 'hub_filterVision',
+      Abliterated: 'hub_abliterated', Uncensored: 'hub_uncensored'
+    };
+    return t((map[f] || f) as any);
+  };
+
+  const flavorCounts = useMemo(() => ({
+    abliterated: registry.filter((m: any) => m.is_abliterated).length,
+    uncensored: registry.filter((m: any) => m.is_uncensored).length
+  }), [registry]);
 
   // --- Filtros no estilo HuggingFace (Tasks / Libraries / Apps / Inference Providers / Hardware / Parameters) ---
   const LIBRARY_TAGS = ['transformers', 'pytorch', 'tensorflow', 'jax', 'diffusers', 'gguf', 'mlx', 'safetensors', 'keras', 'flax', 'onnx', 'openvino', 'ctranslate2', 'spacy', 'allennlp', 'sentence-transformers', 'timm', 'fastai', 'peft', 'tokenizers', 'accelerate', 'bitsandbytes'];
@@ -424,7 +443,11 @@ export default function ExploreStore() {
         const tag = m.pipeline_tag?.toLowerCase() || '';
         const useCase = (m.use_case || '').toLowerCase();
         const name = m.name.toLowerCase();
-        
+
+        // Subcategorias Abliterated/Uncensored (RF-002/RF-003)
+        if (f === 'abliterated') return !!m.is_abliterated;
+        if (f === 'uncensored') return !!m.is_uncensored;
+
         if (f === 'chat') return useCase.includes('chat') || tag.includes('generation') || name.includes('chat');
         if (f === 'coding') return useCase.includes('coding') || useCase.includes('programming') || name.includes('code') || name.includes('coder');
         if (f === 'image') return tag.includes('image') || tag.includes('diffusion') || name.includes('diffusion') || name.includes('sdxl');
@@ -690,59 +713,105 @@ export default function ExploreStore() {
           </div>
         </div>
 
-        <div className="flex flex-col 2xl:flex-row gap-8 items-stretch 2xl:items-center flex-wrap">
-          <div className="relative flex-1 group min-w-0">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" size={20} />
-            <input 
-              type="text" 
+        <div className="flex flex-col gap-5 md:gap-6">
+          {/* Campo de busca corrigido (RF-001): largura generosa (≥40%), texto
+              a partir de 16px, caret visível e sem corte horizontal. */}
+          <div className="relative group min-w-0 w-full max-w-4xl">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none" size={20} />
+            <input
+              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('hub_search')} 
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-3 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-sm md:text-base text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all shadow-xl font-medium min-w-0"
+              placeholder={t('hub_search')}
+              aria-label={t('hub_search')}
+              autoComplete="off"
+              spellCheck={false}
+              className="w-full min-h-[3.5rem] bg-[var(--bg-surface)] border border-[var(--border)] rounded-[2rem] py-4 md:py-5 pl-14 md:pl-16 pr-6 md:pr-8 text-base md:text-lg leading-normal text-[var(--text-primary)] caret-blue-500 placeholder:text-[var(--text-secondary)] placeholder:opacity-80 focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-500/50 transition-all shadow-xl font-medium min-w-0 truncate"
             />
           </div>
-          
-          <div className="grid grid-cols-2 sm:flex sm:flex-row bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full 2xl:w-fit gap-2 flex-wrap">
-            {filters.map(f => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-4 2xl:px-8 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
-                  activeFilter === f ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="px-4 py-2 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all bg-[var(--primary)] text-white hover:bg-blue-600/90 disabled:opacity-50"
-              title="Atualizar catálogo do HuggingFace"
-            >
-              {refreshing ? '...' : 'Atualizar'}
-            </button>
-          </div>
-          {refreshMsg && (
-            <p className="text-xs font-black text-blue-500 uppercase tracking-widest text-center w-full">{refreshMsg}</p>
-          )}
 
-          <div className="grid grid-cols-1 sm:flex sm:flex-row items-center gap-2 bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full 2xl:w-fit flex-wrap">
-             {(['Best Fit', 'Popular', 'Newest'] as SortOption[]).map(s => (
-                <button
-                 key={s}
-                 onClick={() => setActiveSort(s)}
-                 className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-4 2xl:px-6 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
-                   activeSort === s ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-lg' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                 }`}
-                >
-                  {s === 'Popular' && <TrendingUp size={14} className="shrink-0" />}
-                  {s === 'Newest' && <Clock size={14} className="shrink-0" />}
-                  {s === 'Best Fit' && <Zap size={14} className="shrink-0" />}
-                  <span className="truncate">{s}</span>
-                </button>
-             ))}
+          <div className="flex flex-col xl:flex-row xl:items-center gap-4 md:gap-6 flex-wrap">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full xl:w-fit gap-2 flex-wrap">
+              {filters.map(f => {
+                const isFlavor = f === 'Abliterated' || f === 'Uncensored';
+                const count = f === 'Abliterated' ? flavorCounts.abliterated : f === 'Uncensored' ? flavorCounts.uncensored : null;
+                const active = activeFilter === f;
+                return (
+                  <button
+                    key={f}
+                    onClick={() => setActiveFilter(f)}
+                    title={f === 'Abliterated' ? t('hub_abliteratedHelp') : f === 'Uncensored' ? t('hub_uncensoredHelp') : filterLabel(f)}
+                    className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-4 2xl:px-6 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all active:scale-95 flex-1 sm:flex-none justify-center flex items-center gap-2 ${
+                      active
+                        ? isFlavor
+                          ? 'bg-violet-600 text-white shadow-xl shadow-violet-600/30'
+                          : 'bg-blue-600 text-white shadow-xl shadow-blue-600/30'
+                        : isFlavor
+                          ? 'text-violet-400/90 hover:text-violet-300 bg-violet-500/5 border border-violet-500/20'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <span className="truncate">{filterLabel(f)}</span>
+                    {count !== null && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${active ? 'bg-white/20' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'}`}>{count}</span>
+                    )}
+                  </button>
+                );
+              })}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="px-4 py-2 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all bg-[var(--primary)] text-white hover:bg-blue-600/90 disabled:opacity-50"
+                title="Atualizar catálogo do HuggingFace"
+              >
+                {refreshing ? '...' : 'Atualizar'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:flex sm:flex-row items-center gap-2 bg-[var(--bg-input)] p-2 rounded-[2rem] border border-[var(--border)] shadow-inner w-full xl:w-fit flex-wrap">
+               {(['Best Fit', 'Popular', 'Newest'] as SortOption[]).map(s => (
+                  <button
+                   key={s}
+                   onClick={() => setActiveSort(s)}
+                   className={`px-3 py-2.5 md:px-5 md:py-3 xl:px-4 2xl:px-6 rounded-[1.5rem] text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 flex-1 sm:flex-none justify-center ${
+                     activeSort === s ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-lg' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                   }`}
+                  >
+                    {s === 'Popular' && <TrendingUp size={14} className="shrink-0" />}
+                    {s === 'Newest' && <Clock size={14} className="shrink-0" />}
+                    {s === 'Best Fit' && <Zap size={14} className="shrink-0" />}
+                    <span className="truncate">{s}</span>
+                  </button>
+               ))}
+            </div>
+
+            {refreshMsg && (
+              <p className="text-xs font-black text-blue-500 uppercase tracking-widest">{refreshMsg}</p>
+            )}
           </div>
+        </div>
+
+        {/* Contador de resultados e filtros ativos (RF-002) */}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <span className="text-xs md:text-sm font-black text-[var(--text-secondary)] uppercase tracking-widest">
+            {t('hub_resultsCount', { count: filteredModels.length })}
+          </span>
+          {activeFilter !== 'All' && (
+            <button
+              onClick={() => setActiveFilter('All')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
+            >
+              {filterLabel(activeFilter)} <X size={11} />
+            </button>
+          )}
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+            >
+              “{search}” <X size={11} />
+            </button>
+          )}
         </div>
 
         {/* Filtros estilo HuggingFace */}
@@ -895,7 +964,18 @@ export default function ExploreStore() {
                   <span className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">{model.parameter_count}</span>
                 </div>
                 <h4 className="text-xl md:text-2xl lg:text-3xl font-black text-[var(--text-primary)] mb-4 group-hover:text-blue-500 transition-colors tracking-tighter uppercase break-words line-clamp-3">{model.name.split('/').pop()}</h4>
-                <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-8 line-clamp-2 opacity-70">{model.use_case}</p>
+                <p className="text-[var(--text-secondary)] text-base font-medium leading-relaxed mb-4 line-clamp-2 opacity-70">{model.use_case}</p>
+
+                {((model as any).is_abliterated || (model as any).is_uncensored) && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {(model as any).is_abliterated && (
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-violet-500/10 text-violet-300 border border-violet-500/20">Abliterated</span>
+                    )}
+                    {(model as any).is_uncensored && (
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-300 border border-amber-500/20">Uncensored</span>
+                    )}
+                  </div>
+                )}
                 
                 <div className="flex gap-4 mb-8 flex-wrap min-w-0">
                    <div className="bg-[var(--bg-surface)] px-4 py-2 rounded-2xl border border-[var(--border)] flex items-center gap-3 shadow-inner shrink-0">
@@ -1067,7 +1147,7 @@ export default function ExploreStore() {
             </>
           ) : (
             <div className="text-center py-16 text-[var(--text-muted)] font-black uppercase tracking-widest text-xs">
-              Nenhum modelo encontrado para "{search}"
+              {t('hub_noResults', { query: search })}
             </div>
           )}
         </div>
@@ -1322,7 +1402,7 @@ export default function ExploreStore() {
       </AnimatePresence>
 
       <section className="card-premium bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-base)] p-6 sm:p-10 md:p-16 lg:p-24 text-center shadow-premium relative overflow-hidden group">
-         <div className="absolute -top-32 -right-32 w-[35rem] h-[35rem] bg-blue-600/5 blur-[150px] rounded-full group-hover:scale-125 transition-all duration-1000" />
+         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.10),transparent_60%)] pointer-events-none" />
          <div className="w-24 h-24 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 text-blue-500 shadow-premium group-hover:rotate-12 transition-transform duration-700">
             <Monitor size={48} />
          </div>

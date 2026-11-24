@@ -8,9 +8,23 @@ const { promisify } = require('util');
 const { exec, spawn } = require('child_process');
 const checkDiskSpace = require('check-disk-space').default;
 
+// --- MÓDULOS v0.5.0 (hub, armazenamento, motores, extensões, atualizações) ---
+const { tagModel } = require('./backend/flavor');
+const { summarizeModels } = require('./backend/storage');
+const { createEngineManager } = require('./backend/engines');
+const { createExtensions } = require('./backend/extensions');
+const { createUpdater } = require('./backend/updater');
+
 // --- LOGGING SYSTEM ---
 const LOG_FILE = path.join(__dirname, 'server.log');
 const logClients = new Set();
+// Referência ao Socket.io criado mais abaixo (usada pelo sistema de logs antes
+// de o servidor HTTP existir).
+let ioRef = null;
+// Buffer circular dos últimos logs — permite ao painel do Test & Chat mostrar
+// o histórico imediatamente ao abrir a página (RF-024).
+const LOG_RING = [];
+const LOG_RING_MAX = 400;
 
 const DEBUG_PAYLOAD_FILE = path.join(__dirname, 'debug_payload.log');
 const logDebugPayload = (label, data) => {
@@ -21,10 +35,18 @@ const logDebugPayload = (label, data) => {
 };
 
 const broadcastLog = (level, msg) => {
-    const logEntry = JSON.stringify({ level, msg, time: new Date().toISOString() });
+    const time = new Date().toISOString();
+    const text = typeof msg === 'string' ? msg : String(msg);
+    LOG_RING.push({ level, msg: text, time });
+    if (LOG_RING.length > LOG_RING_MAX) LOG_RING.splice(0, LOG_RING.length - LOG_RING_MAX);
+    const logEntry = JSON.stringify({ level, msg: text, time });
     logClients.forEach(client => {
         if (!client.writableEnded) client.write(`data: ${logEntry}\n\n`);
     });
+    // Streaming em tempo real para o painel de logs (RF-024).
+    if (ioRef) {
+        try { ioRef.emit('server-log', { level, msg: text, time }); } catch (e) {}
+    }
 };
 
 const logger = {
@@ -175,7 +197,17 @@ let config = {
     llamaCppArgs: '-t $physicalCores --flash-attn auto -ctk q4_0 -ctv q4_0 -b 2048 -ub 1024 --host 0.0.0.0 --port 8080 --alias qwen',
     // Forma estruturada dos parâmetros (checkboxes da UI): [{ arg, value, enabled }].
     // Preenchida automaticamente a partir de llamaCppArgs na migração abaixo.
-    llamaCppArgsList: null
+    llamaCppArgsList: null,
+    // Preferência persistida: mostrar sempre os logs do servidor no Test & Chat (RF-023).
+    showServerLogs: false,
+    // Portas usadas pela deteção automática de motores (RF-020).
+    ollamaPort: 11434,
+    lmStudioPort: 1234,
+    comfyPort: 8188,
+    // Modelo por defeito do agente DeepSeek (Modo A — "Iniciar Motor").
+    coderAgentModel: null,
+    // Auto-atualização da aplicação (RF-034).
+    updates: { enabled: true, manifestUrl: '', githubRepo: '', intervalHours: 24, autoApply: true }
 };
 if (fs.existsSync(CONFIG_FILE)) {
     try { config = { ...config, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) }; } catch (e) { logger.error('Failed to read config', e); }
@@ -185,6 +217,12 @@ if (fs.existsSync(CONFIG_FILE)) {
 if (!Array.isArray(config.llamaCppArgsList) && typeof config.llamaCppArgs === 'string') {
     config.llamaCppArgsList = parseArgsToList(config.llamaCppArgs);
 }
+// Migração v0.5.0: preferências novas têm de sobreviver a configs antigas.
+config.updates = { enabled: true, manifestUrl: '', githubRepo: '', intervalHours: 24, autoApply: true, ...(config.updates || {}) };
+if (typeof config.showServerLogs !== 'boolean') config.showServerLogs = false;
+if (!config.ollamaPort) config.ollamaPort = 11434;
+if (!config.lmStudioPort) config.lmStudioPort = 1234;
+if (!config.comfyPort) config.comfyPort = 8188;
 if (!fs.existsSync(config.centralDir)) fs.mkdirSync(config.centralDir, { recursive: true });
 function saveConfig() { 
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); 
@@ -477,6 +515,8 @@ app.get('/api/registry', (req, res) => {
     if (fs.existsSync(registryPath)) {
         let registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
         registry.unshift({ name: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B", provider: "DeepSeek", parameter_count: "8B", min_vram_gb: 5.5, use_case: "Reasoning, Coding", pipeline_tag: "text-generation", hf_downloads: 15000000 });
+        // Subcategorias Abliterated/Uncensored calculadas na leitura (RF-003).
+        registry = registry.map(tagModel);
         cache.set('registry', registry, 60000 * 30); // 30 min cache
         res.json(registry);
     } else res.status(404).json({ error: 'Registry not found' });
@@ -545,7 +585,7 @@ app.get('/api/registry/refresh', async (req, res) => {
         }
 
         // Backfill: entradas sem metadados (0 GB / '?') ganham estimativas reais a partir do nome
-        const merged = Array.from(byName.values()).map(enrichModelEntry);
+        const merged = Array.from(byName.values()).map(enrichModelEntry).map(tagModel);
         fs.writeFileSync(registryPath, JSON.stringify(merged, null, 2), 'utf8');
         cache.set('registry', merged, 60000 * 60); // 1 hora cache
         res.json({ success: true, total: merged.length, added, message: 'Catálogo atualizado do HuggingFace' });
@@ -573,7 +613,7 @@ app.post('/api/registry/add', (req, res) => {
     }
 
     const org = name.split('/')[0] || 'Community';
-    registry.push(enrichModelEntry({
+    registry.push(tagModel(enrichModelEntry({
         name,
         provider: org,
         parameter_count: '?',
@@ -594,7 +634,7 @@ app.post('/api/registry/add', (req, res) => {
         release_date: null,
         gguf_sources: has_gguf ? [{ repo: name, provider: org }] : [],
         from_live: true
-    }));
+    })));
 
     try {
         fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2), 'utf8');
@@ -619,7 +659,7 @@ app.get('/api/search/hf', async (req, res) => {
         const url = `https://huggingface.co/api/models?search=${encodeURIComponent(q)}&sort=downloads&direction=-1&limit=${limit}&full=false`;
         const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
         const data = await r.json();
-        const normalized = (Array.isArray(data) ? data : []).map(m => ({
+        const normalized = (Array.isArray(data) ? data : []).map(m => tagModel({
             id: m.id || m.modelId || '',
             name: m.id || m.modelId || '',
             provider: (m.id || m.modelId || '').split('/')[0],
@@ -627,6 +667,7 @@ app.get('/api/search/hf', async (req, res) => {
             hf_downloads: m.downloads || 0,
             hf_likes: m.likes || 0,
             has_gguf: (m.tags || []).includes('gguf'),
+            hf_tags: Array.isArray(m.tags) ? m.tags : [],
             updated_at: m.lastModified || null
         }));
         cache.set(cacheKey, normalized, 60000 * 5);
@@ -720,6 +761,8 @@ app.get('/api/models/hf/detail', async (req, res) => {
             description: readme || '',
             hf_url: `https://huggingface.co/${repo}`
         };
+        // Subcategorias Abliterated/Uncensored do modelo em detalhe (RF-003).
+        tagModel(detail);
 
         cache.set(cacheKey, detail, 60000 * 60);
         res.json(detail);
@@ -990,66 +1033,77 @@ app.get('/api/gguf/meta', (req, res) => {
     res.json(meta);
 });
 
+/**
+ * Lista normalizada de modelos locais (cache de 10 s). Reutilizada por
+ * /api/models, pelo resumo de armazenamento e pelo estado do Coder.
+ */
+async function getModelsList() {
+    let deduped = cache.get('models-list');
+    if (deduped) return deduped;
+
+    const modelsList = [];
+    const ollamaMap = await getOllamaMap();
+    for (const dir of config.scanDirectories) if (fs.existsSync(dir)) await scanDirectory(dir, modelsList, ollamaMap);
+
+    const seenOllamaTags = new Set();
+    const seenInodes = new Set();   // deduplicate hardlinks by inode
+    const seenPaths = new Set();
+    deduped = [];
+    for (const m of modelsList) {
+        if (m.ollamaTag) {
+            if (seenOllamaTags.has(m.ollamaTag)) continue;
+            seenOllamaTags.add(m.ollamaTag);
+        } else {
+            if (seenPaths.has(m.path)) continue;
+            seenPaths.add(m.path);
+            // If inode already seen, this is a hardlink duplicate — prefer the
+            // entry from the provider directory (scanned first), skip this one.
+            if (m.inode && seenInodes.has(m.inode)) continue;
+            if (m.inode) seenInodes.add(m.inode);
+        }
+
+        // --- Auto-Classificação de Capacidades ---
+        const nameForCheck = (m.ollamaTag || m.name || '').toLowerCase();
+
+        // Excluir modelos de raciocínio puro (DeepSeek-R1) que não suportam tools
+        const isReasoner = nameForCheck.includes('-r1') || nameForCheck.includes('deepseek-r1') || nameForCheck.includes('reasoning');
+
+        // Heurística aprimorada para focar APENAS em modelos com capacidade de Tool Calling/Agentes
+        const isCapableCoder = (nameForCheck.includes('coder') ||
+                               (nameForCheck.includes('deepseek') && !isReasoner) ||
+                               nameForCheck.includes('qwen') ||
+                               nameForCheck.includes('llama-3') ||
+                               nameForCheck.includes('phind') ||
+                               nameForCheck.includes('mistral') ||
+                               nameForCheck.includes('mixtral')) && !isReasoner;
+
+        m.isCoder = isCapableCoder && m.source !== 'ComfyUI' &&
+                    !nameForCheck.includes('embed') &&
+                    !nameForCheck.includes('tts') &&
+                    !nameForCheck.includes('whisper') &&
+                    !nameForCheck.includes('sdxl') &&
+                    !nameForCheck.includes('flux');
+
+        // Modelos Multimodais (Visão)
+        m.hasVision = nameForCheck.includes('vision') || nameForCheck.includes('llava') ||
+                      nameForCheck.includes('pixtral') || nameForCheck.includes('minicpm-v') ||
+                      nameForCheck.includes('vl');
+
+        // Subcategorias Abliterated/Uncensored (RF-002/RF-003)
+        tagModel(m);
+
+        deduped.push(m);
+    }
+    cache.set('models-list', deduped, 10000); // 10s cache
+    return deduped;
+}
+
 app.get('/api/models', async (req, res) => {
     const { filter } = req.query;
-    let deduped = cache.get('models-list');
-
-    if (!deduped) {
-        const modelsList = [];
-        const ollamaMap = await getOllamaMap();
-        for (const dir of config.scanDirectories) if (fs.existsSync(dir)) await scanDirectory(dir, modelsList, ollamaMap);
-
-        const seenOllamaTags = new Set();
-        const seenInodes = new Set();   // deduplicate hardlinks by inode
-        const seenPaths = new Set();
-        deduped = [];
-        for (const m of modelsList) {
-            if (m.ollamaTag) {
-                if (seenOllamaTags.has(m.ollamaTag)) continue;
-                seenOllamaTags.add(m.ollamaTag);
-            } else {
-                if (seenPaths.has(m.path)) continue;
-                seenPaths.add(m.path);
-                // If inode already seen, this is a hardlink duplicate — prefer the
-                // entry from the provider directory (scanned first), skip this one.
-                if (m.inode && seenInodes.has(m.inode)) continue;
-                if (m.inode) seenInodes.add(m.inode);
-            }
-
-            // --- Auto-Classificação de Capacidades ---
-            const nameForCheck = (m.ollamaTag || m.name || '').toLowerCase();
-            
-            // Excluir modelos de raciocínio puro (DeepSeek-R1) que não suportam tools
-            const isReasoner = nameForCheck.includes('-r1') || nameForCheck.includes('deepseek-r1') || nameForCheck.includes('reasoning');
-
-            // Heurística aprimorada para focar APENAS em modelos com capacidade de Tool Calling/Agentes
-            const isCapableCoder = (nameForCheck.includes('coder') || 
-                                   (nameForCheck.includes('deepseek') && !isReasoner) || 
-                                   nameForCheck.includes('qwen') || 
-                                   nameForCheck.includes('llama-3') || 
-                                   nameForCheck.includes('phind') ||
-                                   nameForCheck.includes('mistral') ||
-                                   nameForCheck.includes('mixtral')) && !isReasoner;
-
-            m.isCoder = isCapableCoder && m.source !== 'ComfyUI' && 
-                        !nameForCheck.includes('embed') &&
-                        !nameForCheck.includes('tts') &&
-                        !nameForCheck.includes('whisper') &&
-                        !nameForCheck.includes('sdxl') &&
-                        !nameForCheck.includes('flux');
-
-            // Modelos Multimodais (Visão)
-            m.hasVision = nameForCheck.includes('vision') || nameForCheck.includes('llava') || 
-                          nameForCheck.includes('pixtral') || nameForCheck.includes('minicpm-v') ||
-                          nameForCheck.includes('vl');
-
-            deduped.push(m);
-        }
-        cache.set('models-list', deduped, 10000); // 10s cache
-    }
-
+    const deduped = await getModelsList();
     if (filter === 'coder') return res.json(deduped.filter(m => m.isCoder));
-
+    if (filter === 'abliterated') return res.json(deduped.filter(m => m.is_abliterated));
+    if (filter === 'uncensored') return res.json(deduped.filter(m => m.is_uncensored));
     res.json(deduped);
 });
 
@@ -1141,10 +1195,27 @@ app.post('/v1/chat/completions', async (req, res) => {
 
     let targetModel = model;
     if (model === 'centraliza-router') {
-        if (!config.activeRouterModel) {
-            return res.status(400).json({ error: 'Centraliza.AI: Nenhum modelo foi selecionado para o roteador. Por favor, abra o Dashboard e selecione um modelo na aba "Coder".' });
+        let routerModel = config.activeRouterModel;
+        if (!routerModel) {
+            // Descoberta automática (RF-045): usa o modelo que o motor local serve.
+            try {
+                const modelsRes = await fetch(`http://127.0.0.1:${llamaEnginePort()}/v1/models`, { signal: AbortSignal.timeout(1200) });
+                if (modelsRes.ok) {
+                    const data = await modelsRes.json();
+                    routerModel = (data && Array.isArray(data.data) && data.data[0] && data.data[0].id) || null;
+                }
+            } catch (e) { /* sem motor local */ }
         }
-        targetModel = config.activeRouterModel;
+        if (!routerModel) {
+            return res.status(400).json({
+                error: {
+                    message: 'Centraliza.AI: Nenhum modelo ativo para o roteador "centraliza-router".\nAbra a página Centraliza Coder, clique em "Iniciar Motor" (ou escolha um modelo no seletor) e tente novamente.',
+                    type: 'invalid_request_error',
+                    code: 'no_active_model'
+                }
+            });
+        }
+        targetModel = routerModel;
     }
 
     // Default to Ollama's Native OpenAI compatible endpoint instead of legacy /api/chat
@@ -1153,11 +1224,23 @@ app.post('/v1/chat/completions', async (req, res) => {
         targetEndpoint = 'http://127.0.0.1:11434/v1/chat/completions';
     }
 
+    const isLocalGguf = targetModel.includes(path.sep) || targetModel.includes('/') || targetModel.toLowerCase().endsWith('.gguf');
+    const llamaRunning = !!(await httpGetOk(`http://127.0.0.1:${llamaEnginePort()}/health`, 900));
+    const servedModels = llamaRunning ? await llamaServedModels() : [];
+    const llamaServesTarget = llamaRunning && (targetModel === llamaAlias() || servedModels.includes(targetModel));
+
     if (activeLlamaProcess && targetModel === currentLlamaModel) {
         targetEndpoint = `http://127.0.0.1:${currentLlamaPort}/v1/chat/completions`;
-    } else if (targetModel.includes(path.sep) || targetModel.includes('/') || targetModel.toLowerCase().endsWith('.gguf')) {
-        return res.status(400).json({ 
-            error: `Centraliza.AI: O motor de IA não está a correr para este modelo local.\nPor favor, inicie o motor usando o botão "Iniciar Motor" na aba do Centraliza Coder.` 
+    } else if (llamaServesTarget || (isLocalGguf && llamaRunning)) {
+        // Motor llama.cpp (gerido pela app ou lançado externamente) serve este modelo.
+        targetEndpoint = `http://127.0.0.1:${llamaEnginePort()}/v1/chat/completions`;
+    } else if (isLocalGguf) {
+        return res.status(400).json({
+            error: {
+                message: 'Centraliza.AI: O motor de IA não está a correr para este modelo local.\nClique em "Iniciar Motor" na página Centraliza Coder e tente novamente.',
+                type: 'invalid_request_error',
+                code: 'engine_offline'
+            }
         });
     }
 
@@ -1321,6 +1404,11 @@ app.post('/v1/chat/completions', async (req, res) => {
         model: targetModel,
         messages: finalMessages
     };
+    // O llama.cpp expõe o modelo pelo alias configurado (--alias), não pelo path:
+    // usa o id realmente servido para evitar rejeições do motor.
+    if (servedModels.length && targetEndpoint.includes(`:${llamaEnginePort()}`)) {
+        finalPayload.model = servedModels[0];
+    }
     
     // Se o cliente (ex: Roo Code) já fornecer as suas próprias tools, NÃO INJETAMOS o web search.
     // Isso previne confusão no Agente Autónomo e protege a fluidez do Streaming (SSE).
@@ -1968,9 +2056,14 @@ app.get('/api/inference/pick-binary', async (req, res) => {
     res.json({ path: candidate, exists: fs.existsSync(candidate), folder: result.path });
 });
 
-app.post('/api/inference/start', async (req, res) => {
-    const { modelPath, ngl = 0, ctx = 2048, reasoningBudget = 2048, binary, extraArgs, argList } = req.body;
-    if (!modelPath) return res.status(400).json({ error: 'Missing model path.' });
+/**
+ * Arranca o motor llama.cpp com um modelo. Reutilizado pelo endpoint HTTP, pelo
+ * gestor de motores (/api/engines/start) e pelo agente DeepSeek do Coder.
+ * Devolve { success, port, message } ou { success:false, error, status }.
+ */
+async function startLlamaEngine(options = {}) {
+    const { modelPath, ngl = 0, ctx = 2048, binary, extraArgs, argList } = options;
+    if (!modelPath) return { success: false, error: 'Missing model path.', status: 400 };
 
     // Aceita binário/args vindos da UI e persiste-os em config.json
     if (typeof binary === 'string' && binary.trim()) config.llamaCppBinary = binary.trim();
@@ -1989,16 +2082,15 @@ app.post('/api/inference/start', async (req, res) => {
     const bin = resolveLlamaBinary();
     const binExists = llamaBinaryExists();
     if (binExists === false) {
-        return res.status(400).json({ error: `Binário do llama.cpp não encontrado em: ${bin}. Verifique o caminho nas configurações do motor (Centraliza Coder → ⚙).` });
+        return { success: false, status: 400, error: `Binário do llama.cpp não encontrado em: ${bin}. Verifique o caminho nas configurações do motor (Centraliza Coder → ⚙).` };
     }
 
     if (activeLlamaProcess) {
         // Se o mesmo modelo e contexto já estão a correr, apenas informa
         if (currentLlamaModel === modelPath && currentLlamaCtx === ctx) {
-             logger.info('[Llama.cpp] Engine already running with this model and ctx.');
-             return res.json({ success: true, port: currentLlamaPort, message: 'Engine already running.' });
+            logger.info('[Llama.cpp] Engine already running with this model and ctx.');
+            return { success: true, port: currentLlamaPort, message: 'Engine already running.' };
         }
-
         logger.info('[Llama.cpp] Terminating old engine to load new model or context size.');
         await killActiveLlama(bin);
         activeLlamaProcess = null;
@@ -2024,6 +2116,13 @@ app.post('/api/inference/start', async (req, res) => {
         currentLlamaModel = modelPath;
         currentLlamaCtx = ctx;
 
+        // O modelo arrancado passa a ser o modelo do gateway (centraliza-router),
+        // para que as extensões (Continue/Roo) funcionem sem configuração extra.
+        if (modelPath.toLowerCase().endsWith('.gguf') && config.activeRouterModel !== modelPath) {
+            config.activeRouterModel = modelPath;
+            saveConfig();
+        }
+
         proc.on('close', () => {
             logger.info('[Llama.cpp] Engine stopped.');
             if (activeLlamaProcess && activeLlamaProcess.pid === proc.pid) {
@@ -2033,36 +2132,45 @@ app.post('/api/inference/start', async (req, res) => {
             }
         });
 
-        // Wait up to 60 seconds for the server to be responsive
-        let attempts = 0;
-        const maxAttempts = 30; // 30 * 2000ms = 60s
-        const checkHealth = async () => {
-             attempts++;
-             try {
-                 const healthRes = await import('node-fetch').then(({default: fetch}) => fetch(`http://127.0.0.1:${currentLlamaPort}/health`));
-                 const healthData = await healthRes.json();
-                 if (healthData.status === 'ok') {
-                      logger.info('[Llama.cpp] Engine is fully loaded and ready.');
-                      return res.json({ success: true, port: currentLlamaPort, message: 'Engine running.' });
-                 }
-                 throw new Error('Loading model');
-             } catch (err) {
+        // Espera até 60 s por /health == ok (modelo carregado)
+        const ready = await new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = 30; // 30 * 2000ms = 60s
+            const checkHealth = async () => {
+                 attempts++;
+                 try {
+                     const healthRes = await fetch(`http://127.0.0.1:${currentLlamaPort}/health`, { signal: AbortSignal.timeout(3000) });
+                     const healthData = await healthRes.json();
+                     if (healthData.status === 'ok') {
+                          logger.info('[Llama.cpp] Engine is fully loaded and ready.');
+                          return resolve(true);
+                     }
+                 } catch (err) { /* ainda a carregar */ }
                  if (attempts >= maxAttempts) {
                      logger.error('[Llama.cpp] Engine startup timeout.');
-                     return res.status(500).json({ error: 'Engine startup timeout. The model might be too large or took too long to load.' });
+                     return resolve(false);
                  }
-                 if (!activeLlamaProcess) return res.status(500).json({ error: 'Engine crashed during startup.' });
+                 if (!activeLlamaProcess) return resolve(false);
                  setTimeout(checkHealth, 2000);
-             }
-        };
+            };
+            setTimeout(checkHealth, 1500);
+        });
 
-        // Delay the first check to give spawn time
-        setTimeout(checkHealth, 1500);
-
+        if (!ready) {
+            if (!activeLlamaProcess) return { success: false, status: 500, error: 'Engine crashed during startup.' };
+            return { success: false, status: 500, error: 'Engine startup timeout. The model might be too large or took too long to load.' };
+        }
+        return { success: true, port: currentLlamaPort, message: 'Engine running.' };
     } catch (e) {
         logger.error('Failed to start llama-server', e);
-        res.status(500).json({ error: 'Failed to start engine: ' + e.message });
+        return { success: false, status: 500, error: 'Failed to start engine: ' + e.message };
     }
+}
+
+app.post('/api/inference/start', async (req, res) => {
+    const result = await startLlamaEngine(req.body || {});
+    if (!result.success) return res.status(result.status || 500).json({ error: result.error });
+    res.json(result);
 });
 
 app.post('/api/inference/stop', async (req, res) => {
@@ -2078,6 +2186,86 @@ app.post('/api/inference/stop', async (req, res) => {
 
 app.get('/api/inference/status', (req, res) => {
     res.json({ running: !!activeLlamaProcess, port: currentLlamaPort, model: currentLlamaModel, ctx: currentLlamaCtx });
+});
+
+// --- GESTOR DE MOTORES (RF-020 … RF-026) ---
+// Deteção automática, arranque, UI web e paragem/unload de motores.
+const engineManager = createEngineManager({
+    getConfig: () => config,
+    logger,
+    llama: {
+        resolveBinary: resolveLlamaBinary,
+        binaryExists: llamaBinaryExists,
+        port: llamaEnginePort,
+        isRunning: () => !!activeLlamaProcess,
+        currentModel: () => currentLlamaModel,
+        start: (opts) => startLlamaEngine(opts),
+        stop: async () => {
+            await killActiveLlama(resolveLlamaBinary());
+            activeLlamaProcess = null;
+            currentLlamaModel = null;
+            currentLlamaCtx = 2048;
+        }
+    }
+});
+
+app.get('/api/engines', async (req, res) => {
+    try {
+        const det = await engineManager.detect();
+        cache.set('engines', det, 3000);
+        res.json(det);
+    } catch (e) {
+        logger.error('[Engines] Falha na deteção', e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/engines/start', async (req, res) => {
+    const { id, modelPath, ctx, ngl } = req.body || {};
+    if (!id) return res.status(400).json({ error: 'Indique o motor a iniciar (id).' });
+    try {
+        const result = await engineManager.start(id, { modelPath, ctx, ngl });
+        if (!result.success) return res.status(400).json(result);
+        cache.clear();
+        const det = await engineManager.detect();
+        res.json({ ...result, engines: det.engines, running: det.running });
+    } catch (e) {
+        logger.error(`[Engines] Falha ao iniciar ${id}`, e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/engines/stop', async (req, res) => {
+    const { id, unloadOnly } = req.body || {};
+    if (!id) return res.status(400).json({ error: 'Indique o motor a parar (id).' });
+    try {
+        const report = await engineManager.stop(id, { unloadOnly: !!unloadOnly });
+        cache.clear();
+        const det = await engineManager.detect();
+        logger.info(`[Engines] ${id} parado (unloadOnly=${!!unloadOnly}); running=${report.running}`);
+        res.json({ success: !report.running, report, engines: det.engines, running: det.running });
+    } catch (e) {
+        logger.error(`[Engines] Falha ao parar ${id}`, e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/engines/stop-all', async (req, res) => {
+    const { unloadOnly } = req.body || {};
+    try {
+        const result = await engineManager.stopAll({ unloadOnly: !!unloadOnly });
+        cache.clear();
+        res.json(result);
+    } catch (e) {
+        logger.error('[Engines] Falha ao parar todos os motores', e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+// --- LOGS DO SERVIDOR (RF-024) ---
+app.get('/api/logs/recent', (req, res) => {
+    const limit = Math.min(LOG_RING_MAX, Math.max(1, parseInt(req.query.limit, 10) || 200));
+    res.json({ logs: LOG_RING.slice(-limit), total: LOG_RING.length, max: LOG_RING_MAX });
 });
 
 app.post('/api/chat', async (req, res) => {
@@ -2574,6 +2762,24 @@ app.get('/api/system/disk', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// --- ESPAÇO OCUPADO PELOS MODELOS E POR LOCALIZAÇÃO (RF-010 … RF-014) ---
+app.get('/api/storage/summary', async (req, res) => {
+    const cached = cache.get('storage-summary');
+    if (cached) return res.json(cached);
+    try {
+        const models = await getModelsList();
+        const summary = summarizeModels(models, {
+            scanDirectories: config.scanDirectories,
+            centralDir: config.centralDir
+        });
+        cache.set('storage-summary', summary, 15000); // 15s cache
+        res.json(summary);
+    } catch (e) {
+        logger.error('[Storage] Falha ao resumir o espaço dos modelos', e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
 app.post('/api/open-folder', (req, res) => {
     const { folderPath } = req.body;
     if (os.platform() === 'win32') {
@@ -2603,109 +2809,173 @@ app.post('/api/open-folder', (req, res) => {
     res.json({ success: true });
 });
 
-// --- CENTRALIZA CODER (AUTO-SYNC SYSTEM) ---
-function getCoderStatus() {
-    const coderDir = path.join(__dirname, 'data', 'free-claude-code');
-    // A instalação é confirmada pela presença do repositório git
-    const isInstalled = fs.existsSync(path.join(coderDir, '.git'));
-    let version = 'unknown';
-    if (isInstalled) {
+// --- CENTRALIZA CODER (AGENTE DEEPSEEK NATIVO) ---
+// v0.5.0: removida a integração com o agente CLI de terceiros (free-claude-code).
+// O agente passa a ser o DeepSeek Harness (`dsh web`), lançado a partir do
+// dashboard em dois modos:
+//   Modo A — "Iniciar Motor": arranca o llama.cpp com o modelo por defeito e
+//            lança o agente sobre esse motor.
+//   Modo B — independente: o utilizador escolhe um modelo já configurado
+//            (GGUF local ou modelo Ollama) e o agente arranca com esse modelo.
+
+/** Primeiro modelo GGUF local com capacidade de agente (fallback do Modo A). */
+async function findDefaultAgentModel() {
+    if (config.coderAgentModel) return config.coderAgentModel;
+    if (config.activeRouterModel) return config.activeRouterModel;
+    try {
+        const models = await getModelsList();
+        const coder = models.find(m => m.isCoder && String(m.path).toLowerCase().endsWith('.gguf'));
+        if (coder) return coder.path;
+        const anyGguf = models.find(m => String(m.path).toLowerCase().endsWith('.gguf') && m.source !== 'Ollama' && m.source !== 'ComfyUI');
+        if (anyGguf) return anyGguf.path;
+    } catch (e) { /* sem modelos */ }
+    return null;
+}
+
+/** Carrega um modelo no Ollama (keep_alive) para que o agente o possa usar. */
+async function loadOllamaModel(tag, keepAlive = '30m') {
+    const port = parseInt(config.ollamaPort, 10) || 11434;
+    try {
+        const res = await fetch(`http://127.0.0.1:${port}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: tag, prompt: '', keep_alive: keepAlive, stream: false }),
+            signal: AbortSignal.timeout(120000)
+        });
+        return res.ok;
+    } catch (e) {
+        return false;
+    }
+}
+
+app.get('/api/coder/status', async (req, res) => {
+    try {
+        const det = await engineManager.detect();
+        const llamaEngine = det.engines.find(e => e.id === 'llamacpp') || null;
+        const ollamaEngine = det.engines.find(e => e.id === 'ollama') || null;
+        const dsh = await dshStatus();
+        let coderModels = [];
         try {
-            const pkgJsonPath = path.join(coderDir, 'package.json');
-            if (fs.existsSync(pkgJsonPath)) {
-                version = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8')).version || '1.0.0';
-            }
-        } catch(e) {
-            logger.warn('[Coder Status] Não foi possível ler o package.json para obter a versão.', e);
-        }
+            const models = await getModelsList();
+            coderModels = models
+                .filter(m => m.isCoder)
+                .map(m => ({ name: m.name, path: m.path, size: m.size, source: m.source, ollamaTag: m.ollamaTag || null }))
+                .slice(0, 200);
+        } catch (e) { /* lista vazia */ }
+        res.json({
+            engine: {
+                running: !!(llamaEngine && llamaEngine.running),
+                managed: !!(llamaEngine && llamaEngine.managed),
+                model: (llamaEngine && llamaEngine.details && llamaEngine.details.model) || currentLlamaModel || null,
+                port: currentLlamaPort,
+                binary: resolveLlamaBinary(),
+                binaryExists: llamaBinaryExists()
+            },
+            ollama: {
+                running: !!(ollamaEngine && ollamaEngine.running),
+                model: (ollamaEngine && ollamaEngine.details && ollamaEngine.details.loadedModel) || null
+            },
+            agent: dsh,
+            defaultModel: config.coderAgentModel || config.activeRouterModel || null,
+            models: coderModels,
+            update: updater.status(),
+            engines: det.engines,
+            version: updater.status().currentVersion
+        });
+    } catch (e) {
+        logger.error('[Coder] Falha ao obter estado', e);
+        res.status(500).json({ error: String(e && e.message || e) });
     }
-    return { installed: isInstalled, path: coderDir, version };
-}
+});
 
-async function syncCoder(isAuto = false) {
-    const dataDir = path.join(__dirname, 'data');
-    const coderDir = path.join(dataDir, 'free-claude-code');
-    const repoUrl = 'https://github.com/Alishahryar1/free-claude-code.git';
+app.post('/api/coder/agent/start', async (req, res) => {
+    const { mode = 'engine', modelPath, ctx, ngl } = req.body || {};
+    try {
+        let providerBaseUrl = null;
+        let providerModelId = null;
+        let label = null;
 
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    logger.info(`[Coder Sync] Starting ${isAuto ? 'automatic ' : ''}synchronization process.`);
-    if (!isAuto) io.emit('coder-sync-progress', { status: 'Iniciando sincronização...', progress: 10 });
-
-    const runCmd = (cmd, cwd, silentError = false) => new Promise((resolve, reject) => {
-        exec(cmd, { cwd }, (err, stdout, stderr) => {
-            if (err) {
-                if (!silentError) {
-                    logger.error(`[Coder Sync] Cmd Failed: ${cmd}`, err);
+        if (mode === 'model' && modelPath) {
+            if (String(modelPath).toLowerCase().endsWith('.gguf')) {
+                // Modelo GGUF local: garante o motor llama.cpp com este modelo.
+                const started = await startLlamaEngine({ modelPath, ctx, ngl });
+                if (!started.success) return res.status(started.status || 500).json({ error: started.error });
+                providerBaseUrl = `http://127.0.0.1:${currentLlamaPort}/v1`;
+                providerModelId = llamaAlias();
+                label = path.basename(modelPath);
+                config.coderAgentModel = modelPath;
+                saveConfig();
+            } else {
+                // Modelo servido pelo Ollama (tag) ou outro serviço OpenAI local.
+                const tag = String(modelPath);
+                if (!(await engineManager.httpJson(`http://127.0.0.1:${config.ollamaPort || 11434}/api/version`, 1500))) {
+                    return res.status(400).json({ error: 'O Ollama não está a correr. Inicie o motor Ollama ou escolha um modelo GGUF local.' });
                 }
-                reject(err);
-            } else resolve(stdout);
-        });
-    });
-
-    try {
-        if (fs.existsSync(path.join(coderDir, '.git'))) {
-            if (!isAuto) io.emit('coder-sync-progress', { status: 'Buscando atualizações no GitHub...', progress: 30 });
-            await runCmd('git pull', coderDir);
+                if (!(await loadOllamaModel(tag))) {
+                    return res.status(500).json({ error: `Não foi possível carregar o modelo "${tag}" no Ollama.` });
+                }
+                providerBaseUrl = `http://127.0.0.1:${config.ollamaPort || 11434}/v1`;
+                providerModelId = tag;
+                label = tag;
+                config.coderAgentModel = tag;
+                saveConfig();
+            }
         } else {
-            if (!isAuto) io.emit('coder-sync-progress', { status: 'Clonando repositório...', progress: 30 });
-            await runCmd(`git clone ${repoUrl} free-claude-code`, dataDir);
+            // Modo A: modelo por defeito (ou o último usado) + "Iniciar Motor".
+            const model = await findDefaultAgentModel();
+            if (!model) {
+                return res.status(400).json({ error: 'Nenhum modelo configurado. Escolha um modelo GGUF na página Meus Modelos ou use o seletor de modelo.' });
+            }
+            if (String(model).toLowerCase().endsWith('.gguf')) {
+                const already = activeLlamaProcess && currentLlamaModel === model;
+                if (!already) {
+                    const started = await startLlamaEngine({ modelPath: model, ctx, ngl });
+                    if (!started.success) return res.status(started.status || 500).json({ error: started.error });
+                }
+                providerBaseUrl = `http://127.0.0.1:${currentLlamaPort}/v1`;
+                providerModelId = llamaAlias();
+            } else {
+                if (!(await loadOllamaModel(String(model)))) {
+                    return res.status(500).json({ error: `Não foi possível carregar o modelo "${model}" no Ollama.` });
+                }
+                providerBaseUrl = `http://127.0.0.1:${config.ollamaPort || 11434}/v1`;
+                providerModelId = String(model);
+            }
+            label = path.basename(String(model));
         }
 
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Instalando Node packages (se existirem)...', progress: 50 });
-        await runCmd('npm install', coderDir, true).catch(() => {});
-
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Instalando CLI do Claude Code globalmente...', progress: 65 });
-        await runCmd('npm install -g @anthropic-ai/claude-code', coderDir, true).catch(err => {
-            logger.warn('[Coder Sync] Aviso: Falha ao instalar @anthropic-ai/claude-code globalmente. Talvez precise de permissões de Administrador.', err.message);
+        const launched = await launchDshAgent({ baseURL: providerBaseUrl, modelId: providerModelId, mode, label });
+        if (!launched.success) return res.status(502).json(launched);
+        cache.clear();
+        res.json({
+            success: true,
+            message: `Agente DeepSeek iniciado sobre ${label || providerModelId}.`,
+            url: launched.url,
+            port: launched.port,
+            mode,
+            model: providerModelId,
+            engine: { running: !!activeLlamaProcess, port: currentLlamaPort, model: currentLlamaModel },
+            agent: await dshStatus()
         });
-
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Configurando ambiente Python (FastAPI/Uvicorn)...', progress: 85 });
-        
-        const isWin = os.platform() === 'win32';
-        const setupCmd = isWin 
-            ? 'pip install -r requirements.txt || uv pip install -r requirements.txt || pip install fastapi uvicorn httpx pydantic'
-            : 'pip3 install -r requirements.txt || uv pip install -r requirements.txt || pip3 install fastapi uvicorn httpx pydantic';
-            
-        await runCmd(setupCmd, coderDir, true).catch((err) => {
-            logger.warn('[Coder Sync] Aviso: Falha ao instalar dependências Python. Verifique se o Python/pip estão instalados.', err.message);
-        });
-
-        if (!isAuto) io.emit('coder-sync-progress', { status: 'Pronto!', progress: 100 });
-        logger.info(`[Coder Sync] ${isAuto ? 'Auto-' : ''}Sync completed successfully.`);
-
-        const newStatus = getCoderStatus();
-        if (!isAuto) {
-            // Emite um evento para todos os clientes atualizarem o status
-            io.emit('coder-status-updated', newStatus);
-        }
-        return { success: true, message: 'Sincronização concluída com sucesso!', status: newStatus };
-    } catch (error) {
-        logger.error('[Coder Sync] Critical Error:', error);
-        if (!isAuto) io.emit('coder-sync-progress', { status: `Erro: ${error.message}`, progress: -1 });
-        throw error;
+    } catch (e) {
+        logger.error('[Coder] Falha ao iniciar o agente', e);
+        res.status(500).json({ error: String(e && e.message || e) });
     }
-}
+});
 
-app.post('/api/coder/sync', async (req, res) => {
+app.post('/api/coder/agent/stop', async (req, res) => {
     try {
-        const result = await syncCoder(false);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        const result = await stopDshAgent();
+        res.json({ success: true, ...result, agent: await dshStatus() });
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
     }
 });
 
-app.get('/api/coder/status', (req, res) => {
-    res.json(getCoderStatus());
-});
-
-// --- DEEPSEEK HARNESS COMO AGENTE SOBRE O MOTOR LOCAL (llama.cpp) ---
-// Lança a Web UI do DeepSeek Harness (`dsh web`) apontada para o motor local
-// via um patch de perfil isolado (mesma técnica que o free-claude-code usa):
-// os providers/settings reais do utilizador (~/.dsh) não são tocados.
+// --- DEEPSEEK HARNESS COMO AGENTE SOBRE O MOTOR LOCAL ---
+// Lança a Web UI do DeepSeek Harness (`dsh web`) apontada para um serviço
+// OpenAI-compatible local (llama.cpp ou Ollama) através de um patch de perfil
+// isolado: os providers/settings reais do utilizador (~/.dsh) não são tocados.
 const DSH_PATCH_DIR = path.join(__dirname, 'data', 'dsh');
 
 function llamaArgsMap() {
@@ -2727,6 +2997,18 @@ function llamaAlias() {
 function llamaEnginePort() {
     const p = parseInt(llamaArgsMap()['--port'], 10);
     return (Number.isFinite(p) && p > 0) ? p : (currentLlamaPort || 8080);
+}
+
+/** Modelos que o llama-server (llama.cpp) está efetivamente a servir. */
+async function llamaServedModels() {
+    try {
+        const res = await fetch(`http://127.0.0.1:${llamaEnginePort()}/v1/models`, { signal: AbortSignal.timeout(1200) });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data && data.data) ? data.data.map(m => m && m.id).filter(Boolean) : [];
+    } catch (e) {
+        return [];
+    }
 }
 
 async function httpGetOk(url, timeoutMs = 2000) {
@@ -2757,15 +3039,31 @@ function findFreePort(start) {
 }
 
 let dshProcessPid = null;
+let dshCurrentPort = null;
+let dshCurrentModel = null;
+let dshCurrentMode = null;
+let dshCurrentBaseUrl = null;
 
-function writeDshPatch() {
+/** Porta configurada para a Web UI do agente. */
+function dshPort() {
+    const p = parseInt(config.dshLocalPort, 10);
+    return Number.isFinite(p) && p > 0 ? p : 3090;
+}
+
+/**
+ * Escreve o patch de perfil isolado que liga o DeepSeek Harness a um serviço
+ * OpenAI-compatible local (llama.cpp ou Ollama), sem tocar em ~/.dsh.
+ */
+function writeDshPatch(opts = {}) {
     fs.mkdirSync(DSH_PATCH_DIR, { recursive: true });
     const settingsPath = path.join(DSH_PATCH_DIR, 'settings.local.yaml');
     const credentialsPath = path.join(DSH_PATCH_DIR, '.credentials.local.yaml');
     fs.writeFileSync(settingsPath, '{}\n');
     fs.writeFileSync(credentialsPath, '{}\n');
-    const alias = llamaAlias();
-    const enginePort = llamaEnginePort();
+    const baseURL = String(opts.baseURL || `http://127.0.0.1:${llamaEnginePort()}/v1`).replace(/\/+$/, '');
+    const modelId = opts.modelId || llamaAlias();
+    const displayName = opts.displayName || 'Centraliza Local';
+    const contextWindow = Number(config.vramShieldLimit) > 0 ? Number(config.vramShieldLimit) : 131072;
     const patch = [
         { id: 'settings', name: '@deepseek-ai/dsh-settings-file', config: { path: settingsPath, watch: false } },
         { id: 'credentials', name: '@deepseek-ai/dsh-credentials-local', config: { path: credentialsPath, watch: false } },
@@ -2775,35 +3073,131 @@ function writeDshPatch() {
             config: {
                 providers: {
                     'centraliza-local': {
-                        displayName: 'Centraliza Local (llama.cpp)',
+                        displayName,
                         api: 'openai-completions',
-                        baseURL: `http://127.0.0.1:${enginePort}/v1`,
+                        baseURL,
                         headers: { Authorization: 'Bearer centraliza-local' },
                         defaultInput: ['text'],
                         models: [
                             {
-                                id: alias,
-                                name: `${alias} (llama.cpp local)`,
-                                contextWindow: 131072
+                                id: modelId,
+                                name: `${modelId} (local)`,
+                                contextWindow
                             }
                         ]
                     }
                 }
             }
         },
-        { id: 'agent-default-model', name: '@deepseek-ai/dsh-agent-default-model', config: { provider: 'centraliza-local', model: alias } }
+        { id: 'agent-default-model', name: '@deepseek-ai/dsh-agent-default-model', config: { provider: 'centraliza-local', model: modelId } }
     ];
     const patchPath = path.join(DSH_PATCH_DIR, 'local.patch.json');
     fs.writeFileSync(patchPath, JSON.stringify(patch, null, 2));
     return patchPath;
 }
 
+/** Estado do agente DeepSeek Harness. */
+async function dshStatus() {
+    const configured = dshPort();
+    const preferred = dshCurrentPort || configured;
+    let running = !!(await httpGetOk(`http://127.0.0.1:${preferred}`, 1200));
+    let port = preferred;
+    if (!running && configured !== preferred && (await httpGetOk(`http://127.0.0.1:${configured}`, 1000))) {
+        running = true;
+        port = configured;
+    }
+    // Se fomos nós que o lançámos, procura nas portas adjacentes (findFreePort).
+    if (!running && dshProcessPid) {
+        for (let p = configured; p < configured + 6 && !running; p++) {
+            if (await httpGetOk(`http://127.0.0.1:${p}`, 600)) { running = true; port = p; }
+        }
+    }
+    return {
+        running,
+        agent: 'deepseek-harness',
+        port,
+        url: `http://127.0.0.1:${port}`,
+        engineRunning: await isEngineRunning(),
+        model: dshCurrentModel,
+        mode: dshCurrentMode,
+        baseURL: dshCurrentBaseUrl,
+        managed: !!dshProcessPid
+    };
+}
+
+/** Lança a Web UI do agente apontada a um serviço OpenAI-compatible local. */
+async function launchDshAgent(opts = {}) {
+    const startPort = dshPort();
+    const port = await findFreePort(startPort);
+    const url = `http://127.0.0.1:${port}`;
+
+    if (await httpGetOk(url, 1200)) {
+        dshCurrentPort = port;
+        dshCurrentModel = opts.modelId || llamaAlias();
+        dshCurrentMode = opts.mode || null;
+        dshCurrentBaseUrl = opts.baseURL || null;
+        return { success: true, port, url, message: 'O DeepSeek Harness já está a correr.' };
+    }
+
+    const patchPath = writeDshPatch(opts);
+    const cmd = `dsh web --no-open --host 127.0.0.1 --port ${port} --patch "${patchPath}"`;
+    logger.info(`[DSH] A lançar DeepSeek Harness: ${cmd}`);
+    const child = spawn(cmd, { shell: true, detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+    dshProcessPid = child.pid;
+    dshCurrentPort = port;
+    dshCurrentModel = opts.modelId || llamaAlias();
+    dshCurrentMode = opts.mode || null;
+    dshCurrentBaseUrl = opts.baseURL || null;
+    child.on('error', (err) => {
+        logger.error('[DSH] Falha ao lançar DeepSeek Harness:', err);
+    });
+
+    let up = false;
+    for (let i = 0; i < 45; i++) {
+        if (await httpGetOk(url, 1500)) { up = true; break; }
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    if (!up) {
+        logger.error('[DSH] DeepSeek Harness não respondeu a tempo.');
+        return { success: false, error: 'O DeepSeek Harness não respondeu a tempo. Verifique se o dsh está instalado (npm install -g @deepseek-ai/dsh) e se a porta está livre.' };
+    }
+    logger.info(`[DSH] DeepSeek Harness ativo em ${url} (modelo: ${dshCurrentModel}).`);
+    return { success: true, port, url, message: 'Agente DeepSeek iniciado.' };
+}
+
+/** Para o agente DeepSeek Harness (processo rastreado + PID à escuta na porta). */
+async function stopDshAgent() {
+    const ports = Array.from(new Set([dshCurrentPort, dshPort()].filter(Boolean)));
+    const pids = new Set();
+    if (dshProcessPid) pids.add(dshProcessPid);
+    dshProcessPid = null;
+    dshCurrentPort = null;
+    dshCurrentModel = null;
+    dshCurrentMode = null;
+    dshCurrentBaseUrl = null;
+    for (const port of ports) {
+        try {
+            const out = await new Promise((resolve, reject) => exec(`netstat -ano | findstr :${port}`, (err, stdout) => err ? reject(err) : resolve(stdout)));
+            for (const line of out.split(/\r?\n/)) {
+                if (!line.toLowerCase().includes('listen')) continue;
+                const m = line.trim().match(/\s+(\d+)\s*$/);
+                if (m) pids.add(parseInt(m[1], 10));
+            }
+        } catch (e) { /* sem netstat — usa apenas o pid rastreado */ }
+    }
+    let killed = 0;
+    for (const pid of pids) {
+        if (!pid || pid <= 0 || pid === process.pid) continue;
+        try { exec(`taskkill /F /T /PID ${pid}`, () => {}); killed++; } catch (e) {}
+    }
+    return { killed };
+}
+
 app.get('/api/coder/dsh/status', async (req, res) => {
     try {
-        const port = parseInt(config.dshLocalPort, 10) || 3090;
-        const engineRunning = await isEngineRunning();
-        const dshRunning = !!(await httpGetOk(`http://127.0.0.1:${port}`, 1500));
-        res.json({ port, engineRunning, dshRunning, url: `http://127.0.0.1:${port}` });
+        const dsh = await dshStatus();
+        res.json({ ...dsh, dshRunning: dsh.running, engineRunning: dsh.engineRunning });
     } catch (e) {
         res.status(500).json({ error: String(e && e.message || e) });
     }
@@ -2811,38 +3205,12 @@ app.get('/api/coder/dsh/status', async (req, res) => {
 
 app.post('/api/coder/dsh/launch', async (req, res) => {
     try {
-        const startPort = parseInt(config.dshLocalPort, 10) || 3090;
-        const port = await findFreePort(startPort);
-        const url = `http://127.0.0.1:${port}`;
-
         if (!(await isEngineRunning())) {
             return res.status(400).json({ error: 'O motor local (llama.cpp) não está a correr. Inicie o motor na página Centraliza Coder e tente novamente.' });
         }
-        if (await httpGetOk(url, 1200)) {
-            return res.json({ success: true, port, url, message: 'O DeepSeek Harness já está a correr.' });
-        }
-
-        const patchPath = writeDshPatch();
-        const cmd = `dsh web --no-open --host 127.0.0.1 --port ${port} --patch "${patchPath}"`;
-        logger.info(`[DSH] A lançar DeepSeek Harness: ${cmd}`);
-        const child = spawn(cmd, { shell: true, detached: true, stdio: 'ignore', windowsHide: true });
-        child.unref();
-        dshProcessPid = child.pid;
-        child.on('error', (err) => {
-            logger.error('[DSH] Falha ao lançar DeepSeek Harness:', err);
-        });
-
-        let up = false;
-        for (let i = 0; i < 40; i++) {
-            if (await httpGetOk(url, 1500)) { up = true; break; }
-            await new Promise(r => setTimeout(r, 1000));
-        }
-        if (!up) {
-            logger.error('[DSH] DeepSeek Harness não respondeu a tempo.');
-            return res.status(502).json({ error: 'O DeepSeek Harness não respondeu a tempo. Verifique se o dsh está instalado (npm install -g @deepseek-ai/dsh) e se a porta está livre.' });
-        }
-        logger.info(`[DSH] DeepSeek Harness ativo em ${url} (modelo local: ${llamaAlias()}).`);
-        res.json({ success: true, port, url, message: 'DeepSeek Harness aberto com o modelo local.' });
+        const launched = await launchDshAgent({ baseURL: `http://127.0.0.1:${llamaEnginePort()}/v1`, modelId: llamaAlias(), mode: 'engine' });
+        if (!launched.success) return res.status(502).json(launched);
+        res.json(launched);
     } catch (e) {
         logger.error('[DSH] Erro ao lançar:', e);
         res.status(500).json({ error: String(e && e.message || e) });
@@ -2850,129 +3218,133 @@ app.post('/api/coder/dsh/launch', async (req, res) => {
 });
 
 app.post('/api/coder/dsh/stop', async (req, res) => {
-    const port = parseInt(config.dshLocalPort, 10) || 3090;
-    const pids = new Set();
-    if (dshProcessPid) pids.add(dshProcessPid);
-    dshProcessPid = null;
     try {
-        const out = await new Promise((resolve, reject) => exec(`netstat -ano | findstr :${port}`, (err, stdout) => err ? reject(err) : resolve(stdout)));
-        for (const line of out.split(/\r?\n/)) {
-            if (!line.toLowerCase().includes('listen')) continue;
-            const m = line.trim().match(/\s+(\d+)\s*$/);
-            if (m) pids.add(parseInt(m[1], 10));
-        }
-    } catch (e) { /* sem netstat — usa apenas o pid rastreado */ }
-    let killed = 0;
-    for (const pid of pids) {
-        if (!pid || pid <= 0 || pid === process.pid) continue;
-        try { exec(`taskkill /F /T /PID ${pid}`, () => {}); killed++; } catch (e) {}
-    }
-    res.json({ success: true, killed });
-});
-
-// --- VS CODE / EDITOR INTEGRATION ---
-app.post('/api/coder/setup-continue', (req, res) => {
-    try {
-        const continueDir = path.join(os.homedir(), '.continue');
-        const configJsonPath = path.join(continueDir, 'config.json');
-        const configYamlPath = path.join(continueDir, 'config.yaml');
-        const configYmlPath = path.join(continueDir, 'config.yml');
-        
-        let targetConfigPath = configJsonPath;
-        let isYaml = false;
-
-        if (fs.existsSync(configYamlPath)) {
-            targetConfigPath = configYamlPath;
-            isYaml = true;
-        } else if (fs.existsSync(configYmlPath)) {
-            targetConfigPath = configYmlPath;
-            isYaml = true;
-        }
-
-        if (!fs.existsSync(continueDir)) {
-            fs.mkdirSync(continueDir, { recursive: true });
-        }
-
-        if (isYaml) {
-            let yamlContent = fs.readFileSync(targetConfigPath, 'utf8');
-            
-            // Insere o modelo no array "models:" se não existir
-            if (!yamlContent.includes('Centraliza.ai Gateway')) {
-                const modelsRegex = /^models:\s*$/m;
-                const newModelYaml = `\n  - name: Centraliza.ai Gateway\n    provider: openai\n    model: centraliza-router\n    apiBase: http://localhost:4000/v1\n    apiKey: centraliza-local`;
-                if (modelsRegex.test(yamlContent)) {
-                    yamlContent = yamlContent.replace(modelsRegex, `models:${newModelYaml}`);
-                } else {
-                    yamlContent += `\nmodels:${newModelYaml}`;
-                }
-            }
-
-            // Substitui ou adiciona o modelo de Autocomplete (Tab)
-            const tabRegex = /^tabAutocompleteModel:\s*\n(?:^[ \t]+.*\n?|^\s*\n)*/m;
-            const newTabModelYaml = `tabAutocompleteModel:\n  name: Centraliza.ai Autocomplete\n  provider: openai\n  model: centraliza-router\n  apiBase: http://localhost:4000/v1\n  apiKey: centraliza-local\n`;
-            
-            if (tabRegex.test(yamlContent)) {
-                yamlContent = yamlContent.replace(tabRegex, newTabModelYaml);
-            } else {
-                yamlContent += `\n${newTabModelYaml}`;
-            }
-            
-            fs.writeFileSync(targetConfigPath, yamlContent);
-        } else {
-            let config = {};
-            if (fs.existsSync(targetConfigPath)) {
-                try { config = JSON.parse(fs.readFileSync(targetConfigPath, 'utf8')); } catch (e) {}
-            }
-            
-            if (!config.models) config.models = [];
-            
-            const centralizaModel = {
-                title: "Centraliza.ai Gateway",
-                provider: "openai",
-                model: "centraliza-router",
-                apiBase: "http://localhost:4000/v1",
-                apiKey: "centraliza-local"
-            };
-
-            config.models = config.models.filter(m => m.title !== "Centraliza.ai Gateway");
-            config.models.push(centralizaModel);
-
-            config.tabAutocompleteModel = {
-                title: "Centraliza.ai Autocomplete",
-                provider: "openai",
-                model: "centraliza-router",
-                apiBase: "http://localhost:4000/v1",
-                apiKey: "centraliza-local"
-            };
-
-            fs.writeFileSync(targetConfigPath, JSON.stringify(config, null, 2));
-        }
-        logger.info('[VS Code] Continue.dev configurado com sucesso via automação.');
-        
-        res.json({ 
-            success: true, 
-            message: 'Continue.dev configurado com sucesso! Abra o VS Code para usar.',
-            installUri: 'vscode:extension/Continue.continue'
-        });
-    } catch (err) {
-        logger.error('[VS Code] Erro ao configurar Continue.dev', err);
-        res.status(500).json({ error: err.message });
+        const result = await stopDshAgent();
+        res.json({ success: true, ...result });
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
     }
 });
 
-app.get('/api/coder/setup-roo', (req, res) => {
-    // O Roo Code usa a globalStorage do VS Code que não é segura de editar por fora.
-    // Portanto, enviamos o helper com a URL de deep-link e as variáveis exatas para UI exibir.
+// --- INTEGRAÇÕES COM EDITORES (Continue.dev e Roo Code) — RF-040 … RF-045 ---
+const extensions = createExtensions({
+    getConfig: () => config,
+    logger,
+    engines: engineManager,
+    getServerPort: () => Number(process.env.PORT) || 4000,
+    llama: { currentModel: () => currentLlamaModel }
+});
+
+app.get('/api/extensions/status', async (req, res) => {
+    try {
+        res.json(await extensions.status());
+    } catch (e) {
+        logger.error('[Extensions] Falha ao obter estado', e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/extensions/continue', async (req, res) => {
+    try {
+        const result = await extensions.setupContinue();
+        res.status(result.success ? 200 : 409).json(result);
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/extensions/roo', async (req, res) => {
+    try {
+        const result = await extensions.setupRoo();
+        res.status(result.success ? 200 : 409).json(result);
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/extensions/smoke-test', async (req, res) => {
+    try {
+        const { prompt } = req.body || {};
+        res.json(await extensions.smokeTest(prompt));
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/extensions/open-vscode', async (req, res) => {
+    try {
+        res.json(await extensions.openVSCode());
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+/**
+ * "Iniciar motor e modelo" (RF-042): arranca o motor por defeito e carrega o
+ * modelo, para desbloquear as integrações sem sair da página Extensões.
+ */
+app.post('/api/extensions/start-stack', async (req, res) => {
+    try {
+        const model = await findDefaultAgentModel();
+        if (!model) {
+            return res.status(400).json({ error: 'Nenhum modelo configurado. Escolha um modelo GGUF na página Meus Modelos.' });
+        }
+        if (String(model).toLowerCase().endsWith('.gguf')) {
+            const started = await startLlamaEngine({ modelPath: model });
+            if (!started.success) return res.status(500).json({ error: started.error });
+        } else if (!(await loadOllamaModel(String(model)))) {
+            return res.status(500).json({ error: 'Não foi possível carregar o modelo no Ollama.' });
+        }
+        cache.clear();
+        res.json({ success: true, model, status: await extensions.status() });
+    } catch (e) {
+        logger.error('[Extensions] Falha ao iniciar motor e modelo', e);
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+// Compatibilidade com os endpoints antigos (a UI v0.5.0 usa /api/extensions/*).
+app.post('/api/coder/setup-continue', async (req, res) => {
+    const result = await extensions.setupContinue();
+    res.status(result.success ? 200 : 409).json(result);
+});
+
+app.get('/api/coder/setup-roo', async (req, res) => {
+    const st = await extensions.status();
     res.json({
         success: true,
-        installUri: 'vscode:extension/RooPlay.roo-cline',
-        instructions: {
-            apiProvider: 'OpenAI Compatible',
-            baseUrl: 'http://localhost:4000/v1',
-            apiKey: 'centraliza-local',
-            modelId: 'centraliza-router'
-        }
+        installUri: 'vscode:extension/RooVeterinaryInc.roo-cline',
+        ready: st.ready,
+        settings: { apiBase: st.baseUrl, apiKey: 'centraliza-local', model: 'centraliza-router' }
     });
+});
+
+// --- AUTO-ATUALIZAÇÃO DA APLICAÇÃO (RF-034) ---
+const updater = createUpdater({
+    getConfig: () => config,
+    logger,
+    appRoot: __dirname,
+    notify: (event, payload) => {
+        if (ioRef) { try { ioRef.emit(event, payload); } catch (e) {} }
+    }
+});
+
+app.get('/api/update/status', (req, res) => res.json(updater.status()));
+
+app.post('/api/update/check', async (req, res) => {
+    try {
+        res.json(await updater.check('manual'));
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
+});
+
+app.post('/api/update/apply', async (req, res) => {
+    try {
+        res.json(await updater.apply());
+    } catch (e) {
+        res.status(500).json({ error: String(e && e.message || e) });
+    }
 });
 
 const distPath = path.join(__dirname, 'frontend', 'dist');
@@ -2991,6 +3363,8 @@ if (fs.existsSync(distPath)) {
 
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
+// Liga o sistema de logs ao Socket.io (painel de logs em tempo real — RF-024).
+ioRef = io;
 
 io.on('connection', (socket) => {
     logger.info('Client connected via WebSocket');
@@ -3024,7 +3398,11 @@ if (require.main === module) {
     server.listen(PORT, () => {
         logger.info(`Centraliza.ai on http://localhost:${PORT}`);
         probeExistingLlamaEngine().catch(() => {});
-        syncCoder(true).catch(() => {}); // Auto-sync invisível ao iniciar
+        // Auto-atualização (RF-034): verificação no arranque + agendamento periódico.
+        // Sem rede ou sem fonte configurada, o arranque não é bloqueado.
+        setTimeout(() => { updater.check('startup').catch(() => {}); }, 8000);
+        updater.schedule();
+        logger.info('[Update] Verificação de atualizações agendada (intervalo configurável em config.json).');
     });
 }
 module.exports = { app, server, writeDshPatch, parseGGUFBuffer, parseGGUFHeader };

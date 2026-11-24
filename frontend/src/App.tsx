@@ -157,7 +157,7 @@ function Dashboard() {
 
          <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8 md:p-12 lg:p-16 flex flex-col justify-center shadow-premium relative overflow-hidden group min-w-0">
             <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
-            <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.22),transparent_60%)] pointer-events-none" />
             
             <div className="relative z-10 space-y-8 min-w-0">
                <h3 className="heading-fluid font-black text-white tracking-tighter uppercase">

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Shield, HardDrive, RefreshCw, Layers, CheckSquare, Square, Filter, SortAsc, SortDesc, Zap, Link as LinkIcon, Unlink, Box, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Shield, HardDrive, RefreshCw, Layers, CheckSquare, Square, Filter, SortAsc, SortDesc, Zap, Link as LinkIcon, Unlink, Box, ShieldCheck, ChevronRight, FolderOpen, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HelpTooltip from '../components/HelpTooltip';
+import StorageLocationChart, { type StorageLocation } from '../components/StorageLocationChart';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/Toast';
 
@@ -23,15 +24,22 @@ export default function Centralization() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'standalone' | 'centralized'>('all');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  // Espaço total e por localização (RF-010 … RF-014)
+  const [summary, setSummary] = useState<any>(null);
+  const [activeLocation, setActiveLocation] = useState<string | null>(null);
 
   const fetchModels = () => {
     setLoading(true);
-    fetch('/api/models')
-      .then(res => res.json())
-      .then(data => {
-        setModels(data);
+    Promise.all([
+      fetch('/api/models').then(res => res.json()),
+      fetch('/api/storage/summary').then(res => res.json()).catch(() => null)
+    ])
+      .then(([data, storage]) => {
+        setModels(Array.isArray(data) ? data : []);
+        if (storage && !storage.error) setSummary(storage);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { fetchModels(); }, []);
@@ -41,6 +49,12 @@ export default function Centralization() {
 
     if (activeFilter === 'standalone') list = list.filter(m => !m.isSymlink);
     else if (activeFilter === 'centralized') list = list.filter(m => m.isSymlink);
+
+    // Interação gráfico ↔ lista (RF-013): filtra pela localização escolhida.
+    if (activeLocation) {
+      const base = activeLocation.replace(/\//g, '\\').toLowerCase();
+      list = list.filter(m => String(m.path).replace(/\//g, '\\').toLowerCase().startsWith(base));
+    }
 
     list.sort((a, b) => {
       let valA, valB;
@@ -54,7 +68,7 @@ export default function Centralization() {
     });
 
     return list;
-  }, [models, activeFilter, sortField, sortOrder]);
+  }, [models, activeFilter, sortField, sortOrder, activeLocation]);
 
   const toggleSelect = (path: string) => {
     const next = new Set(selectedPaths);
@@ -109,6 +123,17 @@ export default function Centralization() {
 
   const spaceSaved = models.filter(m => m.isSymlink).reduce((acc, m) => acc + m.size, 0);
   const standaloneCount = models.filter(m => !m.isSymlink).length;
+  const totalBytes = summary?.totalBytes ?? models.reduce((acc, m) => acc + (m.size || 0), 0);
+  const savedBytes = summary?.savedBytes ?? spaceSaved;
+  const locations: StorageLocation[] = summary?.locations || [];
+  const fmt = (bytes: number) => {
+    const TB = 1024 ** 4;
+    const GB = 1024 ** 3;
+    const n = Number(bytes) || 0;
+    if (n >= TB) return `${(n / TB).toFixed(2)} TB`;
+    if (n >= GB) return `${(n / GB).toFixed(1)} GB`;
+    return `${Math.round(n / (1024 ** 2))} MB`;
+  };
 
   return (
     <motion.div 
@@ -146,31 +171,140 @@ export default function Centralization() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-         <div className="card-premium relative group">
-            <div className="absolute top-0 right-0 p-12 opacity-[0.05] text-blue-500 group-hover:scale-125 transition-all"><HardDrive size={240} /></div>
-            <h3 className="text-sm md:text-base font-black text-blue-500 uppercase tracking-widest mb-8 flex items-center gap-3">
-              {t('central_spaceSaved')}
-              <HelpTooltip text={t('central_spaceSavedHelp')} />
+      {/* Totais: espaço total, poupado, por otimizar e localizações (RF-010/RF-014) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8 mb-10">
+         <div className="card-premium relative group min-w-0 flex flex-col">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-emerald-500 group-hover:scale-125 transition-all"><HardDrive size={180} /></div>
+            <h3 className="text-[11px] md:text-xs font-black text-emerald-500 uppercase tracking-widest mb-6 flex items-start gap-2 leading-tight">
+              <span className="min-w-0 break-words">{t('central_totalSpace')}</span>
+              <HelpTooltip text={t('central_totalSpaceHelp')} />
             </h3>
-            <div className="flex items-baseline gap-3 relative z-10 flex-wrap min-w-0">
-               <p className="num-fluid-hero font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{(spaceSaved / (1024**3)).toFixed(1)}</p>
-               <span className="text-2xl font-black text-blue-500 uppercase tracking-widest shrink-0">GB</span>
+            <div className="flex items-baseline gap-2 relative z-10 flex-nowrap min-w-0 mt-auto">
+               <p className="text-4xl sm:text-5xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none whitespace-nowrap">{fmt(totalBytes).replace(/ [A-Z]+$/, '')}</p>
+               <span className="text-lg md:text-xl font-black text-emerald-500 uppercase tracking-widest shrink-0">{fmt(totalBytes).split(' ').pop()}</span>
             </div>
-            <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Recovered Storage Potential</p>
+            <p className="mt-4 text-[11px] md:text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest leading-tight line-clamp-2 break-all">
+              {t('central_modelsCount', { count: summary?.modelCount ?? models.length })}
+            </p>
          </div>
-         <div className="card-premium relative group">
-            <div className="absolute top-0 right-0 p-12 opacity-[0.05] text-purple-500 group-hover:scale-125 transition-all"><Layers size={240} /></div>
-            <h3 className="text-sm md:text-base font-black text-blue-500 uppercase tracking-widest mb-8 flex items-center gap-3">
-              {t('central_standalone')}
+
+         <div className="card-premium relative group min-w-0 flex flex-col">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-blue-500 group-hover:scale-125 transition-all"><HardDrive size={180} /></div>
+            <h3 className="text-[11px] md:text-xs font-black text-blue-500 uppercase tracking-widest mb-6 flex items-start gap-2 leading-tight">
+              <span className="min-w-0 break-words">{t('central_spaceSaved')}</span>
+              <HelpTooltip text={t('central_savedHelp')} />
+            </h3>
+            <div className="flex items-baseline gap-2 relative z-10 flex-nowrap min-w-0 mt-auto">
+               <p className="text-4xl sm:text-5xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none whitespace-nowrap">{fmt(savedBytes).replace(/ [A-Z]+$/, '')}</p>
+               <span className="text-lg md:text-xl font-black text-blue-500 uppercase tracking-widest shrink-0">{fmt(savedBytes).split(' ').pop()}</span>
+            </div>
+            <p className="mt-4 text-[11px] md:text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest leading-tight line-clamp-2 break-all" title={`${t('central_physicalSpace')}: ${fmt(totalBytes)}`}>
+              {t('central_physicalSpace')}: {fmt(totalBytes)}
+            </p>
+         </div>
+
+         <div className="card-premium relative group min-w-0 flex flex-col">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-purple-500 group-hover:scale-125 transition-all"><Layers size={180} /></div>
+            <h3 className="text-[11px] md:text-xs font-black text-blue-500 uppercase tracking-widest mb-6 flex items-start gap-2 leading-tight">
+              <span className="min-w-0 break-words">{t('central_standalone')}</span>
               <HelpTooltip text={t('central_standaloneHelp')} />
             </h3>
-            <div className="flex items-baseline gap-3 relative z-10 flex-wrap min-w-0">
-               <p className="num-fluid-hero font-black text-[var(--text-primary)] tracking-tighter leading-none break-words">{standaloneCount}</p>
-               <span className="text-2xl font-black text-purple-500 uppercase tracking-widest shrink-0">MODS</span>
+            <div className="flex items-baseline gap-2 relative z-10 flex-nowrap min-w-0 mt-auto">
+               <p className="text-4xl sm:text-5xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none whitespace-nowrap">{standaloneCount}</p>
+               <span className="text-lg md:text-xl font-black text-purple-500 uppercase tracking-widest shrink-0">MODS</span>
             </div>
-            <p className="mt-6 text-sm md:text-base font-black text-[var(--text-secondary)] uppercase tracking-widest">Pending Centralization</p>
+            <p className="mt-4 text-[11px] md:text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest leading-tight line-clamp-2 break-all">{t('central_standalone')}</p>
          </div>
+
+         <div className="card-premium relative group min-w-0 flex flex-col">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-indigo-500 group-hover:scale-125 transition-all"><FolderOpen size={180} /></div>
+            <h3 className="text-[11px] md:text-xs font-black text-indigo-400 uppercase tracking-widest mb-6 flex items-start gap-2 leading-tight">
+              <span className="min-w-0 break-words">{t('central_locations')}</span>
+              <HelpTooltip text={t('central_byLocationHelp')} />
+            </h3>
+            <div className="flex items-baseline gap-2 relative z-10 flex-nowrap min-w-0 mt-auto">
+               <p className="text-4xl sm:text-5xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tighter leading-none whitespace-nowrap">{summary?.locationCount ?? locations.length}</p>
+               <span className="text-lg md:text-xl font-black text-indigo-400 uppercase tracking-widest shrink-0">DIR</span>
+            </div>
+            <p
+              className="mt-4 text-[11px] md:text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest leading-tight line-clamp-2 break-all"
+              title={summary?.largest?.name || ''}
+            >
+              {t('central_largestModel')}: {summary?.largest?.name ? String(summary.largest.name).split(/[\\/]/).pop() : '—'}
+            </p>
+         </div>
+      </div>
+
+      {/* Gráfico de espaço por localização + lista agregada (RF-012/RF-013) */}
+      <div className="card-premium mb-10 p-6 md:p-10">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h3 className="text-sm md:text-base font-black text-blue-500 uppercase tracking-widest flex items-center gap-3">
+            {t('central_byLocation')}
+            <HelpTooltip text={t('central_byLocationHelp')} />
+          </h3>
+          {activeLocation && (
+            <button
+              onClick={() => setActiveLocation(null)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+            >
+              <X size={12} /> {t('central_clearLocation')}
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-center">
+          <div className="min-w-0">
+            <StorageLocationChart
+              data={locations}
+              selected={activeLocation}
+              onSelect={(p) => setActiveLocation(p)}
+              height={300}
+            />
+          </div>
+
+          <div className="space-y-2 min-w-0">
+            {locations.length === 0 && (
+              <p className="text-xs font-black uppercase tracking-widest text-[var(--text-muted)]">{t('models_noModels')}</p>
+            )}
+            {locations.map((loc, i) => {
+              const active = activeLocation === loc.path;
+              const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#ef4444', '#84cc16'];
+              return (
+                <button
+                  key={loc.path}
+                  onClick={() => setActiveLocation(active ? null : loc.path)}
+                  title={loc.path}
+                  className={`w-full text-left p-3 md:p-4 rounded-2xl border transition-all active:scale-[0.99] min-w-0 ${
+                    active
+                      ? 'bg-blue-600/10 border-blue-500/50 shadow-lg shadow-blue-600/10'
+                      : 'bg-[var(--bg-input)]/40 border-[var(--border)] hover:border-blue-500/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: colors[i % colors.length] }} />
+                    <span className="font-black text-sm md:text-base text-[var(--text-primary)] truncate min-w-0">{loc.label}</span>
+                    <span className="ml-auto text-xs font-black text-[var(--text-secondary)] shrink-0">{fmt(loc.bytes)}</span>
+                    <span className="text-[10px] font-black text-[var(--text-muted)] w-12 text-right shrink-0">{loc.percent}%</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-base)] overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, loc.percent)}%`, backgroundColor: colors[i % colors.length] }} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] shrink-0">
+                      {t('central_modelsInLocation', { count: loc.count })}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {activeLocation && (
+          <p className="mt-6 text-[11px] font-mono font-bold text-blue-400 break-all">
+            {t('central_filteredBy', { path: activeLocation })}
+          </p>
+        )}
       </div>
 
       <div className="card-premium bg-[var(--bg-surface)]/40 p-6 md:p-10 mb-16 shadow-premium backdrop-blur-3xl overflow-hidden">
@@ -309,7 +443,7 @@ export default function Centralization() {
 
       <section className="bg-gradient-to-br from-blue-700 via-indigo-900 to-black p-6 sm:p-12 md:p-24 rounded-[2rem] md:rounded-[4rem] text-center relative overflow-hidden shadow-premium">
          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
-         <div className="absolute -bottom-20 -right-20 w-[30rem] h-[30rem] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
+         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.18),transparent_60%)] pointer-events-none" />
          
          <div className="relative z-10 space-y-10">
             <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mx-auto text-emerald-400 shadow-2xl backdrop-blur-3xl border border-white/10 shrink-0">

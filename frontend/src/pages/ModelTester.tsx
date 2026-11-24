@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, Settings2, SlidersHorizontal, Paperclip, X } from 'lucide-react';
+import { Send, User, Bot, Trash2, Zap, AlertCircle, Loader2, Globe, Server, Terminal, Sparkles, MessageCircle, Settings2, SlidersHorizontal, Paperclip, X, RefreshCw, Power, ExternalLink, ScrollText, ChevronDown } from 'lucide-react';
+import { io } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 // @ts-ignore
@@ -50,8 +51,15 @@ export default function ModelTester() {
   const [loading, setLoading] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [error, setError] = useState('');
-  const [engine, setEngine] = useState<'ollama' | 'llama.cpp' | 'custom'>('ollama');
-  const [customEndpoint, setCustomEndpoint] = useState('http://localhost:11434/api/generate');
+  const [engine, setEngine] = useState<string>('llamacpp');
+  // Motores efetivamente detetados na máquina (RF-020/RF-021).
+  const [engines, setEngines] = useState<any[]>([]);
+  const [enginesLoading, setEnginesLoading] = useState(false);
+  const [engineBusy, setEngineBusy] = useState(false);
+  // Logs do servidor em tempo real (RF-023/RF-024).
+  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState<{ level: string; msg: string; time: string }[]>([]);
+  const logsEndRef = useRef<HTMLDivElement>(null);
 
   // Advanced Settings State
   const [showSettings, setShowSettings] = useState(false);
@@ -67,7 +75,7 @@ export default function ModelTester() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Limites reais do modelo GGUF selecionado (para os sliders fazerem sentido)
-  const { meta: gmeta } = useGGUFMeta(engine === 'llama.cpp' ? selectedModel?.path : null);
+  const { meta: gmeta } = useGGUFMeta(engine === 'llamacpp' ? selectedModel?.path : null);
   const maxCtxSlider = gmeta?.ok && gmeta.nCtxMax ? Math.min(MAX_CTX_LIMIT, gmeta.nCtxMax) : MAX_CTX_LIMIT;
   const maxGpuLayers = gmeta?.ok && gmeta.nLayers ? Math.min(99, gmeta.nLayers) : 99;
   const ctxSliderStep = maxCtxSlider <= 16384 ? 1024 : 4096;
@@ -92,10 +100,70 @@ export default function ModelTester() {
       .catch(() => setError('Failed to load models.'));
   }, []);
 
+  /** Deteção automática dos motores instalados (RF-020). */
+  const loadEngines = async () => {
+    setEnginesLoading(true);
+    try {
+      const res = await fetch('/api/engines');
+      const data = await res.json();
+      const list = Array.isArray(data.engines) ? data.engines.filter((e: any) => e.installed) : [];
+      setEngines(list);
+      // Mantém o motor selecionado se ainda existir; senão escolhe um a correr.
+      setEngine(prev => {
+        if (list.some((e: any) => e.id === prev)) return prev;
+        const running = list.find((e: any) => e.running) || list[0];
+        return running ? running.id : prev;
+      });
+    } catch (e) {
+      setEngines([]);
+    } finally {
+      setEnginesLoading(false);
+    }
+  };
+
+  useEffect(() => { loadEngines(); }, []);
+
+  // Preferência persistida "mostrar sempre os logs" (RF-023).
   useEffect(() => {
-    if (engine === 'ollama') setCustomEndpoint('http://localhost:11434/api/generate');
-    else if (engine === 'llama.cpp') setCustomEndpoint('http://localhost:8080/completion');
-  }, [engine]);
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(cfg => setShowLogs(!!cfg.showServerLogs))
+      .catch(() => {});
+  }, []);
+
+  // Logs do servidor: histórico + streaming Socket.io (RF-024).
+  useEffect(() => {
+    fetch('/api/logs/recent?limit=150')
+      .then(r => r.json())
+      .then(d => setLogs(Array.isArray(d.logs) ? d.logs : []))
+      .catch(() => {});
+    const socket = io();
+    const onLog = (entry: any) => {
+      if (!entry || !entry.msg) return;
+      setLogs(prev => [...prev.slice(-399), entry]);
+    };
+    socket.on('server-log', onLog);
+    return () => { socket.off('server-log', onLog); socket.disconnect(); };
+  }, []);
+
+  useEffect(() => {
+    if (showLogs) logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs, showLogs]);
+
+  const toggleLogs = async () => {
+    const next = !showLogs;
+    setShowLogs(next);
+    try {
+      await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ showServerLogs: next })
+      });
+    } catch (e) { /* preferência local mesmo sem servidor */ }
+  };
+
+  const activeEngine = engines.find(e => e.id === engine) || null;
+  const engineReady = !!activeEngine?.running;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,8 +187,83 @@ export default function ModelTester() {
       }
   };
 
-  const handleSend = async () => {
-    if ((!input.trim() && !image) || (!selectedModel && engine !== 'custom') || loading) return;
+  /** Arranca o motor selecionado (pede o modelo quando é o llama.cpp). */
+  const startEngine = async (thenSend = false) => {
+    if (!activeEngine) return;
+    setEngineBusy(true);
+    try {
+      const body: any = { id: engine };
+      if (engine === 'llamacpp') {
+        if (!selectedModel?.path) {
+          alert(t('test_selectModelFirst') || 'Selecione um modelo GGUF na lista antes de iniciar o motor.');
+          return;
+        }
+        body.modelPath = selectedModel.path;
+        body.ctx = ctxSize;
+        body.ngl = gpuLayers;
+      }
+      const res = await fetch('/api/engines/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || 'Não foi possível iniciar o motor.');
+        return;
+      }
+      await loadEngines();
+      if (thenSend) {
+        // RF-026: depois de iniciar, envia a mensagem automaticamente.
+        setTimeout(() => { handleSend(true); }, 400);
+      }
+    } catch (err) {
+      alert('Erro ao iniciar o motor: ' + err);
+    } finally {
+      setEngineBusy(false);
+    }
+  };
+
+  /** Para o motor selecionado; `unloadOnly` só descarrega os modelos (RF-025). */
+  const stopEngine = async (unloadOnly = false) => {
+    if (!activeEngine) return;
+    setEngineBusy(true);
+    try {
+      const res = await fetch('/api/engines/stop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: engine, unloadOnly })
+      });
+      const data = await res.json();
+      if (data.error) alert(data.error);
+      await loadEngines();
+    } catch (err) {
+      alert('Erro ao parar o motor: ' + err);
+    } finally {
+      setEngineBusy(false);
+    }
+  };
+
+  /** Abre a UI web do motor; se estiver parado, arranca primeiro (RF-022). */
+  const handleOpenEngineUI = async () => {
+    if (!activeEngine) return;
+    const url = activeEngine.uiUrl || activeEngine.openWebUiUrl || activeEngine.details?.serverUrl || null;
+    if (!activeEngine.running) {
+      if (!confirm(t('test_startToOpenUi') || 'O motor está parado. Iniciar agora e abrir a UI web?')) return;
+      await startEngine(false);
+      setTimeout(() => {
+        const target = url || activeEngine.uiUrl || activeEngine.details?.serverUrl;
+        if (target) window.open(target, '_blank');
+        else alert(t('test_noWebUi') || 'Este motor não expõe uma UI web.');
+      }, 1200);
+      return;
+    }
+    if (url) window.open(url, '_blank');
+    else alert(t('test_noWebUi') || 'Este motor não expõe uma UI web.');
+  };
+
+  const handleSend = async (force = false) => {
+    if ((!input.trim() && !image) || !selectedModel || loading) return;
 
     const userMsgText = input.trim();
 
@@ -149,7 +292,7 @@ export default function ModelTester() {
           const question = userMsgText.replace('/analyze ', '');
           setMessages(prev => [...prev, { role: 'system', content: `Iniciando análise profunda (Map-Reduce) do documento. Isso dividirá o arquivo em pedaços pequenos para economizar memória VRAM. Pode demorar alguns instantes...`, text_content: `Iniciando análise profunda (Map-Reduce)...` }]);
           
-          const modelId = engine === 'llama.cpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
+          const modelId = engine === 'llamacpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
           
           const res = await fetch('/api/documents/analyze', {
               method: 'POST',
@@ -158,7 +301,7 @@ export default function ModelTester() {
               body: JSON.stringify({
                   userQuestion: question,
                   modelId: modelId,
-                  engineType: engine,
+                  engineType: engine === 'llamacpp' ? 'llama.cpp' : engine,
                   ctxSize: ctxSize
               })
           });
@@ -177,26 +320,15 @@ export default function ModelTester() {
           return;
       }
 
-      // Auto-start Llama.cpp engine if needed
-      if (engine === 'llama.cpp') {
-          const statusRes = await fetch('/api/inference/status');
-          const statusText = await statusRes.text();
-          let statusData: any = { running: false, model: null, ctx: null };
-          try { statusData = JSON.parse(statusText); } catch(e) { console.warn('Status response:', statusText); }
-          
-          if (!statusData.running || statusData.model !== selectedModel.path || statusData.ctx !== ctxSize) {
-              setMessages(prev => [...prev, { role: 'system', content: `Iniciando motor nativo para o modelo ${selectedModel.name.split('/').pop()} com contexto de ${ctxSize}... Aguarde.` }]);
-              const startRes = await fetch('/api/inference/start', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ modelPath: selectedModel.path, ctx: ctxSize, ngl: gpuLayers })
-              });
-              const startText = await startRes.text();
-              let startData;
-              try { startData = JSON.parse(startText); } catch(e) { throw new Error(`Falha ao iniciar motor. Resposta bruta: ${startText.substring(0, 100)}`); }
-              
-              if (!startData.success) throw new Error(startData.error || 'Falha ao iniciar motor nativo.');
-          }
+      // RF-026: o envio só acontece com o motor detetado a correr (exceto no
+      // reenvio automático logo após o arranque do motor, que passa force=true).
+      if (!engineReady && !force) {
+          const msg = t('test_engineOfflineHint') || 'O motor selecionado não está a correr. Inicie o motor para enviar mensagens.';
+          setError(t('test_engineOffline') || 'Motor parado');
+          setMessages(prev => [...prev, { role: 'system', content: msg, text_content: msg }]);
+          setLoading(false);
+          setAbortController(null);
+          return;
       }
 
       // Prepare OpenAI format payload com Auto-Compaction (Sliding Window)
@@ -231,7 +363,7 @@ export default function ModelTester() {
           chatHistory.unshift({ role: 'system', content: systemPrompt });
       }
 
-      const modelId = engine === 'llama.cpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
+      const modelId = engine === 'llamacpp' ? selectedModel.path : (selectedModel?.ollamaTag || selectedModel?.name);
 
       const startTime = Date.now();
       const res = await fetch('/v1/chat/completions', {
@@ -319,38 +451,41 @@ export default function ModelTester() {
           {t('nav_test')} ENGINE
         </h3>
 
-        <div className="flex bg-[var(--bg-input)]/50 p-1.5 rounded-2xl border border-[var(--border)] mb-6 shadow-inner">
-           {(['ollama', 'llama.cpp'] as const).map(e => (
-             <button 
-              key={e}
-              onClick={() => setEngine(e)}
-              className={`flex-1 py-2 md:py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${
-                engine === e ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
-             >
-               {e}
-             </button>
-           ))}
+        {/* Motores detetados automaticamente (RF-020/RF-021) */}
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('test_engines' as any)}</span>
+          <button
+            onClick={loadEngines}
+            disabled={enginesLoading}
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-colors disabled:opacity-50"
+            title={t('test_refreshDetection' as any)}
+          >
+            <RefreshCw size={14} className={enginesLoading ? 'animate-spin' : ''} />
+          </button>
         </div>
 
-        {engine === 'llama.cpp' && (
-           <motion.div 
-             initial={{ opacity: 0, y: -10 }}
-             animate={{ opacity: 1, y: 0 }}
-             className="bg-purple-500/10 border border-purple-500/20 p-6 rounded-[2rem] mb-10 shadow-lg relative overflow-hidden"
-           >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[30px] rounded-full" />
-              <p className="text-xs text-purple-400 font-black uppercase tracking-widest leading-relaxed flex items-center gap-3 mb-4">
-                 <Zap size={14} className="fill-purple-500/50" /> Native Engine
-              </p>
-              <p className="text-[11px] text-purple-300/70 font-medium leading-relaxed mb-6">
-                 O Centraliza.ai gerenciará o servidor Llama.cpp de forma nativa para você usando o GGUF selecionado abaixo.
-              </p>
-
-              <p className="text-[9px] text-purple-300/50 font-medium leading-relaxed mb-6 font-mono uppercase tracking-widest">
-                Context: {ctxSize} | GPU Layers: {gpuLayers}
-              </p>
-           </motion.div>
+        {engines.length === 0 ? (
+          <div className="mb-6 p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[11px] font-bold leading-relaxed">
+            {enginesLoading ? t('loading' as any) : (t('test_noEngines' as any) || 'Nenhum motor detetado. Instale o Ollama, llama.cpp, LM Studio ou ComfyUI.')}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 mb-6">
+            {engines.map((e: any) => (
+              <button
+                key={e.id}
+                onClick={() => setEngine(e.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 min-w-0 ${
+                  engine === e.id
+                    ? 'bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-600/30'
+                    : 'bg-[var(--bg-input)]/50 text-[var(--text-secondary)] border-[var(--border)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${e.running ? 'bg-emerald-500 animate-pulse' : 'bg-[var(--text-muted)]/40'}`} />
+                <span className="truncate">{e.label}</span>
+                <span className="ml-auto text-[9px] opacity-80 shrink-0">{e.running ? t('coder_running' as any) : t('coder_stopped' as any)}</span>
+              </button>
+            ))}
+          </div>
         )}
         
         <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-widest mb-8 flex items-center gap-4">
@@ -363,12 +498,14 @@ export default function ModelTester() {
         <div className="space-y-4 flex-1 overflow-y-auto pr-4 mb-10 custom-scrollbar no-scrollbar">
           {models.filter(m => {
             if (engine === 'ollama') return m.source === 'Ollama';
-            if (engine === 'llama.cpp') {
+            if (engine === 'llamacpp') {
                const isGGUF = m.path.toLowerCase().endsWith('.gguf') || m.extension?.toLowerCase() === '.gguf';
                const isOllama = m.source === 'Ollama';
                const isComfy = m.source === 'ComfyUI';
                return isGGUF && !isOllama && !isComfy;
             }
+            if (engine === 'lmstudio') return m.source !== 'ComfyUI' && m.source !== 'Ollama';
+            if (engine === 'comfyui') return m.source === 'ComfyUI';
             return true;
           }).map(model => (
             <button
@@ -380,7 +517,7 @@ export default function ModelTester() {
                   : 'bg-[var(--bg-input)]/40 border-[var(--border)] text-[var(--text-secondary)] hover:border-blue-500/30 hover:bg-[var(--bg-input)]/60'
               }`}
             >
-              <div className="font-black text-sm truncate mb-1 group-hover:translate-x-1 transition-transform tracking-tight uppercase leading-none">{model.name.split('/').pop()}</div>
+              <div className="font-black text-sm mb-1 group-hover:translate-x-1 transition-transform tracking-tight uppercase leading-tight break-words line-clamp-2">{model.name.split('/').pop()}</div>
               <div className="flex items-center justify-between">
                  <div className={`text-[10px] md:text-xs uppercase font-black tracking-[0.2em] opacity-60`}>{model.source}</div>
                  {selectedModel?.path === model.path && <Sparkles size={12} className="animate-pulse" />}
@@ -389,18 +526,71 @@ export default function ModelTester() {
           ))}
         </div>
 
-        <div className="pt-10 border-t border-[var(--border)]">
-           <label className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest block mb-4 ml-2">Endpoint URL</label>
-           <div className="flex items-center gap-4 bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[1.25rem] px-6 py-4 shadow-inner group focus-within:ring-4 focus-within:ring-blue-500/10 transition-all">
-              <Globe size={18} className="text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" />
-              <input 
-                type="text" 
-                value={customEndpoint}
-                onChange={(e) => setCustomEndpoint(e.target.value)}
-                className="bg-transparent text-xs text-[var(--text-primary)] focus:outline-none w-full font-mono font-black tracking-tight"
-              />
-           </div>
-        </div>
+        {activeEngine && (
+          <div className="pt-8 border-t border-[var(--border)] space-y-2">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('test_engineActions' as any)}</span>
+              <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest ${activeEngine.running ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`}>
+                <span className={`w-2 h-2 rounded-full ${activeEngine.running ? 'bg-emerald-500' : 'bg-[var(--text-muted)]/40'}`} />
+                {activeEngine.running ? t('coder_running' as any) : t('coder_stopped' as any)}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-input)]/40 border border-[var(--border)] text-[10px] font-mono text-[var(--text-muted)] break-all">
+              <Globe size={12} className="shrink-0" />
+              <span className="truncate" title={activeEngine.uiUrl || activeEngine.details?.serverUrl || ''}>
+                {activeEngine.uiUrl || activeEngine.details?.serverUrl || `127.0.0.1:${activeEngine.port}`}
+              </span>
+            </div>
+
+            <button
+              onClick={handleOpenEngineUI}
+              disabled={engineBusy}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+            >
+              <ExternalLink size={13} /> {t('test_openWebUi' as any)}
+            </button>
+
+            {activeEngine.running ? (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => stopEngine(false)}
+                  disabled={engineBusy}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+                >
+                  <Power size={13} /> {t('test_stopEngine' as any)}
+                </button>
+                <button
+                  onClick={() => stopEngine(true)}
+                  disabled={engineBusy}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-input)] hover:bg-orange-500/10 text-orange-400 border border-[var(--border)] text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+                  title={t('test_unloadHint' as any)}
+                >
+                  <Power size={13} /> {t('test_unload' as any)}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => startEngine(false)}
+                disabled={engineBusy}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                {engineBusy ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />}
+                {t('test_startEngine' as any)}
+              </button>
+            )}
+
+            <button
+              onClick={toggleLogs}
+              className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-colors ${
+                showLogs ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <ScrollText size={13} /> {showLogs ? t('test_hideLogs' as any) : t('test_showLogs' as any)}
+              <ChevronDown size={12} className={`transition-transform ${showLogs ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Chat Area */}
@@ -436,8 +626,10 @@ export default function ModelTester() {
               <div className="hidden sm:block min-w-0">
                 <div className="text-lg sm:text-xl md:text-2xl font-black text-[var(--text-primary)] truncate max-w-[10rem] sm:max-w-[12rem] md:max-w-[16rem] lg:max-w-2xl tracking-tighter leading-none mb-1 uppercase" title={selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}>{selectedModel?.name.split('/').pop() || 'IDLE ENGINE'}</div>
                  <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)] shrink-0"></span>
-                    <span className="text-xs text-emerald-500 font-black uppercase tracking-widest truncate" title={`${engine} engine active`}>{engine} engine active</span>
+                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${engineReady ? 'bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-[var(--text-muted)]/40'}`}></span>
+                    <span className={`text-xs font-black uppercase tracking-widest truncate ${engineReady ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`} title={activeEngine?.label || engine}>
+                      {activeEngine?.label || engine} · {engineReady ? t('coder_running' as any) : t('coder_stopped' as any)}
+                    </span>
                  </div>
               </div>
            </div>
@@ -535,7 +727,7 @@ export default function ModelTester() {
                     </div>
                   </div>
 
-                  {engine === 'llama.cpp' && (
+                  {engine === 'llamacpp' && (
                     <ConfigImpact
                       ctxSize={ctxSize}
                       gpuLayers={gpuLayers}
@@ -564,6 +756,42 @@ export default function ModelTester() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Painel de logs do servidor em tempo real (RF-024) */}
+        <AnimatePresence>
+          {showLogs && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: '14rem', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="shrink-0 border-b border-[var(--border)] bg-[#0A0A0A] overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 gap-2">
+                <span className="flex items-center gap-2 text-gray-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest">
+                  <ScrollText size={12} /> {t('test_logs' as any)}
+                </span>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setLogs([])} className="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+                    {t('test_clearLogs' as any)}
+                  </button>
+                  <button onClick={toggleLogs} className="text-gray-500 hover:text-white transition-colors" title={t('close' as any)}>
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="h-[calc(14rem-2.6rem)] overflow-y-auto p-3 font-mono text-[10px] md:text-[11px] leading-relaxed custom-scrollbar">
+                {logs.length === 0 && <div className="text-gray-600">{t('test_noLogs' as any)}</div>}
+                {logs.map((log, i) => (
+                  <div key={i} className={`mb-1 break-all ${log.level === 'ERROR' ? 'text-red-400' : log.level === 'WARN' ? 'text-yellow-400' : 'text-gray-400'}`}>
+                    <span className="opacity-40 mr-2">[{new Date(log.time).toLocaleTimeString()}]</span>
+                    <span className="font-black mr-2">[{log.level}]</span>{log.msg}
+                  </div>
+                ))}
+                <div ref={logsEndRef} />
               </div>
             </motion.div>
           )}
@@ -704,6 +932,22 @@ export default function ModelTester() {
               </div>
           )}
 
+          {selectedModel && !engineReady && (
+            <div className="w-full max-w-5xl mb-3 flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
+              <span className="flex items-center gap-2 text-yellow-500 text-[11px] font-bold leading-snug">
+                <AlertCircle size={14} className="shrink-0" />
+                {t('test_engineOfflineHint' as any)}
+              </span>
+              <button
+                onClick={() => startEngine(true)}
+                disabled={engineBusy}
+                className="px-4 py-2 rounded-xl bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50 shrink-0"
+              >
+                {engineBusy ? t('loading' as any) : t('test_startEngine' as any)}
+              </button>
+            </div>
+          )}
+
           <div className="relative group max-w-5xl w-full mx-auto flex gap-3 md:gap-4 items-center">
             <div className="relative flex-1 min-w-0 flex items-center bg-[var(--bg-input)]/60 border border-[var(--border)] rounded-full focus-within:ring-2 focus-within:ring-blue-600/50 transition-all shadow-premium">
                <SlashCommands 
@@ -755,7 +999,7 @@ export default function ModelTester() {
                 </button>
             ) : (
                 <button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!input.trim() && !image}
                   className="w-12 h-12 md:w-14 md:h-14 bg-blue-600 text-white rounded-full shrink-0 flex items-center justify-center hover:bg-blue-500 transition-all shadow-premium active:scale-90 disabled:opacity-50 disabled:grayscale"
                 >

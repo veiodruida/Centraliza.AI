@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/Toast';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-import { Terminal, GitBranch, Code2, Play, Square, Loader2, CheckCircle2, Box, Settings2, Zap, Server, AlertTriangle, Activity, X, Save, Cpu, FileCog, Plus, FolderSearch } from 'lucide-react';
+import { Terminal, Code2, Play, Square, Loader2, CheckCircle2, Box, Settings2, Zap, Server, AlertTriangle, Activity, X, Save, Cpu, FileCog, Plus, FolderSearch, RefreshCw, Download, ExternalLink } from 'lucide-react';
 import ConfigImpact from '../components/ConfigImpact';
 import { useGGUFMeta } from '../utils/useGGUFMeta';
 import { MAX_CTX_LIMIT } from '../utils/configAdvisor';
@@ -124,12 +126,16 @@ const TYPE_SHORT: Record<ParamType, string> = {
 
 export default function Coder() {
     const { t } = useApp();
+    const { showToast } = useToast();
     const [models, setModels] = useState<any[]>([]);
     const [activeModel, setActiveModel] = useState('');
     const [engineStatus, setEngineStatus] = useState({ running: false, model: null });
     const [loadingEngine, setLoadingEngine] = useState(false);
-    const [coderStatus, setCoderStatus] = useState({ installed: false, version: 'unknown' });
-    const [isSyncing, setIsSyncing] = useState(false);
+    // Estado agregado do Coder: motor, agente DeepSeek e auto-atualização.
+    const [coderStatus, setCoderStatus] = useState<any>({ engine: {}, agent: {}, update: {}, models: [] });
+    const [agentLoading, setAgentLoading] = useState(false);
+    const [updateLoading, setUpdateLoading] = useState(false);
+    const [launchAgentWithEngine, setLaunchAgentWithEngine] = useState(true);
     const [showSettings, setShowSettings] = useState(false);
     const [ctxSize, setCtxSize] = useState(32768);
     const [gpuLayers, setGpuLayers] = useState(99);
@@ -168,7 +174,9 @@ export default function Coder() {
     };
     // DeepSeek Harness como agente sobre o motor local
     const [dshStatus, setDshStatus] = useState({ port: 3090, engineRunning: false, dshRunning: false, url: '' });
-    const [dshLoading, setDshLoading] = useState(false);
+    // Resumo das integrações com editores (mesma fonte da página Extensões).
+    const [extStatus, setExtStatus] = useState<any>(null);
+    const [extBusy, setExtBusy] = useState<string | null>(null);
 
     useEffect(() => {
         // 1. Traz SÓ a lista limpa filtrada no backend
@@ -186,15 +194,27 @@ export default function Coder() {
             .then(r => r.json())
             .then(data => { if (data.activeModel) setActiveModel(data.activeModel); });
 
-        // 4. Status do Agente Coder
+        // 4. Estado agregado do Coder (motor + agente DeepSeek + atualizações)
         fetch('/api/coder/status')
             .then(r => r.json())
-            .then(setCoderStatus);
+            .then((data) => {
+                setCoderStatus(data);
+                if (data && data.defaultModel) {
+                    setActiveModel((prev: string) => prev || data.defaultModel);
+                }
+            })
+            .catch(() => {});
 
         // 6. Status do DeepSeek Harness (agente local)
         fetch('/api/coder/dsh/status')
             .then(r => r.json())
             .then(setDshStatus)
+            .catch(() => {});
+
+        // 7. Prontidão das integrações com editores (resumo na página Coder)
+        fetch('/api/extensions/status')
+            .then(r => r.json())
+            .then(setExtStatus)
             .catch(() => {});
 
         // 5. Configuração do motor (binário + args) — pré-carrega para edição
@@ -263,6 +283,12 @@ export default function Coder() {
             const data = await res.json();
             if (data.success) {
                 setEngineStatus({ running: true, model: activeModel as any });
+                // Modo A (RF-032): "Iniciar Motor" arranca também o agente DeepSeek.
+                if (launchAgentWithEngine && activeModel) {
+                    await handleStartAgent('engine');
+                } else {
+                    refreshAgentStatus();
+                }
             } else {
                 alert(data.error);
             }
@@ -354,6 +380,11 @@ export default function Coder() {
     const handleStopEngine = async () => {
         setLoadingEngine(true);
         try {
+            // O agente precisa do motor: pára-o primeiro para não ficar pendurado.
+            if (dshStatus.dshRunning) {
+                await fetch('/api/coder/agent/stop', { method: 'POST' }).catch(() => {});
+                setDshStatus(prev => ({ ...prev, dshRunning: false }));
+            }
             await fetch('/api/inference/stop', { method: 'POST' });
             setEngineStatus({ running: false, model: null });
         } finally {
@@ -361,75 +392,126 @@ export default function Coder() {
         }
     };
 
-    const handleSync = async () => {
-        setIsSyncing(true);
-        try {
-            await fetch('/api/coder/sync', { method: 'POST' });
-            const res = await fetch('/api/coder/status');
-            const data = await res.json();
-            setCoderStatus(data);
-        } catch (err) {
-            alert('Erro na sincronização: ' + err);
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
-    const refreshDshStatus = () => {
+    const refreshAgentStatus = () => {
         fetch('/api/coder/dsh/status')
             .then(r => r.json())
             .then(setDshStatus)
             .catch(() => {});
+        fetch('/api/coder/status')
+            .then(r => r.json())
+            .then(setCoderStatus)
+            .catch(() => {});
+        fetch('/api/extensions/status')
+            .then(r => r.json())
+            .then(setExtStatus)
+            .catch(() => {});
     };
 
-    const handleDshOpen = async () => {
-        setDshLoading(true);
+    /**
+     * Arranca o agente DeepSeek.
+     * Modo A ("engine"): usa o modelo por defeito e garante o motor arrancado.
+     * Modo B ("model"): usa o modelo escolhido no seletor (GGUF local ou Ollama).
+     */
+    const handleStartAgent = async (mode: 'engine' | 'model') => {
+        setAgentLoading(true);
         try {
-            const res = await fetch('/api/coder/dsh/launch', { method: 'POST' });
-            const data = await res.json();
-            if (data.success && data.url) {
-                setDshStatus({ port: data.port, engineRunning: true, dshRunning: true, url: data.url });
-                window.open(data.url, '_blank');
-            } else {
-                alert(data.error || 'Erro ao abrir o DeepSeek Harness.');
-            }
-        } catch (err) {
-            alert('Erro ao abrir o DeepSeek Harness: ' + err);
-        } finally {
-            setDshLoading(false);
-        }
-    };
-
-    const handleDshStop = async () => {
-        setDshLoading(true);
-        try {
-            const res = await fetch('/api/coder/dsh/stop', { method: 'POST' });
+            const res = await fetch('/api/coder/agent/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mode,
+                    modelPath: mode === 'model' ? activeModel : undefined,
+                    ctx: ctxSize,
+                    ngl: gpuLayers
+                })
+            });
             const data = await res.json();
             if (data.success) {
-                setDshStatus(prev => ({ ...prev, dshRunning: false }));
+                setDshStatus({ port: data.port, engineRunning: true, dshRunning: true, url: data.url });
+                setEngineStatus({ running: true, model: (data.model || activeModel) as any });
+                if (data.url) window.open(data.url, '_blank');
+                refreshAgentStatus();
+            } else {
+                alert(data.error || 'Não foi possível iniciar o agente DeepSeek.');
             }
         } catch (err) {
-            alert('Erro ao parar o DeepSeek Harness: ' + err);
+            alert('Erro ao iniciar o agente DeepSeek: ' + err);
         } finally {
-            setDshLoading(false);
-            setTimeout(refreshDshStatus, 1500);
+            setAgentLoading(false);
         }
     };
 
-    const handleSetupContinue = async () => {
-        const res = await fetch('/api/coder/setup-continue', { method: 'POST' });
-        const data = await res.json();
-        if (data.success && data.installUri) {
-            window.location.href = data.installUri;
+    const handleStopAgent = async () => {
+        setAgentLoading(true);
+        try {
+            const res = await fetch('/api/coder/agent/stop', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) setDshStatus(prev => ({ ...prev, dshRunning: false }));
+        } catch (err) {
+            alert('Erro ao parar o agente DeepSeek: ' + err);
+        } finally {
+            setAgentLoading(false);
+            setTimeout(refreshAgentStatus, 1200);
         }
     };
 
-    const handleSetupRoo = async () => {
-        const res = await fetch('/api/coder/setup-roo');
-        const data = await res.json();
-        if (data.success && data.installUri) {
-            window.location.href = data.installUri;
-            alert(`Configure no Roo Code:\nURL: ${data.instructions.baseUrl}\nAPI Key: ${data.instructions.apiKey}\nModel ID: ${data.instructions.modelId}`);
+    const handleOpenAgent = () => {
+        const url = dshStatus.url || `http://127.0.0.1:${dshStatus.port || 3090}`;
+        window.open(url, '_blank');
+    };
+
+    /** Verifica (ou aplica) a atualização automática da aplicação (RF-034). */
+    const handleUpdate = async (apply = false) => {
+        setUpdateLoading(true);
+        try {
+            const res = await fetch(apply ? '/api/update/apply' : '/api/update/check', { method: 'POST' });
+            const data = await res.json();
+            setCoderStatus((prev: any) => ({ ...prev, update: { ...(prev.update || {}), ...data } }));
+            if (apply && data.error) alert(data.error);
+        } catch (err) {
+            alert('Erro ao verificar atualizações: ' + err);
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    /** Integração resumida — usa exatamente a API da página Extensões. */
+    const handleIntegrate = async (kind: 'continue' | 'roo') => {
+        setExtBusy(kind);
+        try {
+            const res = await fetch(`/api/extensions/${kind}`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                showToast(kind === 'continue' ? t('ext_continueDone' as any) : t('ext_rooDone' as any), 'success');
+                if (data.installUri) window.location.href = data.installUri;
+            } else {
+                showToast(data.error || t('ext_blocked' as any), 'error');
+            }
+        } catch (err) {
+            showToast(String(err), 'error');
+        } finally {
+            setExtBusy(null);
+            fetch('/api/extensions/status').then(r => r.json()).then(setExtStatus).catch(() => {});
+        }
+    };
+
+    /** Desbloqueia as integrações (motor + modelo) sem sair da página Coder. */
+    const handleStartStack = async () => {
+        setExtBusy('stack');
+        try {
+            const res = await fetch('/api/extensions/start-stack', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                showToast(t('ext_ready' as any), 'success');
+                if (data.status) setExtStatus(data.status);
+                refreshAgentStatus();
+            } else {
+                showToast(data.error || t('error' as any), 'error');
+            }
+        } catch (err) {
+            showToast(String(err), 'error');
+        } finally {
+            setExtBusy(null);
         }
     };
 
@@ -718,10 +800,21 @@ export default function Coder() {
                                     </button>
                                 </div>
                             ) : (
-                                <button onClick={handleStartEngine} disabled={loadingEngine || !activeModel} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-3">
-                                    {loadingEngine ? <Loader2 className="animate-spin" size={20} /> : <Play size={20} className="fill-current" />}
-                                    {loadingEngine ? t('loading' as any) : t('coder_start_engine' as any)}
-                                </button>
+                                <div className="space-y-3">
+                                    <button onClick={handleStartEngine} disabled={loadingEngine || !activeModel} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-3">
+                                        {loadingEngine ? <Loader2 className="animate-spin" size={20} /> : <Play size={20} className="fill-current" />}
+                                        {loadingEngine ? t('loading' as any) : t('coder_start_engine' as any)}
+                                    </button>
+                                    <label className="flex items-center gap-3 px-2 text-[11px] font-bold text-[var(--text-muted)] cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={launchAgentWithEngine}
+                                            onChange={e => setLaunchAgentWithEngine(e.target.checked)}
+                                            className="accent-blue-500 w-4 h-4 shrink-0 cursor-pointer"
+                                        />
+                                        {t('coder_launchAgentWithEngine' as any)}
+                                    </label>
+                                </div>
                             )
                         ) : (
                             <div className="flex items-center justify-center gap-3 px-6 py-4 bg-[var(--bg-input)] text-[var(--text-muted)] rounded-2xl border border-[var(--border)] font-bold uppercase tracking-wider text-xs w-full text-center">
@@ -734,113 +827,196 @@ export default function Coder() {
 
                 {/* Integração e Agente */}
                 <div className="space-y-8">
-                    {/* Agente CLI */}
+                    {/* Agente DeepSeek (nativo) */}
                     <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl flex flex-col relative group">
                         <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
                             <div className="flex items-center gap-3 min-w-0">
-                                <Terminal size={28} className="text-blue-500 group-hover:-translate-y-1 transition-transform shrink-0" />
-                                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">Agente CLI</h2>
+                                <Terminal size={28} className="text-purple-500 group-hover:-translate-y-1 transition-transform shrink-0" />
+                                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">{t('coder_agent' as any)}</h2>
                             </div>
-                            <div className="min-w-0">
-                                {coderStatus.installed ? (
-                                    <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 border border-emerald-500/20">
-                                        <CheckCircle2 size={14} className="shrink-0" />
-                                        <span className="truncate max-w-[14rem]">{t('coder_status_installed' as any, { version: coderStatus.version })}</span>
-                                    </span>
-                                ) : (
-                                    <span className="px-4 py-1.5 bg-[var(--bg-input)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest rounded-full border border-[var(--border)]">
-                                        {t('coder_status_missing' as any)}
-                                    </span>
-                                )}
+                            <div className="flex flex-wrap gap-2 justify-end">
+                                <span className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-2 ${coderStatus.engine?.running ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
+                                    <Cpu size={12} className="shrink-0" />
+                                    {t('coder_engineState' as any)}: {coderStatus.engine?.running ? t('coder_running' as any) : t('coder_stopped' as any)}
+                                </span>
+                                <span className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-2 ${coderStatus.engine?.model || coderStatus.defaultModel ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
+                                    <Box size={12} className="shrink-0" />
+                                    <span className="truncate max-w-[12rem]" title={String(coderStatus.engine?.model || coderStatus.defaultModel || t('coder_noModel' as any))}>{t('coder_modelState' as any)}: {coderStatus.engine?.model || coderStatus.defaultModel || t('coder_noModel' as any)}</span>
+                                </span>
+                                <span className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-2 ${dshStatus.dshRunning ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border)]'}`}>
+                                    <Terminal size={12} className="shrink-0" />
+                                    {t('coder_agentState' as any)}: {dshStatus.dshRunning ? t('coder_running' as any) : t('coder_stopped' as any)}
+                                </span>
                             </div>
                         </div>
-                        
-                        <p className="text-[var(--text-secondary)] leading-relaxed mb-8">
-                            {t('coder_help_text' as any)}
+
+                        <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
+                            {t('coder_agentDesc' as any)}
                         </p>
 
-                        <button 
-                            onClick={handleSync} 
-                            disabled={isSyncing}
-                            className="w-full py-4 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-base)] rounded-2xl font-bold uppercase tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3 mt-auto"
-                        >
-                            {isSyncing ? <Loader2 className="animate-spin" size={20} /> : <GitBranch size={20} />}
-                            {isSyncing ? 'Sincronizando...' : t('coder_sync_btn' as any)}
-                        </button>
-                    </div>
-
-                    {/* DeepSeek Harness (Agente) */}
-                    <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl flex flex-col relative group">
-                        <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <Terminal size={28} className="text-purple-500 group-hover:-translate-y-1 transition-transform shrink-0" />
-                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">DeepSeek Harness (Agente)</h2>
-                        </div>
-                        <div className="flex flex-wrap gap-2 justify-end">
-                            <span className="px-3 py-1.5 bg-purple-500/10 text-purple-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-purple-500/20 flex items-center gap-2">
-                                <CheckCircle2 size={14} className="shrink-0" />
-                                <span className="truncate max-w-[12rem]">Modelo Local ({llamaArgList.find(p => p.arg === '--alias')?.value || 'qwen'})</span>
-                            </span>
-                            {dshStatus.dshRunning ? (
-                                <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-2 border border-emerald-500/20">
-                                    <CheckCircle2 size={14} className="shrink-0" />
-                                    <span className="truncate max-w-[16rem]">Em execução ({dshStatus.url})</span>
-                                </span>
-                            ) : (
-                                <span className="px-3 py-1.5 bg-[var(--bg-input)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest rounded-full border border-[var(--border)]">
-                                    Parado
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                        <p className="text-[var(--text-secondary)] leading-relaxed mb-8">
-                            <span className="text-purple-500 font-bold">Agente</span> do DeepSeek Harness usando o seu modelo local do Centraliza Coder.
-                            Use o motor llama.cpp que gerencia (descrito acima). Clique abaixo para abrir o Harness (web) em modo headless, apontado para o motor.
-                        </p>
-
-                        <div className="flex gap-4">
-                            <button 
-                                onClick={handleDshOpen} 
-                                disabled={dshLoading || !dshStatus.engineRunning}
-                                className="flex-1 py-4 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 rounded-2xl font-bold uppercase tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3"
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                            <button
+                                onClick={() => handleStartAgent('engine')}
+                                disabled={agentLoading}
+                                className="p-4 rounded-2xl border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 transition-all active:scale-95 disabled:opacity-50 text-left"
                             >
-                                {dshLoading ? <Loader2 className="animate-spin" size={20} /> : <Terminal size={20} />}
-                                {dshLoading ? 'Iniciando...' : 'Abrir DeepSeek Harness'}
+                                <span className="flex items-center gap-2 font-black uppercase tracking-widest text-[11px]">
+                                    {agentLoading ? <Loader2 className="animate-spin shrink-0" size={16} /> : <Play size={16} className="shrink-0 fill-current" />}
+                                    {t('coder_modeEngine' as any)}
+                                </span>
+                                <span className="block mt-1 text-[11px] font-medium text-[var(--text-secondary)] normal-case tracking-normal">{t('coder_modeEngineDesc' as any)}</span>
                             </button>
                             <button
-                                onClick={handleDshStop}
-                                disabled={dshLoading || !dshStatus.dshRunning}
-                                className="flex-1 py-4 bg-[var(--bg-input)] hover:bg-red-500/10 text-red-500 rounded-2xl font-bold uppercase tracking-widest transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-3 border border-[var(--border)]"
+                                onClick={() => handleStartAgent('model')}
+                                disabled={agentLoading || !activeModel}
+                                className="p-4 rounded-2xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-all active:scale-95 disabled:opacity-50 text-left"
                             >
-                                <Square size={20} /> Parar
+                                <span className="flex items-center gap-2 font-black uppercase tracking-widest text-[11px]">
+                                    {agentLoading ? <Loader2 className="animate-spin shrink-0" size={16} /> : <Play size={16} className="shrink-0 fill-current" />}
+                                    {t('coder_modeModel' as any)}
+                                </span>
+                                <span className="block mt-1 text-[11px] font-medium text-[var(--text-secondary)] normal-case tracking-normal">{t('coder_modeModelDesc' as any)}</span>
                             </button>
                         </div>
-                        {!dshStatus.engineRunning && (
-                            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-500 text-xs font-medium">
-                                O motor local (llama.cpp) não está a correr. Inicie o motor na seção Motor acima primeiro.
-                            </div>
+
+                        <div className="flex flex-wrap gap-3 mt-4">
+                            <button
+                                onClick={handleOpenAgent}
+                                disabled={!dshStatus.dshRunning}
+                                className="flex-1 min-w-[10rem] py-3 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-2xl font-bold uppercase tracking-widest text-[11px] transition-all disabled:opacity-40 flex items-center justify-center gap-2 border border-purple-500/20"
+                            >
+                                <ExternalLink size={16} /> {t('coder_openAgent' as any)}
+                            </button>
+                            <button
+                                onClick={handleStopAgent}
+                                disabled={agentLoading || !dshStatus.dshRunning}
+                                className="flex-1 min-w-[10rem] py-3 bg-[var(--bg-input)] hover:bg-red-500/10 text-red-500 rounded-2xl font-bold uppercase tracking-widest text-[11px] transition-all disabled:opacity-40 flex items-center justify-center gap-2 border border-[var(--border)]"
+                            >
+                                <Square size={14} /> {t('coder_stopAgent' as any)}
+                            </button>
+                        </div>
+                        {dshStatus.dshRunning && (
+                            <p className="mt-3 text-[11px] font-mono text-[var(--text-muted)] break-all">{dshStatus.url}</p>
                         )}
                     </div>
 
-                    {/* Extensões */}
+                    {/* Auto-atualização da aplicação (RF-034) */}
                     <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl group">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Code2 size={28} className="text-indigo-500 group-hover:scale-110 transition-transform" />
-                            <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Editores</h2>
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <RefreshCw size={26} className="text-emerald-500 group-hover:rotate-180 transition-transform duration-700 shrink-0" />
+                                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">{t('coder_updateTitle' as any)}</h2>
+                            </div>
+                            <span className="px-3 py-1.5 bg-[var(--bg-input)] text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest rounded-full border border-[var(--border)]">
+                                v{coderStatus.update?.currentVersion || '—'}
+                            </span>
                         </div>
-                        <p className="text-[var(--text-secondary)] mb-6 leading-relaxed">
-                            Configure automaticamente as extensões suportadas no VS Code para usar o Gateway do Centraliza.
+                        <p className="text-[var(--text-secondary)] leading-relaxed mb-4">
+                            {t('coder_updateDesc' as any)}
                         </p>
-                        
-                        <div className="flex gap-4">
-                            <button onClick={handleSetupContinue} className="flex-1 py-4 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-2xl font-bold uppercase tracking-widest transition-colors border border-indigo-500/20 text-[11px] flex items-center justify-center gap-2">
-                                Continue.dev
+                        <div className={`p-3 rounded-xl border text-xs font-bold mb-4 ${
+                            coderStatus.update?.lastResult === 'applied' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                            : coderStatus.update?.lastResult === 'available' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                            : coderStatus.update?.lastResult === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400'
+                            : 'bg-[var(--bg-input)] border-[var(--border)] text-[var(--text-muted)]'
+                        }`}>
+                            {coderStatus.update?.lastResult === 'available'
+                                ? `${t('coder_updateAvailable' as any)} v${coderStatus.update?.available?.version || '?'}`
+                                : coderStatus.update?.lastResult === 'up-to-date' ? t('coder_updateUpToDate' as any)
+                                : coderStatus.update?.lastResult === 'not-configured' ? t('coder_updateNotConfigured' as any)
+                                : coderStatus.update?.lastResult === 'disabled' ? t('coder_updateDisabled' as any)
+                                : coderStatus.update?.lastResult === 'applied' ? t('coder_updateRestart' as any)
+                                : coderStatus.update?.lastResult === 'error' ? (coderStatus.update?.error || t('error' as any))
+                                : t('coder_updateIdle' as any)}
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={() => handleUpdate(false)}
+                                disabled={updateLoading}
+                                className="flex-1 min-w-[9rem] py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded-2xl font-bold uppercase tracking-widest text-[11px] transition-all disabled:opacity-50 flex items-center justify-center gap-2 border border-emerald-500/20"
+                            >
+                                {updateLoading ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+                                {t('coder_updateCheck' as any)}
                             </button>
-                            <button onClick={handleSetupRoo} className="flex-1 py-4 bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 rounded-2xl font-bold uppercase tracking-widest transition-colors border border-purple-500/20 text-[11px] flex items-center justify-center gap-2">
-                                Roo Code
+                            <button
+                                onClick={() => handleUpdate(true)}
+                                disabled={updateLoading || !coderStatus.update?.updateAvailable}
+                                className="flex-1 min-w-[9rem] py-3 bg-[var(--bg-input)] hover:bg-blue-500/10 text-blue-400 rounded-2xl font-bold uppercase tracking-widest text-[11px] transition-all disabled:opacity-40 flex items-center justify-center gap-2 border border-[var(--border)]"
+                            >
+                                <Download size={14} /> {t('coder_updateApply' as any)}
                             </button>
                         </div>
+                    </div>
+
+                    {/* Editores — resumo das integrações (detalhe na página Extensões) */}
+                    <div className="bg-[var(--bg-surface)] rounded-[2rem] border border-[var(--border)] p-8 shadow-xl group">
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <Code2 size={26} className="text-indigo-500 group-hover:scale-110 transition-transform shrink-0" />
+                                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter break-words min-w-0">{t('coder_editorsTitle' as any)}</h2>
+                            </div>
+                            <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shrink-0 ${extStatus?.ready ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                                {extStatus?.ready ? t('ext_ready' as any) : t('ext_blocked' as any)}
+                            </span>
+                        </div>
+
+                        <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-5">
+                            {t('coder_editorsHint' as any)}
+                        </p>
+
+                        {extStatus && !extStatus.ready && (
+                            <div className="mb-4 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex flex-wrap items-center justify-between gap-3">
+                                <span className="flex items-center gap-2 text-amber-400 text-[11px] font-bold leading-snug min-w-0">
+                                    <AlertTriangle size={13} className="shrink-0" />
+                                    <span className="min-w-0 break-words">{extStatus.blockers?.[0]?.message || t('ext_engineRequiredHint' as any)}</span>
+                                </span>
+                                <button
+                                    onClick={handleStartStack}
+                                    disabled={extBusy === 'stack'}
+                                    className="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50 shrink-0 flex items-center gap-2"
+                                >
+                                    {extBusy === 'stack' ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
+                                    {t('ext_startStack' as any)}
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            {([
+                                { kind: 'continue' as const, label: 'Continue.dev', info: extStatus?.integrations?.continue },
+                                { kind: 'roo' as const, label: 'Roo Code', info: extStatus?.integrations?.roo }
+                            ]).map(({ kind, label, info }) => {
+                                const configured = info?.configured === true;
+                                const missing = info && info.installed === false;
+                                const statusLabel = configured
+                                    ? t('ext_configured' as any)
+                                    : missing ? t('ext_notInstalled' as any) : t('ext_notConfigured' as any);
+                                return (
+                                    <div key={kind} className="flex flex-wrap items-center gap-3 p-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-input)]/40 min-w-0">
+                                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${configured ? 'bg-emerald-500' : missing ? 'bg-red-400/70' : 'bg-[var(--text-muted)]/40'}`} />
+                                        <span className="font-black text-sm text-[var(--text-primary)] truncate min-w-0">{label}</span>
+                                        <span
+                                            className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${configured ? 'text-emerald-500' : 'text-[var(--text-muted)]'}`}
+                                            title={info?.path || info?.product || undefined}
+                                        >
+                                            {statusLabel}
+                                        </span>
+                                        <button
+                                            onClick={() => handleIntegrate(kind)}
+                                            disabled={!extStatus?.ready || extBusy === kind}
+                                            className="ml-auto px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40 flex items-center gap-2 shrink-0"
+                                        >
+                                            {extBusy === kind ? <Loader2 size={11} className="animate-spin" /> : <Zap size={11} />}
+                                            {t('ext_integrate' as any)}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <Link to="/extensions" className="mt-4 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-blue-400 transition-colors">
+                            <ExternalLink size={13} /> {t('coder_openExtensions' as any)}
+                        </Link>
                     </div>
                 </div>
             </div>

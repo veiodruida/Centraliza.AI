@@ -98,15 +98,30 @@ After installing, launch the app any of these equivalent ways:
 
 ---
 
+## 🧩 v0.5.0 — Hub, Centralization, Test & Chat, Coder and Extensions
+
+- **Model Hub search fixed**: at 1920–2560 px the search field keeps ≥ 40% of the content width, 16–18 px text, a visible caret and no horizontal clipping.
+- **New subcategories**: models are automatically tagged **Abliterated** and **Uncensored** (name, Hugging Face tags and metadata), with permanent filters and result counters.
+- **Storage visibility**: total model space (auto GB/TB), space per location with an interactive donut chart, click-to-filter, and real physical space vs. space saved by hardlinks.
+- **Engine management**: automatic detection of Ollama, llama.cpp, LM Studio and ComfyUI (state: running/stopped), open each engine's web UI, live server logs (toggle persisted in `config.json`), and stop/unload (graceful unload before killing processes).
+- **Native DeepSeek agent**: the third-party CLI integration was removed. The Centraliza Coder now starts the DeepSeek Harness from the dashboard in two modes — default model ("Start engine") or a model you selected.
+- **Automatic app updates**: checks on startup and every 24 h, SHA-256 verification, transactional apply with backup and rollback.
+- **Extensions repaired**: Continue.dev and Roo Code are configured automatically (with backups) only when the engine and model are running, followed by an automatic smoke test and actionable diagnostics.
+
+See [Release Notes v0.5.0](RELEASE_NOTES_v0.5.0.md) for the full list.
+
+---
+
 ## 🏗️ Architecture
 
-Three-layer design, all served from a single process on **port 4000**:
+Three-layer design plus the v0.5.0 modules, all served from a single process on **port 4000**:
 
 | Layer | Role |
 | :--- | :--- |
 | **Scan Engine** | Recursively scans configured directories (`.gguf`, `.safetensors`, `.ckpt`, `.bin`, `.pt`, `.pth`), resolves Ollama manifest hashes into readable names, and returns a normalized model list. |
 | **Centralization Engine** | Creates NTFS **hardlinks** (`fs.link`) with symlink fallback (`fs.symlink`), validating via inode or `size + mtime` comparison. Destination: `{centralDir}/Centraliza.ai/{modelBaseName}/{fileName}`. |
 | **Orchestration Engine** | Launches and manages inference: `ollama run`, `llama-cli`/`llama-server` with configurable args (threads, GPU layers, context), ComfyUI via `run_nvidia_gpu.bat`, LM Studio via `lms.exe`, plus a transparent chat proxy to `localhost:11434/api/generate`. |
+| **v0.5.0 modules** (`backend/`) | `flavor.js` (Abliterated/Uncensored tagging), `storage.js` (space by location), `engines.js` (detect/start/stop), `extensions.js` (Continue/Roo automation), `updater.js` (transactional self-update). |
 
 ### Tech Stack
 
@@ -115,28 +130,40 @@ Three-layer design, all served from a single process on **port 4000**:
 | **Backend** | Node.js + Express + Socket.io |
 | **Frontend** | React 19 + Vite + TypeScript |
 | **Styling** | Tailwind CSS + CSS variables (glassmorphic design system) |
-| **Realtime** | Socket.io (download progress, UI sync) |
+| **Realtime** | Socket.io (download progress, server logs, update notices, UI sync) |
 | **Storage** | NTFS hardlinks / symlinks (fallback) |
-| **Charts** | Recharts (disk usage graphs) |
+| **Charts** | Recharts (disk usage + space by location) |
 | **i18n** | Custom reactive engine — 11 languages + RTL (Arabic) |
 
 ### API Overview (selected endpoints)
 
 | Route | Method | Description |
 | :--- | :--- | :--- |
-| `/api/models` | GET | List all detected models (10s cache) |
+| `/api/models` | GET | List all detected models (`?filter=coder/abliterated/uncensored`, 10s cache) |
 | `/api/system-info` | GET | CPU/RAM/GPU/VRAM telemetry |
 | `/api/gguf/meta` | GET | GGUF metadata: layers, max context, architecture, quantization |
 | `/api/system/disk` | GET | Disk usage and central folder size |
-| `/api/registry` | GET | Local Hugging Face catalog |
+| `/api/storage/summary` | GET | Total model space, per location, saved by centralization |
+| `/api/engines` | GET | Detected engines with running/stopped state |
+| `/api/engines/start` / `/api/engines/stop` | POST | Start or stop/unload an engine |
+| `/api/logs/recent` | GET | Recent server logs (live stream via `server-log` socket event) |
+| `/api/registry` | GET | Local Hugging Face catalog (with Abliterated/Uncensored flags) |
 | `/api/centralize` | POST | Create a hardlink for a model |
 | `/api/download` | POST | Start a model download (`ollama pull`) |
-| `/api/launch` | POST | Launch an inference engine |
-| `/api/chat` | POST | Proxy chat to a local model |
+| `/api/coder/agent/start` | POST | Launch the DeepSeek agent (engine mode or selected model) |
+| `/api/coder/agent/stop` | POST | Stop the DeepSeek agent |
+| `/api/coder/status` | GET | Engine + model + agent + update state |
+| `/api/extensions/status` | GET | Integration readiness and blockers |
+| `/api/extensions/continue` / `/roo` | POST | Write the editor configuration automatically |
+| `/api/extensions/smoke-test` | POST | Ask the local model "Responde apenas: OK" |
+| `/api/update/check` / `/api/update/apply` | POST | Check / apply an app update |
+| `/api/launch` | POST | Launch an inference engine (legacy) |
+| `/api/chat` | POST | Proxy chat to a local model (legacy) |
 | `/api/auto-detect` | POST | Auto-detect AI installation paths |
 | `/api/models/rename` / `/api/models/move` | POST | Rename / move a model on the filesystem |
 | `/api/models/sanity-check` | POST | Clean up broken hardlinks |
 | `/api/models` | DELETE | Remove a model (Ollama RM + unlink) |
+| `/v1/chat/completions` | POST | OpenAI-compatible gateway for editors and tools |
 
 See [documentation/ARCHITECTURE.md](documentation/ARCHITECTURE.md) for the full API surface, caching rules, WebSocket events and operational guidelines.
 
@@ -147,6 +174,7 @@ See [documentation/ARCHITECTURE.md](documentation/ARCHITECTURE.md) for the full 
 ```
 Centraliza.AI/
 ├── server.js                  # Express + Socket.io backend (port 4000)
+├── backend/                   # v0.5.0 modules (flavor, storage, engines, extensions, updater)
 ├── config.json                # Configuration persistence (gitignored)
 ├── package.json               # Backend dependencies
 ├── setup.bat                  # Zero-config installer
@@ -156,16 +184,18 @@ Centraliza.AI/
 ├── centraliza_hero.png        # Hero image
 ├── data/
 │   ├── hf_models.json         # Local Hugging Face catalog
-│   └── models.json            # Detected models index
+│   ├── models.json            # Detected models index
+│   └── dsh/                   # Isolated profile patch for the DeepSeek agent
 ├── frontend/                  # React + Vite + TypeScript dashboard
 │   └── src/
 │       ├── App.tsx            # Router + Dashboard + Sidebar
-│       ├── pages/             # MyModels, ExploreStore, HardwareLab, Centralization, Extensions, Settings…
-│       ├── components/        # Impact Panel, DiskUsageGraph, DownloadTracker, SlashCommands…
+│       ├── pages/             # MyModels, ExploreStore, ModelTester, Coder, Centralization, Extensions, Settings…
+│       ├── components/        # Impact Panel, DiskUsageGraph, StorageLocationChart, DownloadTracker…
 │       ├── context/           # AppContext (global state + i18n)
-│       └── i18n/              # Translations (11 languages + RTL)
+│       └── i18n/              # Translations (11 languages + RTL, v050.ts for the new keys)
 ├── documentation/
 │   ├── ARCHITECTURE.md        # System architecture reference
+│   ├── CENTRALIZA_CODER_SPEC.md
 │   └── DEVELOPMENT_GUIDE.md   # Development guide
 └── screenshots/               # UI screenshots
 ```
@@ -178,10 +208,10 @@ Centraliza.AI/
 npm test
 ```
 
-- **6 server tests** — GGUF parser (synthetic + local file), endpoint validation, system-info and models.
-- **7 estimation engine tests** — context classification, KV cache, recommendations and warnings.
-- **1 frontend smoke test** — component renders.
+- **17 server tests** — GGUF parser, endpoints, Abliterated/Uncensored tagging, storage summary, engine detection, logs, Coder status, update status and extension readiness.
+- **13 frontend tests** — estimation engine, component smoke test and i18n completeness (all 11 languages, placeholders preserved).
 - **Responsiveness suite (Playwright)** — `scripts/resp-scan.mjs` / `resp-verify.mjs` / `resp-resize.mjs`: 9 pages × 13 viewports plus live resize cycles, asserting zero horizontal overflow, zero clipped numbers and zero clipped text without a tooltip.
+- **v0.5.0 functional checks** — `scripts/verify-v050.mjs`: new controls on the 5 changed modules, Hub search measurements at 2560 px and 360 px overflow checks.
 
 ---
 
@@ -189,6 +219,7 @@ npm test
 
 - [Architecture](documentation/ARCHITECTURE.md) — technical reference, API surface, caching and operational rules
 - [Development Guide](documentation/DEVELOPMENT_GUIDE.md) — contributor guide
+- [Release Notes v0.5.0](RELEASE_NOTES_v0.5.0.md) — hub, centralization, engine control, native agent and extensions
 - [Release Notes v0.4.1](RELEASE_NOTES_v0.4.1.md) — what's new in the responsive release
 - [Release Notes v0.4.0](RELEASE_NOTES_v0.4.0.md) — what's new in the hardware-aware release
 

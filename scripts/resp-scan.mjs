@@ -46,6 +46,41 @@ function DETECT_JS() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
+  // Um elemento só conta como "fora do ecrã" se não estiver visualmente
+  // recortado por um antepassado com overflow hidden/clip (os brilhos e ícones
+  // decorativos são intencionalmente maiores do que o cartão que os recorta).
+  const visuallyClippedByAncestor = (el) => {
+    let node = el.parentElement;
+    let depth = 0;
+    while (node && depth < 5) {
+      const s = getComputedStyle(node);
+      if (/(hidden|clip)/.test(s.overflowX) || /(hidden|clip)/.test(s.overflowY)) {
+        const pr = node.getBoundingClientRect();
+        const er = el.getBoundingClientRect();
+        if (er.left >= pr.left - 2 && er.right <= pr.right + 2 && er.top >= pr.top - 2 && er.bottom <= pr.bottom + 2) {
+          return false; // está dentro do antepassado recortante → visível
+        }
+        return true; // recortado pelo antepassado → não é visível
+      }
+      node = node.parentElement;
+      depth++;
+    }
+    return false;
+  };
+
+  // Texto truncado é aceitável quando existe tooltip (title/aria-label) a
+  // mostrar o conteúdo completo — regra documentada nas release notes.
+  const hasTooltip = (el) => {
+    let node = el;
+    let depth = 0;
+    while (node && depth < 3) {
+      if (node.getAttribute && (node.getAttribute('title') || node.getAttribute('aria-label'))) return true;
+      node = node.parentElement;
+      depth++;
+    }
+    return false;
+  };
+
   // 1) Page-level horizontal overflow
   const docOverflow = document.documentElement.scrollWidth > vw + 1;
   const bodyOverflow = document.body ? document.body.scrollWidth > vw + 1 : false;
@@ -66,6 +101,7 @@ function DETECT_JS() {
     if (r.width === 0 && r.height === 0) continue;
     // Ignore tiny decorative absolutes and pseudo-like elements
     if (r.right > vw + 1 && r.left < vw) {
+      if (visuallyClippedByAncestor(el)) continue;
       // skip svg decorations intentionally positioned off-card
       const txt = (el.textContent || '').trim().slice(0, 60);
       outOfViewport.push({
@@ -104,6 +140,8 @@ function DETECT_JS() {
       if (r.width === 0) continue;
       // Only care when content actually overflows the box horizontally
       const isTextEl = el.children.length === 0 || /^(H1|H2|H3|H4|H5|H6|P|SPAN|BUTTON|A|CODE|PRE|LABEL|INPUT)$/i.test(el.tagName);
+      // Texto truncado com tooltip (title/aria-label) é aceitável.
+      if (isTextEl && hasTooltip(el)) continue;
       clipped.push({
         tag: el.tagName.toLowerCase(),
         cls: (el.className && typeof el.className === 'string' ? el.className : '').slice(0, 120),
