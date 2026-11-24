@@ -12,23 +12,33 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centraliza.ai — The Ultimate Local AI Orchestrator | LM Studio & Ollama</title>
-    <meta name="description" content="Centraliza.ai is the professional hub for local AI. Orchestrate LM Studio, Ollama, and ComfyUI with zero disk redundancy. Manage links, download models, and command your AI universe from one unified dashboard.">
-    <meta name="keywords" content="local ai, ollama manager, lm studio companion, ai model orchestrator, symlink ai, local llm management, centraliza.ai">
+    <title>Centraliza.ai — Local AI Orchestrator & ComfyUI Workflow Import</title>
+    <meta name="description" content="Centraliza.ai is the professional hub for local AI. Orchestrate LM Studio, Ollama and ComfyUI with zero disk redundancy, import ComfyUI workflow .md files and download every model automatically from Hugging Face.">
+    <meta name="keywords" content="local ai, ollama manager, lm studio companion, comfyui workflow, comfyui model downloader, huggingface downloader, ai model orchestrator, symlink ai, local llm management, centraliza.ai">
     <link rel="canonical" href="https://veiodruida.github.io/Centraliza.AI/" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://veiodruida.github.io/Centraliza.AI/">
-    <meta property="og:title" content="Centraliza.ai — Master Your Local AI Universe">
-    <meta property="og:description" content="Orchestrate LM Studio, Ollama, and ComfyUI with zero disk redundancy. The ultimate tool for local AI enthusiasts.">
+    <meta property="og:title" content="Centraliza.ai — Local AI Orchestrator & ComfyUI Workflow Import">
+    <meta property="og:description" content="Orchestrate LM Studio, Ollama and ComfyUI with zero disk redundancy. Import a ComfyUI workflow .md and download all required models from Hugging Face automatically.">
     <meta property="og:image" content="https://veiodruida.github.io/Centraliza.AI/centraliza_hero.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="pt_PT">
+    <meta property="og:locale:alternate" content="es_ES">
+    <meta property="og:locale:alternate" content="fr_FR">
+    <meta property="og:locale:alternate" content="de_DE">
+    <meta property="og:locale:alternate" content="it_IT">
+    <meta property="og:locale:alternate" content="zh_CN">
+    <meta property="og:locale:alternate" content="ar_AR">
+    <meta property="og:locale:alternate" content="ko_KR">
+    <meta property="og:locale:alternate" content="ja_JP">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://veiodruida.github.io/Centraliza.AI/">
-    <meta property="twitter:title" content="Centraliza.ai — Master Your Local AI Universe">
-    <meta property="twitter:description" content="Orchestrate LM Studio, Ollama, and ComfyUI with zero disk redundancy. Manage all your local AI models in one place.">
+    <meta property="twitter:title" content="Centraliza.ai — Local AI Orchestrator & ComfyUI Workflow Import">
+    <meta property="twitter:description" content="Orchestrate LM Studio, Ollama and ComfyUI with zero disk redundancy. Import a ComfyUI workflow .md and download every model automatically.">
     <meta property="twitter:image" content="https://veiodruida.github.io/Centraliza.AI/centraliza_hero.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -343,6 +353,7 @@
                 <span class="logo-text">Centraliza.ai</span>
             </a>
             <ul class="nav-links">
+                <li><a href="#whatsnew" data-t="nav_whatsnew">What's new</a></li>
                 <li><a href="#features" data-t="nav_benefits">Benefits</a></li>
                 <li><a href="#setup" data-t="nav_setup">Installation</a></li>
                 <li><a href="#faq" data-t="nav_faq">FAQ</a></li>
@@ -361,18 +372,18 @@
                     <option value="ko" style="background: #111; color: #fff;">🇰🇷 한국어</option>
                     <option value="ja" style="background: #111; color: #fff;">🇯🇵 日本語</option>
                 </select>
-                <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.5.0/centraliza-ai-v0.5.0-ready.zip" download class="btn-download nav-download-btn" data-t="btn_direct_download">Direct Download v0.5.0</a>
+                <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.6.0/centraliza-ai-v0.6.0-ready.zip" download class="btn-download nav-download-btn" data-t="btn_direct_download">Direct Download v0.6.0</a>
             </div>
         </div>
     </nav>
 
     <main class="container">
         <section class="hero">
-            <span class="badge" data-t="hero_badge">V0.5.0 — Official Release</span>
-            <h1 data-t="hero_title">The Companion for<br>LM Studio & Ollama</h1>
-            <p data-t="hero_desc">The ultimate local AI manager. Centraliza.ai complements your existing tools, allowing you to orchestrate, extend, and personalize your local intelligence ecosystem in one unified workspace.</p>
+            <span class="badge" data-t="hero_badge">V0.6.0 — Official Release</span>
+            <h1 data-t="hero_title">The Companion for<br>LM Studio, Ollama &amp; ComfyUI</h1>
+            <p data-t="hero_desc">The ultimate local AI manager. Orchestrate LM Studio, Ollama and ComfyUI, import ComfyUI workflow .md files and download every model from Hugging Face — all from one unified workspace.</p>
             <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-                <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.5.0/centraliza-ai-v0.5.0-ready.zip" download class="btn-download" data-t="btn_download">Download for Windows</a>
+                <a href="https://github.com/veiodruida/Centraliza.AI/releases/download/v0.6.0/centraliza-ai-v0.6.0-ready.zip" download class="btn-download" data-t="btn_download">Download for Windows</a>
                 <a href="#setup" class="btn-download" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; box-shadow: none;" data-t="btn_how_to_install">How to Install</a>
             </div>
 
@@ -382,20 +393,20 @@
         </section>
         <section id="whatsnew" style="padding: 90px 0; border-top: 1px solid var(--glass-border);">
             <div style="text-align: center; margin-bottom: 44px;">
-                <span class="badge" data-t="whatsnew_badge">V0.5.0 — Now available</span>
-                <h2 style="font-size: 2.5rem; margin-top: 18px;" data-t="whatsnew_title">What's new in v0.5.0</h2>
-                <p style="color: var(--text-dim); margin: 12px auto 0; max-width: 760px;" data-t="whatsnew_subtitle">The biggest update yet — focused on usability, visibility and autonomy.</p>
+                <span class="badge" data-t="whatsnew_badge">V0.6.0 — Now available</span>
+                <h2 style="font-size: 2.5rem; margin-top: 18px;" data-t="whatsnew_title">What's new in v0.6.0</h2>
+                <p style="color: var(--text-dim); margin: 12px auto 0; max-width: 760px;" data-t="whatsnew_subtitle">ComfyUI workflow import, automatic Hugging Face discovery and a fully organized model library.</p>
             </div>
             <div class="features" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-                <div class="feature-card"><p data-t="whatsnew_1"><b>Model Hub</b> — readable search at any window size, plus Abliterated &amp; Uncensored filters.</p></div>
-                <div class="feature-card"><p data-t="whatsnew_2"><b>Centralization</b> — total model space, space per folder and an interactive chart.</p></div>
-                <div class="feature-card"><p data-t="whatsnew_3"><b>Test &amp; Chat</b> — automatic engine detection, web UI, live logs and stop/unload.</p></div>
-                <div class="feature-card"><p data-t="whatsnew_4"><b>Centraliza Coder</b> — native DeepSeek agent in two modes, no external CLI.</p></div>
-                <div class="feature-card"><p data-t="whatsnew_5"><b>Extensions</b> — automatic Continue.dev and Roo Code setup, gated on the local engine.</p></div>
-                <div class="feature-card"><p data-t="whatsnew_6"><b>Automatic updates</b> — integrity check, transactional apply and rollback.</p></div>
+                <div class="feature-card"><p data-t="whatsnew_1"><b>ComfyUI Workflow Import</b> — drop the template .md and download every model into the right ComfyUI folder.</p></div>
+                <div class="feature-card"><p data-t="whatsnew_2"><b>Automatic HF Discovery</b> — finds files across Hugging Face repositories, including ones not listed in the document.</p></div>
+                <div class="feature-card"><p data-t="whatsnew_3"><b>Model Library</b> — sort and filter each section by date added, size, function and format.</p></div>
+                <div class="feature-card"><p data-t="whatsnew_4"><b>Reliable Downloads</b> — progress, speed, cancel, resume and retry from the import history.</p></div>
+                <div class="feature-card"><p data-t="whatsnew_5"><b>Zero Redundancy</b> — smart hardlinks keep sharing files across engines without duplication.</p></div>
+                <div class="feature-card"><p data-t="whatsnew_6"><b>Native Agent &amp; Updates</b> — DeepSeek agent, editor integrations and transactional auto-updates.</p></div>
             </div>
             <div style="text-align: center; margin-top: 40px;">
-                <a href="https://github.com/veiodruida/Centraliza.AI/releases/tag/v0.5.0" target="_blank" rel="noreferrer" class="btn-download" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; box-shadow: none;" data-t="whatsnew_cta">Read the full release notes</a>
+                <a href="https://github.com/veiodruida/Centraliza.AI/releases/tag/v0.6.0" target="_blank" rel="noreferrer" class="btn-download" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; box-shadow: none;" data-t="whatsnew_cta">Read the full release notes</a>
             </div>
         </section>
 
@@ -415,6 +426,21 @@
                 <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg></div>
                 <h3 data-t="feat_3_title">Global AI</h3>
                 <p data-t="feat_3_desc">Built for everyone. Native support for 11 languages including Portuguese, English, Spanish, and Chinese. Break the language barrier.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 18 15 15"></polyline></svg></div>
+                <h3 data-t="feat_4_title">ComfyUI Workflow Import</h3>
+                <p data-t="feat_4_desc">Drop the workflow .md file and Centraliza.ai downloads every required model from Hugging Face into the correct ComfyUI folder — with progress, resume and an optional HF token.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></div>
+                <h3 data-t="feat_5_title">Organized Library</h3>
+                <p data-t="feat_5_desc">Sort and filter every section by date added, size, name, function or format. Automatic classification for LLM, vision, image, LoRA, VAE, ControlNet and more.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+                <h3 data-t="feat_6_title">Privacy First</h3>
+                <p data-t="feat_6_desc">Everything runs on your machine. Your models, conversations and workflow data never leave your computer.</p>
             </div>
         </section>
 
@@ -473,6 +499,10 @@
                     <h4 style="color: var(--primary); margin-bottom: 10px;" data-t="faq_q3">Is it free?</h4>
                     <p data-t="faq_a3">Yes. Centraliza.ai is an open-source tool built to empower the local AI community.</p>
                 </div>
+                <div class="feature-card">
+                    <h4 style="color: var(--primary); margin-bottom: 10px;" data-t="faq_q4">Can it install a ComfyUI workflow?</h4>
+                    <p data-t="faq_a4">Yes. Import the workflow's .md Model Links file and Centraliza.ai resolves each file on Hugging Face, discovers missing repositories and downloads everything to ComfyUI/models.</p>
+                </div>
             </div>
         </section>
 
@@ -497,15 +527,19 @@
     <script>
         const translations = {
             en: {
+                nav_whatsnew: "What's new",
                 nav_benefits: "Benefits", nav_setup: "Installation", nav_faq: "FAQ",
-                btn_direct_download: "Direct Download v0.5.0",
-                hero_badge: "V0.5.0 — Official Release",
-                hero_title: "The Companion for<br>LM Studio & Ollama",
-                hero_desc: "The ultimate local AI manager. Centraliza.ai complements your existing tools, allowing you to orchestrate, extend, and personalize your local intelligence ecosystem in one unified workspace.",
+                btn_direct_download: "Direct Download v0.6.0",
+                hero_badge: "V0.6.0 — Official Release",
+                hero_title: "The Companion for<br>LM Studio, Ollama &amp; ComfyUI",
+                hero_desc: "The ultimate local AI manager. Orchestrate LM Studio, Ollama and ComfyUI, import ComfyUI workflow .md files and download every model from Hugging Face — all from one unified workspace.",
                 btn_download: "Download for Windows", btn_how_to_install: "How to Install",
                 feat_1_title: "Zero Redundancy", feat_1_desc: "Advanced smart links share files between engines without duplicating data. Save hundreds of GBs instantly.",
                 feat_2_title: "Unified Control", feat_2_desc: "Search, launch, and test all your local models from a single command center.",
                 feat_3_title: "Global AI", feat_3_desc: "Built for everyone. Native support for 11 languages including Portuguese, English, Spanish, and Chinese.",
+                feat_4_title: "ComfyUI Workflow Import", feat_4_desc: "Drop the workflow .md file and Centraliza.ai downloads every required model from Hugging Face into the correct ComfyUI folder — with progress, resume and an optional HF token.",
+                feat_5_title: "Organized Library", feat_5_desc: "Sort and filter every section by date added, size, name, function or format. Automatic classification for LLM, vision, image, LoRA, VAE, ControlNet and more.",
+                feat_6_title: "Privacy First", feat_6_desc: "Everything runs on your machine. Your models, conversations and workflow data never leave your computer.",
                 setup_title: "Quick Setup", setup_1_title: "Install", setup_1_desc: "Run setup.bat. This installs dependencies and configures the global central command.",
                 setup_2_title: "Detect", setup_2_desc: "Open the app and use Auto-Detect in Settings to find your AI folders automatically.",
                 setup_3_title: "Orchestrate", setup_3_desc: "Launch models, save disk space, and chat with your local AI from one interface.",
@@ -514,18 +548,23 @@
                 faq_title: "FAQ", faq_q1: "Will it break my LM Studio models?", faq_a1: "No. Centraliza.ai uses safe symlinks that tools see as normal files.",
                 faq_q2: "Does it download models?", faq_a2: "Yes. Via the AI Model Hub, you can download models directly from Ollama and HF.",
                 faq_q3: "Is it free?", faq_a3: "Yes. Centraliza.ai is an open-source tool.",
+                faq_q4: "Can it install a ComfyUI workflow?", faq_a4: "Yes. Import the workflow's .md Model Links file and Centraliza.ai resolves each file on Hugging Face, discovers missing repositories and downloads everything to ComfyUI/models.",
                 tech_title: "Unifying the Industry Standards", footer_text: "© 2026 Centraliza.ai. Built for the local AI revolution."
             },
             pt: {
+                nav_whatsnew: "Novidades",
                 nav_benefits: "Benefícios", nav_setup: "Instalação", nav_faq: "FAQ",
-                btn_direct_download: "Download Direto v0.5.0",
-                hero_badge: "V0.5.0 — Lançamento Oficial",
-                hero_title: "O Companheiro para<br>LM Studio & Ollama",
-                hero_desc: "O gestor definitivo de IA local. O Centraliza.ai complementa as tuas ferramentas num espaço de trabalho unificado.",
+                btn_direct_download: "Download Direto v0.6.0",
+                hero_badge: "V0.6.0 — Lançamento Oficial",
+                hero_title: "O Companheiro para<br>LM Studio, Ollama &amp; ComfyUI",
+                hero_desc: "O gestor definitivo de IA local. Orquestre LM Studio, Ollama e ComfyUI, importe workflows ComfyUI em .md e transfira todos os modelos do Hugging Face — num único espaço de trabalho.",
                 btn_download: "Descarregar Windows", btn_how_to_install: "Como Instalar",
                 feat_1_title: "Zero Redundância", feat_1_desc: "Links inteligentes partilham ficheiros entre motores sem duplicar dados. Poupa centenas de GBs.",
                 feat_2_title: "Controlo Unificado", feat_2_desc: "Pesquise, inicie e teste todos os seus modelos locais a partir de um único centro de comando.",
                 feat_3_title: "IA Global", feat_3_desc: "Suporte nativo para 11 idiomas, incluindo Português, Inglês, Espanhol e Chinês.",
+                feat_4_title: "Importar Workflow ComfyUI", feat_4_desc: "Arraste o ficheiro .md do workflow e o Centraliza.ai transfere todos os modelos necessários do Hugging Face para a pasta correta do ComfyUI — com progresso, retoma e token HF opcional.",
+                feat_5_title: "Biblioteca Organizada", feat_5_desc: "Ordene e filtre cada secção por data de inclusão, tamanho, nome, funcionalidade ou formato. Classificação automática para LLM, visão, imagem, LoRA, VAE, ControlNet e muito mais.",
+                feat_6_title: "Privacidade Primeiro", feat_6_desc: "Tudo corre na sua máquina. Modelos, conversas e dados de workflows nunca saem do seu computador.",
                 setup_title: "Configuração Rápida", setup_1_title: "Instalar", setup_1_desc: "Execute o setup.bat para instalar dependências e configurar o comando global central.",
                 setup_2_title: "Detetar", setup_2_desc: "Use o Auto-Detect nas Definições para encontrar as suas pastas de IA automaticamente.",
                 setup_3_title: "Orquestrar", setup_3_desc: "Inicie modelos e converse com a sua IA local a partir de uma interface unificada.",
@@ -534,18 +573,23 @@
                 faq_title: "Perguntas Frequentes", faq_q1: "Isto vai estragar os meus modelos?", faq_a1: "Não. O Centraliza.ai usa symlinks seguros que são vistos como ficheiros normais.",
                 faq_q2: "A app faz downloads?", faq_a2: "Sim. Pode descarregar modelos diretamente do Ollama e HuggingFace.",
                 faq_q3: "É gratuito?", faq_a3: "Sim. O Centraliza.ai é uma ferramenta de código aberto.",
+                faq_q4: "É possível instalar um workflow ComfyUI?", faq_a4: "Sim. Importe o ficheiro .md Model Links do workflow e o Centraliza.ai resolve cada ficheiro no Hugging Face, descobre repositórios em falta e transfere tudo para ComfyUI/models.",
                 tech_title: "Unificando os Padrões da Indústria", footer_text: "© 2026 Centraliza.ai. Criado para a revolução da IA local."
             },
             es: {
+                nav_whatsnew: "Novedades",
                 nav_benefits: "Beneficios", nav_setup: "Instalación", nav_faq: "FAQ",
-                btn_direct_download: "Descarga Directa v0.5.0",
-                hero_badge: "V0.5.0 — Lanzamiento Oficial",
-                hero_title: "El Compañero para<br>LM Studio & Ollama",
-                hero_desc: "El gestor definitivo de IA local. Centraliza.ai complementa tus herramientas existentes, permitiéndote orquestar y personalizar tu ecosistema de inteligencia local en un espacio unificado.",
+                btn_direct_download: "Descarga Directa v0.6.0",
+                hero_badge: "V0.6.0 — Lanzamiento Oficial",
+                hero_title: "El Compañero para<br>LM Studio, Ollama &amp; ComfyUI",
+                hero_desc: "El gestor definitivo de IA local. Orquesta LM Studio, Ollama y ComfyUI, importa workflows ComfyUI en .md y descarga todos los modelos de Hugging Face desde un único espacio de trabajo.",
                 btn_download: "Descargar para Windows", btn_how_to_install: "Cómo Instalar",
                 feat_1_title: "Cero Redundancia", feat_1_desc: "Los enlaces inteligentes comparten archivos entre motores sin duplicar datos. Ahorra cientos de GB al instante.",
                 feat_2_title: "Control Unificado", feat_2_desc: "Busca, inicia y prueba todos tus modelos locales desde un único centro de comando.",
                 feat_3_title: "IA Global", feat_3_desc: "Soporte nativo para 11 idiomas, incluyendo Español, Portugués y Chino. Rompe la barrera del idioma.",
+                feat_4_title: "Importar workflow ComfyUI", feat_4_desc: "Arrastra el archivo .md del workflow y Centraliza.ai descarga todos los modelos necesarios de Hugging Face en la carpeta correcta de ComfyUI — con progreso, reanudación y token HF opcional.",
+                feat_5_title: "Biblioteca Organizada", feat_5_desc: "Ordena y filtra cada sección por fecha de inclusión, tamaño, nombre, función o formato. Clasificación automática para LLM, visión, imagen, LoRA, VAE, ControlNet y más.",
+                feat_6_title: "Privacidad Primero", feat_6_desc: "Todo se ejecuta en tu máquina. Tus modelos, conversaciones y datos de workflow nunca salen de tu ordenador.",
                 setup_title: "Configuración Rápida",
                 setup_1_title: "Instalar", setup_1_desc: "Ejecuta setup.bat. Esto instala dependencias y configura el comando global central en tu sistema.",
                 setup_2_title: "Detectar", setup_2_desc: "Abre la app y usa Auto-Detect para encontrar tus carpetas de LM Studio y Ollama automáticamente.",
@@ -556,18 +600,23 @@
                 faq_q1: "¿Dañará mis modelos de LM Studio?", faq_a1: "No. Centraliza.ai usa enlaces simbólicos seguros que las herramientas ven como archivos normales.",
                 faq_q2: "¿La aplicación descarga modelos?", faq_a2: "Sí. A través del AI Model Hub, puedes descargar modelos directamente de Ollama y HuggingFace.",
                 faq_q3: "¿Es gratis?", faq_a3: "Sí. Centraliza.ai es una herramienta de código abierto para la comunidad de IA local.",
+                faq_q4: "¿Se puede instalar un workflow ComfyUI?", faq_a4: "Sí. Importa el archivo .md Model Links del workflow y Centraliza.ai resuelve cada archivo en Hugging Face, descubre repositorios faltantes y descarga todo en ComfyUI/models.",
                 tech_title: "Unificando los Estándares de la Industria", footer_text: "© 2026 Centraliza.ai. Creado para la revolución de la IA local."
             },
             fr: {
+                nav_whatsnew: "Nouveautés",
                 nav_benefits: "Avantages", nav_setup: "Installation", nav_faq: "FAQ",
-                btn_direct_download: "Téléchargement Direct v0.5.0",
-                hero_badge: "V0.5.0 — Version Officielle",
-                hero_title: "Le Compagnon pour<br>LM Studio & Ollama",
-                hero_desc: "Le gestionnaire d'IA locale ultime. Centraliza.ai complète vos outils existants, vous permettant d'orchestrer et de personnaliser votre écosystème d'intelligence locale dans un espace de travail unifié.",
+                btn_direct_download: "Téléchargement Direct v0.6.0",
+                hero_badge: "V0.6.0 — Version Officielle",
+                hero_title: "Le Compagnon pour<br>LM Studio, Ollama &amp; ComfyUI",
+                hero_desc: "Le gestionnaire d'IA locale ultime. Orchestrez LM Studio, Ollama et ComfyUI, importez des workflows ComfyUI en .md et téléchargez tous les modèles depuis Hugging Face dans un espace de travail unifié.",
                 btn_download: "Télécharger pour Windows", btn_how_to_install: "Comment Installer",
                 feat_1_title: "Zéro Redondance", feat_1_desc: "Les liens intelligents partagent les fichiers entre les moteurs sans dupliquer les données. Économisez des centaines de Go instantanément.",
                 feat_2_title: "Contrôle Unifié", feat_2_desc: "Recherchez, lancez et testez tous vos modèles locaux à partir d'un seul centre de commande.",
                 feat_3_title: "IA Globale", feat_3_desc: "Support natif pour 11 langues, dont le Français, l'Anglais et le Chinois. Brisez la barrière de la langue.",
+                feat_4_title: "Importer un workflow ComfyUI", feat_4_desc: "Déposez le fichier .md du workflow et Centraliza.ai télécharge tous les modèles requis depuis Hugging Face dans le bon dossier ComfyUI — avec progression, reprise et token HF optionnel.",
+                feat_5_title: "Bibliothèque organisée", feat_5_desc: "Triez et filtrez chaque section par date d'ajout, taille, nom, fonction ou format. Classification automatique pour LLM, vision, image, LoRA, VAE, ControlNet et plus.",
+                feat_6_title: "Confidentialité d'abord", feat_6_desc: "Tout s'exécute sur votre machine. Vos modèles, conversations et données de workflow ne quittent jamais votre ordinateur.",
                 setup_title: "Configuration Rapide",
                 setup_1_title: "Installer", setup_1_desc: "Exécutez setup.bat. Cela installe les dépendances et configure la commande globale central sur votre système.",
                 setup_2_title: "Détecter", setup_2_desc: "Ouvrez l'application et utilisez Auto-Detect pour trouver vos dossiers LM Studio et Ollama automatiquement.",
@@ -578,18 +627,23 @@
                 faq_q1: "Est-ce que cela va casser mes modèles LM Studio ?", faq_a1: "Non. Centraliza.ai utilise des liens symboliques sûrs que les outils voient comme des fichiers normaux.",
                 faq_q2: "L'application télécharge-t-elle des modèles ?", faq_a2: "Oui. Via l'AI Model Hub, vous pouvez télécharger des modèles directement depuis Ollama et HuggingFace.",
                 faq_q3: "Est-ce gratuit ?", faq_a3: "Oui. Centraliza.ai est un outil open-source pour la communauté IA locale.",
+                faq_q4: "Peut-on installer un workflow ComfyUI ?", faq_a4: "Oui. Importez le fichier .md Model Links du workflow : Centraliza.ai résout chaque fichier sur Hugging Face, découvre les dépôts manquants et télécharge tout dans ComfyUI/models.",
                 tech_title: "Unification des Standards de l'Industrie", footer_text: "© 2026 Centraliza.ai. Créé pour la révolution de l'IA locale."
             },
             de: {
+                nav_whatsnew: "Neu",
                 nav_benefits: "Vorteile", nav_setup: "Installation", nav_faq: "FAQ",
-                btn_direct_download: "Direkter Download v0.5.0",
-                hero_badge: "V0.5.0 — Offizielle Version",
-                hero_title: "Der Begleiter für<br>LM Studio & Ollama",
-                hero_desc: "Der ultimative lokale KI-Manager. Centraliza.ai ergänzt Ihre vorhandenen Tools und ermöglicht es Ihnen, Ihr lokales Intelligenz-Ökosystem in einem vereinheitlichten Arbeitsbereich zu orchestrieren.",
+                btn_direct_download: "Direkter Download v0.6.0",
+                hero_badge: "V0.6.0 — Offizielle Version",
+                hero_title: "Der Begleiter für<br>LM Studio, Ollama &amp; ComfyUI",
+                hero_desc: "Der ultimative lokale KI-Manager. Orchestrieren Sie LM Studio, Ollama und ComfyUI, importieren Sie ComfyUI-Workflows als .md und laden Sie alle Modelle von Hugging Face in einem einheitlichen Arbeitsbereich herunter.",
                 btn_download: "Download für Windows", btn_how_to_install: "Installation",
                 feat_1_title: "Null Redundanz", feat_1_desc: "Intelligente Links teilen Dateien zwischen Engines, ohne Daten zu duplizieren. Sparen Sie sofort Hunderte von GB.",
                 feat_2_title: "Zentrale Steuerung", feat_2_desc: "Suchen, starten und testen Sie alle Ihre lokalen Modelle von einem einzigen Command Center aus.",
                 feat_3_title: "Globale KI", feat_3_desc: "Native Unterstützung für 11 Sprachen, darunter Deutsch, Englisch und Chinesisch. Überwinden Sie die Sprachbarriere.",
+                feat_4_title: "ComfyUI-Workflow importieren", feat_4_desc: "Legen Sie die .md-Datei des Workflows ab und Centraliza.ai lädt alle benötigten Modelle von Hugging Face in den richtigen ComfyUI-Ordner — mit Fortschritt, Fortsetzung und optionalem HF-Token.",
+                feat_5_title: "Organisierte Bibliothek", feat_5_desc: "Sortieren und filtern Sie jeden Bereich nach Hinzufügedatum, Größe, Name, Funktion oder Format. Automatische Klassifizierung für LLM, Vision, Bild, LoRA, VAE, ControlNet und mehr.",
+                feat_6_title: "Datenschutz zuerst", feat_6_desc: "Alles läuft auf Ihrem Rechner. Modelle, Unterhaltungen und Workflow-Daten verlassen Ihren Computer nie.",
                 setup_title: "Schnelle Einrichtung",
                 setup_1_title: "Installieren", setup_1_desc: "Führen Sie setup.bat aus. Dies installiert Abhängigkeiten und konfiguriert den globalen Befehl 'central' auf Ihrem System.",
                 setup_2_title: "Erkennen", setup_2_desc: "Öffnen Sie die App und nutzen Sie Auto-Detect, um Ihre LM Studio- und Ollama-Ordner automatisch zu finden.",
@@ -600,18 +654,23 @@
                 faq_q1: "Wird es meine LM Studio Modelle beschädigen?", faq_a1: "Nein. Centraliza.ai verwendet sichere Symlinks, die von Tools como normale Dateien behandelt werden.",
                 faq_q2: "Lädt die App Modelle herunter?", faq_a2: "Ja. Über den AI Model Hub können Sie Modelle direkt von Ollama und HuggingFace herunterladen.",
                 faq_q3: "Ist es kostenlos?", faq_a3: "Ja. Centraliza.ai ist ein Open-Source-Tool für die lokale KI-Community.",
+                faq_q4: "Kann es einen ComfyUI-Workflow installieren?", faq_a4: "Ja. Importieren Sie die .md-Datei mit den Model Links. Centraliza.ai löst jede Datei auf Hugging Face auf, findet fehlende Repositories und lädt alles nach ComfyUI/models.",
                 tech_title: "Vereinheitlichung der Industriestandards", footer_text: "© 2026 Centraliza.ai. Erstellt für die lokale KI-Revolution."
             },
             it: {
+                nav_whatsnew: "Novità",
                 nav_benefits: "Vantaggi", nav_setup: "Installazione", nav_faq: "FAQ",
-                btn_direct_download: "Download Diretto v0.5.0",
-                hero_badge: "V0.5.0 — Versione Ufficiale",
-                hero_title: "Il Compagno per<br>LM Studio & Ollama",
-                hero_desc: "Il gestore definitivo di IA locale. Centraliza.ai completa i tuoi strumenti esistenti, permettendoti di orchestrare e personalizzare il tuo ecosistema di intelligenza locale in uno spazio di lavoro unificato.",
+                btn_direct_download: "Download Diretto v0.6.0",
+                hero_badge: "V0.6.0 — Versione Ufficiale",
+                hero_title: "Il Compagno per<br>LM Studio, Ollama &amp; ComfyUI",
+                hero_desc: "Il gestore definitivo di IA locale. Orchestra LM Studio, Ollama e ComfyUI, importa workflow ComfyUI in .md e scarica tutti i modelli da Hugging Face in un unico spazio di lavoro.",
                 btn_download: "Scarica per Windows", btn_how_to_install: "Come Installare",
                 feat_1_title: "Zero Ridondanza", feat_1_desc: "I collegamenti intelligenti condividono i file tra i motori senza duplicare i dati. Risparmia centinaia di GB all'istante.",
                 feat_2_title: "Controllo Unificato", feat_2_desc: "Cerca, avvia e testa tutti i tuoi modelli locali da un unico centro di comando.",
                 feat_3_title: "IA Globale", feat_3_desc: "Supporto nativo per 11 lingue, tra cui Italiano, Spagnolo e Cinese. Abbatti la barriera linguistica.",
+                feat_4_title: "Importa workflow ComfyUI", feat_4_desc: "Trascina il file .md del workflow e Centraliza.ai scarica tutti i modelli richiesti da Hugging Face nella cartella ComfyUI corretta — con progresso, ripresa e token HF opzionale.",
+                feat_5_title: "Libreria organizzata", feat_5_desc: "Ordina e filtra ogni sezione per data di aggiunta, dimensione, nome, funzione o formato. Classificazione automatica per LLM, visione, immagine, LoRA, VAE, ControlNet e altro.",
+                feat_6_title: "Privacy prima", feat_6_desc: "Tutto viene eseguito sulla tua macchina. Modelli, conversazioni e dati dei workflow non lasciano mai il tuo computer.",
                 setup_title: "Configurazione Rápida",
                 setup_1_title: "Installare", setup_1_desc: "Esegui setup.bat. Questo installa le dipendenze e configura il comando globale central sul tuo sistema.",
                 setup_2_title: "Rilevare", setup_2_desc: "Apri l'app e usa Auto-Detect per trovare le tue cartelle LM Studio e Ollama automaticamente.",
@@ -622,18 +681,23 @@
                 faq_q1: "Rovinerà i miei modelli LM Studio?", faq_a1: "No. Centraliza.ai utilizza collegamenti simbolici sicuri che gli strumenti vedono come file normali.",
                 faq_q2: "L'app scarica i modelli?", faq_a2: "Sì. Tramite l'AI Model Hub, puoi scaricare i modelli direttamente da Ollama e HuggingFace.",
                 faq_q3: "È gratis?", faq_a3: "Sì. Centraliza.ai è uno strumento open source per la comunità IA locale.",
+                faq_q4: "È possibile installare un workflow ComfyUI?", faq_a4: "Sì. Importa il file .md Model Links del workflow: Centraliza.ai risolve ogni file su Hugging Face, trova i repository mancanti e scarica tutto in ComfyUI/models.",
                 tech_title: "Unificazione degli Standard di Settore", footer_text: "© 2026 Centraliza.ai. Creato per la rivoluzione dell'IA locale."
             },
             zh: {
+                nav_whatsnew: "新功能",
                 nav_benefits: "优势", nav_setup: "安装", nav_faq: "常见问题",
-                btn_direct_download: "直接下载 v0.5.0",
-                hero_badge: "V0.5.0 — 官方发布",
-                hero_title: "LM Studio & Ollama<br>的最佳伴侣",
-                hero_desc: "终极本地 AI 管理器。Centraliza.ai 补充了您的现有工具，让您在统一的工作区中编排、扩展和个性化您的本地智能生态系统。",
+                btn_direct_download: "直接下载 v0.6.0",
+                hero_badge: "V0.6.0 — 官方发布",
+                hero_title: "LM Studio、Ollama 与 ComfyUI<br>的最佳伴侣",
+                hero_desc: "终极本地 AI 管理器。统一编排 LM Studio、Ollama 与 ComfyUI，导入 ComfyUI workflow .md 文件，并从 Hugging Face 自动下载所有模型。",
                 btn_download: "Windows 下载", btn_how_to_install: "安装指南",
                 feat_1_title: "零冗余", feat_1_desc: "先进的智能链接在引擎之间共享文件，无需重复数据。立即节省数百 GB 空间。",
                 feat_2_title: "统一控制", feat_2_desc: "从单个控制中心搜索、启动和测试您的所有本地模型。",
                 feat_3_title: "全球 AI", feat_3_desc: "原生支持 11 种语言，包括中文、英语和葡萄牙语。打破语言障碍。",
+                feat_4_title: "导入 ComfyUI Workflow", feat_4_desc: "拖入 workflow .md 文件，Centraliza.ai 会自动从 Hugging Face 下载所有必需模型到正确的 ComfyUI 文件夹，支持进度、续传和可选 HF Token。",
+                feat_5_title: "模型库整理", feat_5_desc: "按添加日期、大小、名称、功能或格式对每个分区排序和筛选。自动分类 LLM、视觉、图像、LoRA、VAE、ControlNet 等。",
+                feat_6_title: "隐私优先", feat_6_desc: "一切都在您的机器上运行。模型、对话和 workflow 数据永远不会离开您的电脑。",
                 setup_title: "快速设置",
                 setup_1_title: "安装", setup_1_desc: "运行 setup.bat。这将安装依赖项并为您的系统配置全局 central 命令。",
                 setup_2_title: "检测", setup_2_desc: "打开应用并在设置中使用“自动检测”来自动查找您的 AI 文件夹。",
@@ -644,18 +708,23 @@
                 faq_q1: "会损坏我的 LM Studio 模型吗？", faq_a1: "不会。Centraliza.ai 使用安全的符号链接，工具会将其视为普通文件。",
                 faq_q2: "应用会下载模型吗？", faq_a2: "是的。通过 AI 模型中心，您可以直接从 Ollama 和 HuggingFace 下载模型。",
                 faq_q3: "是免费的吗？", faq_a3: "是的。Centraliza.ai 是为本地 AI 社区打造的开源工具。",
+                faq_q4: "可以安装 ComfyUI workflow 吗？", faq_a4: "可以。导入 workflow 的 .md Model Links 文件，Centraliza.ai 会在 Hugging Face 上解析每个文件、发现缺失的仓库，并下载到 ComfyUI/models。",
                 tech_title: "统一行业标准", footer_text: "© 2026 Centraliza.ai. 为本地 AI 革命而生。"
             },
             ar: {
+                nav_whatsnew: "الجديد",
                 nav_benefits: "المميزات", nav_setup: "التثبيت", nav_faq: "الأسئلة الشائعة",
-                btn_direct_download: "تحميل مباشر v0.5.0",
-                hero_badge: "V0.5.0 — الإصدار الرسمي",
-                hero_title: "الرفيق المثالي لـ <br>LM Studio & Ollama",
-                hero_desc: "مدير الذكاء الاصطناعي المحلي النهائي. يكمل Centraliza.ai أدواتك الحالية، مما يتيح لك تنسيق وتخصيص نظامك البيئي في مساحة عمل واحدة موحدة.",
+                btn_direct_download: "تحميل مباشر v0.6.0",
+                hero_badge: "V0.6.0 — الإصدار الرسمي",
+                hero_title: "الرفيق المثالي لـ <br>LM Studio وOllama وComfyUI",
+                hero_desc: "مدير الذكاء الاصطناعي المحلي النهائي. نسّق LM Studio وOllama وComfyUI، واستورد ملفات workflow بصيغة .md، وحمّل كل النماذج من Hugging Face في مساحة عمل واحدة.",
                 btn_download: "تحميل لويندوز", btn_how_to_install: "كيفية التثبيت",
                 feat_1_title: "صفر تكرار", feat_1_desc: "تشارك الروابط الذكية الملفات بين المحركات دون تكرار البيانات. وفر مئات الجيجابايت على الفور.",
                 feat_2_title: "تحكم موحد", feat_2_desc: "ابحث عن جميع نماذجك المحلية وشغلها واختبرها من مركز تحكم واحد.",
                 feat_3_title: "ذكاء عالمي", feat_3_desc: "دعم أصلي لـ 11 لغة بما في ذلك العربية والإنجليزية والصينية. اكسر حاجز اللغة.",
+                feat_4_title: "استيراد workflow ComfyUI", feat_4_desc: "أفلت ملف .md الخاص بالـ workflow وسيقوم Centraliza.ai بتحميل كل النماذج المطلوبة من Hugging Face إلى مجلد ComfyUI الصحيح — مع التقدم والاستئناف ورمز HF اختياري.",
+                feat_5_title: "مكتبة منظمة", feat_5_desc: "رتّب وصفِّ كل قسم حسب تاريخ الإضافة أو الحجم أو الاسم أو الوظيفة أو التنسيق. تصنيف تلقائي لـ LLM والرؤية والصور وLoRA وVAE وControlNet وغيرها.",
+                feat_6_title: "الخصوصية أولاً", feat_6_desc: "كل شيء يعمل على جهازك. لا تغادر نماذجك ومحادثاتك وبيانات workflow حاسوبك أبدًا.",
                 setup_title: "إعداد سريع",
                 setup_1_title: "تثبيت", setup_1_desc: "قم بتشغيل setup.bat. سيؤدي هذا لتثبيت التبعيات وتكوين أمر central العالمي على نظامك.",
                 setup_2_title: "كشف", setup_2_desc: "افتح التطبيق واستخدم الكشف التلقائي في الإعدادات للعثور على مجلدات الذكاء الاصطناعي تلقائيًا.",
@@ -666,18 +735,23 @@
                 faq_q1: "هل سيتلف نماذج LM Studio الخاصة بي؟", faq_a1: "لا. يستخدم Centraliza.ai روابط رمزية آمنة تراها الأدوات كملفات عادية.",
                 faq_q2: "هل يقوم التطبيق بتحميل النماذج؟", faq_a2: "نعم. من خلال مركز النماذج، يمكنك تحميل النماذج مباشرة من Ollama و HuggingFace.",
                 faq_q3: "هل هو مجاني؟", faq_a3: "نعم. Centraliza.ai هي أداة مفتوحة المصدر لمجتمع الذكاء الاصطناعي المحلي.",
+                faq_q4: "هل يمكن تثبيت workflow ComfyUI؟", faq_a4: "نعم. استورد ملف .md Model Links الخاص بالـ workflow وسيحل Centraliza.ai كل ملف على Hugging Face ويكتشف المستودعات الناقصة ويحمّل كل شيء إلى ComfyUI/models.",
                 tech_title: "توحيد معايير الصناعة", footer_text: "© 2026 Centraliza.ai. صُنع لثورة الذكاء الاصطناعي المحلي."
             },
             ko: {
+                nav_whatsnew: "새 기능",
                 nav_benefits: "혜택", nav_setup: "설치", nav_faq: "FAQ",
-                btn_direct_download: "직접 다운로드 v0.5.0",
-                hero_badge: "V0.5.0 — 공식 출시",
-                hero_title: "LM Studio & Ollama를 위한<br>최고의 파트너",
-                hero_desc: "궁극의 로컬 AI 관리자. Centraliza.ai는 통합된 작업 공간에서 기존 도구를 보완하여 로컬 지능형 생태계를 오케스트레이션하고 개인화할 수 있도록 합니다.",
+                btn_direct_download: "직접 다운로드 v0.6.0",
+                hero_badge: "V0.6.0 — 공식 출시",
+                hero_title: "LM Studio, Ollama &amp; ComfyUI를 위한<br>최고의 파트너",
+                hero_desc: "궁극의 로컬 AI 관리자. LM Studio, Ollama, ComfyUI를 오케스트레이션하고 ComfyUI workflow .md 파일을 가져와 Hugging Face의 모든 모델을 하나의 작업 공간에서 다운로드하세요.",
                 btn_download: "Windows용 다운로드", btn_how_to_install: "설치 방법",
                 feat_1_title: "중복 제로", feat_1_desc: "고급 스마트 링크는 데이터 복제 없이 엔진 간에 파일을 공유합니다. 즉시 수백 GB를 절약하세요.",
                 feat_2_title: "통합 제어", feat_2_desc: "단일 커맨드 센터에서 모든 로컬 모델을 검색, 실행 및 테스트하세요.",
                 feat_3_title: "글로벌 AI", feat_3_desc: "한국어, 영어, 중국어를 포함한 11개 언어를 기본 지원합니다. 언어의 장벽을 허무세요.",
+                feat_4_title: "ComfyUI Workflow 가져오기", feat_4_desc: "workflow .md 파일을 놓으면 Centraliza.ai가 Hugging Face에서 필요한 모든 모델을 올바른 ComfyUI 폴더로 다운로드합니다. 진행률, 이어받기, 선택적 HF 토큰을 지원합니다.",
+                feat_5_title: "정리된 라이브러리", feat_5_desc: "추가 날짜, 크기, 이름, 기능 또는 형식으로 각 섹션을 정렬하고 필터링하세요. LLM, 비전, 이미지, LoRA, VAE, ControlNet 등을 자동 분류합니다.",
+                feat_6_title: "개인정보 우선", feat_6_desc: "모든 것이 내 컴퓨터에서 실행됩니다. 모델, 대화, workflow 데이터는 절대 외부로 나가지 않습니다.",
                 setup_title: "빠른 설정",
                 setup_1_title: "설치", setup_1_desc: "setup.bat을 실행하세요. 종속성을 설치하고 시스템에 글로벌 central 명령을 구성합니다.",
                 setup_2_title: "감지", setup_2_desc: "앱을 열고 설정에서 '자동 감지'를 사용하여 AI 폴더를 자동으로 찾으세요.",
@@ -688,18 +762,22 @@
                 faq_q1: "LM Studio 모델이 손상되나요?", faq_a1: "아니요. Centraliza.ai는 도구가 일반 파일로 인식하는 안전한 심볼릭 링크를 사용합니다.",
                 faq_q2: "앱에서 모델을 다운로드하나요?", faq_a2: "네. AI 모델 허브를 통해 Ollama 및 HuggingFace에서 모델을 직접 다운로드할 수 있습니다.",
                 faq_q3: "무료인가요?", faq_a3: "네. Centraliza.ai는 로컬 AI 커뮤니티를 위해 구축된 오픈 소스 도구입니다.",
+                faq_q4: "ComfyUI workflow를 설치할 수 있나요?", faq_a4: "네. workflow의 .md Model Links 파일을 가져오면 Centraliza.ai가 Hugging Face에서 각 파일을 확인하고 누락된 저장소를 찾아 ComfyUI/models로 모두 다운로드합니다.",
                 tech_title: "산업 표준 통합", footer_text: "© 2026 Centraliza.ai. 로컬 AI 혁명을 위해 구축되었습니다."
             },
             ja: {
-                nav_benefits: "メリット", nav_setup: "インストール", nav_faq: "FAQ",
-                btn_direct_download: "直接ダウンロード v0.5.0",
-                hero_badge: "V0.5.0 — 公式リリース",
-                hero_title: "LM Studio & Ollama の<br>ためのコンパニオン",
-                hero_desc: "究極のローカル AI マネージャー。Centraliza.ai は、統合されたワークスペースで既存のツールを補完し、ローカルインテリジェンスエコシステムをオーケストレートします。",
+                nav_whatsnew: "新機能", nav_benefits: "メリット", nav_setup: "インストール", nav_faq: "FAQ",
+                btn_direct_download: "直接ダウンロード v0.6.0",
+                hero_badge: "V0.6.0 — 公式リリース",
+                hero_title: "LM Studio・Ollama・ComfyUI の<br>ためのコンパニオン",
+                hero_desc: "究極のローカル AI マネージャー。LM Studio・Ollama・ComfyUI を統合し、ComfyUI workflow の .md を読み込んで Hugging Face からすべてのモデルを自動ダウンロードします。",
                 btn_download: "Windows版をダウンロード", btn_how_to_install: "インストール方法",
                 feat_1_title: "冗長性ゼロ", feat_1_desc: "高度なスマートリンクにより、データを複製せずにエンジン間でファイルを共有します。数百GBを即座に節約。",
                 feat_2_title: "一元管理", feat_2_desc: "単一のコマンドセンターから、すべてのローカルモデルを検索、起動、テストできます。",
                 feat_3_title: "グローバル AI", feat_3_desc: "日本語、英語、中国語を含む 11 言語をネイティブサポート。言葉の壁を乗り越えましょう。",
+                feat_4_title: "ComfyUI Workflow インポート", feat_4_desc: "workflow の .md ファイルをドロップすると、Centraliza.ai が Hugging Face から必要なすべてのモデルを正しい ComfyUI フォルダーへダウンロードします。進捗表示、再開、任意の HF トークンに対応。",
+                feat_5_title: "整理されたライブラリ", feat_5_desc: "追加日、サイズ、名前、機能、形式で各セクションを並べ替え・絞り込み。LLM、ビジョン、画像、LoRA、VAE、ControlNet などを自動分類します。",
+                feat_6_title: "プライバシー第一", feat_6_desc: "すべてお使いのマシンで動作します。モデル、会話、workflow データが外部に出ることはありません。",
                 setup_title: "クイックセットアップ",
                 setup_1_title: "インストール", setup_1_desc: "setup.bat を実行します。依存関係をインストールし、システムにグローバルな central コマンドを構成します。",
                 setup_2_title: "検出", setup_2_desc: "アプリを開き、設定の「自動検出」を使用して AI フォルダを自動的に見つけます。",
@@ -710,140 +788,142 @@
                 faq_q1: "LM Studio のモデルが壊れますか？", faq_a1: "いいえ。Centraliza.ai は、ツールが通常のファイルとして認識する安全なシンボリックリンクを使用します。",
                 faq_q2: "アプリでモデルをダウンロードできますか？", faq_a2: "はい。AI モデルハブを介して、Ollama や HuggingFace から直接ダウンロードできます。",
                 faq_q3: "無料ですか？", faq_a3: "はい。Centraliza.ai は、ローカル AI コミュニティのために構築されたオープンソースツールです。",
+                faq_q4: "ComfyUI workflow をインストールできますか？", faq_a4: "はい。workflow の .md Model Links ファイルを読み込むと、Centraliza.ai が Hugging Face 上で各ファイルを解決し、不足しているリポジトリを探して ComfyUI/models にダウンロードします。",
                 tech_title: "業界標準の統合", footer_text: "© 2026 Centraliza.ai. ローカル AI 革命のために構築されました。"
              }
         };
-        // v0.5.0 — destaques do lançamento (bloco separado para facilitar manutenção)
-        const v050 = {
-                  "en": {
-                            "whatsnew_badge": "V0.5.0 — Now available",
-                            "whatsnew_title": "What's new in v0.5.0",
-                            "whatsnew_subtitle": "The biggest update yet — focused on usability, visibility and autonomy.",
-                            "whatsnew_1": "<b>Model Hub</b> — readable search at any window size, plus Abliterated &amp; Uncensored filters.",
-                            "whatsnew_2": "<b>Centralization</b> — total model space, space per folder and an interactive chart.",
-                            "whatsnew_3": "<b>Test &amp; Chat</b> — automatic engine detection, web UI, live logs and stop/unload.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — native DeepSeek agent in two modes, no external CLI.",
-                            "whatsnew_5": "<b>Extensions</b> — automatic Continue.dev and Roo Code setup, gated on the local engine.",
-                            "whatsnew_6": "<b>Automatic updates</b> — integrity check, transactional apply and rollback.",
-                            "whatsnew_cta": "Read the full release notes"
-                  },
-                  "pt": {
-                            "whatsnew_badge": "V0.5.0 — Já disponível",
-                            "whatsnew_title": "Novidades da v0.5.0",
-                            "whatsnew_subtitle": "A maior atualização até agora — focada em usabilidade, visibilidade e autonomia.",
-                            "whatsnew_1": "<b>Hub de Modelos</b> — busca legível em qualquer ecrã e filtros Abliterated e Uncensored.",
-                            "whatsnew_2": "<b>Centralização</b> — espaço total dos modelos, por pasta e gráfico interativo.",
-                            "whatsnew_3": "<b>Test &amp; Chat</b> — deteção de motores, UI web, logs ao vivo e parar/unload.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — agente DeepSeek nativo em dois modos, sem CLI externa.",
-                            "whatsnew_5": "<b>Extensões</b> — configuração automática do Continue.dev e do Roo Code.",
-                            "whatsnew_6": "<b>Atualizações automáticas</b> — verificação de integridade, aplicação transacional e rollback.",
-                            "whatsnew_cta": "Ler as notas de lançamento completas"
-                  },
-                  "es": {
-                            "whatsnew_badge": "V0.5.0 — Ya disponible",
-                            "whatsnew_title": "Novedades de la v0.5.0",
-                            "whatsnew_subtitle": "La mayor actualización hasta ahora — centrada en usabilidad, visibilidad y autonomía.",
-                            "whatsnew_1": "<b>Hub de Modelos</b> — búsqueda legible en cualquier pantalla y filtros Abliterated y Uncensored.",
-                            "whatsnew_2": "<b>Centralización</b> — espacio total de los modelos, por carpeta y gráfico interactivo.",
-                            "whatsnew_3": "<b>Test &amp; Chat</b> — detección de motores, interfaz web, registros en vivo y detener/descargar.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — agente DeepSeek nativo en dos modos, sin CLI externa.",
-                            "whatsnew_5": "<b>Extensiones</b> — configuración automática de Continue.dev y Roo Code.",
-                            "whatsnew_6": "<b>Actualizaciones automáticas</b> — verificación de integridad, aplicación transaccional y rollback.",
-                            "whatsnew_cta": "Leer las notas de la versión"
-                  },
-                  "fr": {
-                            "whatsnew_badge": "V0.5.0 — Disponible",
-                            "whatsnew_title": "Nouveautés de la v0.5.0",
-                            "whatsnew_subtitle": "La plus grande mise à jour à ce jour — axée sur l'utilisabilité, la visibilité et l'autonomie.",
-                            "whatsnew_1": "<b>Hub de Modèles</b> — recherche lisible sur tout écran et filtres Abliterated et Uncensored.",
-                            "whatsnew_2": "<b>Centralisation</b> — espace total des modèles, par dossier et graphique interactif.",
-                            "whatsnew_3": "<b>Test &amp; Chat</b> — détection des moteurs, interface web, journaux en direct et arrêt/déchargement.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — agent DeepSeek natif en deux modes, sans CLI externe.",
-                            "whatsnew_5": "<b>Extensions</b> — configuration automatique de Continue.dev et Roo Code.",
-                            "whatsnew_6": "<b>Mises à jour automatiques</b> — vérification d'intégrité, application transactionnelle et rollback.",
-                            "whatsnew_cta": "Lire les notes de version"
-                  },
-                  "de": {
-                            "whatsnew_badge": "V0.5.0 — Jetzt verfügbar",
-                            "whatsnew_title": "Neu in v0.5.0",
-                            "whatsnew_subtitle": "Das bisher größte Update — mit Fokus auf Bedienbarkeit, Transparenz und Autonomie.",
-                            "whatsnew_1": "<b>Modell-Hub</b> — lesbare Suche in jeder Fenstergröße sowie Abliterated- und Uncensored-Filter.",
-                            "whatsnew_2": "<b>Zentralisierung</b> — Gesamtspeicher, Speicher pro Ordner und interaktives Diagramm.",
-                            "whatsnew_3": "<b>Test &amp; Chat</b> — automatische Engine-Erkennung, Web-UI, Live-Logs und Stoppen/Entladen.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — nativer DeepSeek-Agent in zwei Modi, ohne externe CLI.",
-                            "whatsnew_5": "<b>Erweiterungen</b> — automatische Einrichtung von Continue.dev und Roo Code.",
-                            "whatsnew_6": "<b>Automatische Updates</b> — Integritätsprüfung, transaktionales Update und Rollback.",
-                            "whatsnew_cta": "Vollständige Release Notes lesen"
-                  },
-                  "it": {
-                            "whatsnew_badge": "V0.5.0 — Disponibile",
-                            "whatsnew_title": "Novità della v0.5.0",
-                            "whatsnew_subtitle": "Il più grande aggiornamento di sempre — incentrato su usabilità, visibilità e autonomia.",
-                            "whatsnew_1": "<b>Hub dei Modelli</b> — ricerca leggibile su ogni schermo e filtri Abliterated e Uncensored.",
-                            "whatsnew_2": "<b>Centralizzazione</b> — spazio totale dei modelli, per cartella e grafico interattivo.",
-                            "whatsnew_3": "<b>Test &amp; Chat</b> — rilevamento motori, interfaccia web, log in tempo reale e stop/unload.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — agente DeepSeek nativo in due modalità, senza CLI esterna.",
-                            "whatsnew_5": "<b>Estensioni</b> — configurazione automatica di Continue.dev e Roo Code.",
-                            "whatsnew_6": "<b>Aggiornamenti automatici</b> — verifica di integrità, applicazione transazionale e rollback.",
-                            "whatsnew_cta": "Leggi le note di rilascio"
-                  },
-                  "zh": {
-                            "whatsnew_badge": "V0.5.0 — 现已可用",
-                            "whatsnew_title": "v0.5.0 新功能",
-                            "whatsnew_subtitle": "迄今最大的更新 — 聚焦于易用性、可视化和自动化。",
-                            "whatsnew_1": "<b>模型中心</b> — 任意窗口下都清晰可读的搜索，以及 Abliterated 与 Uncensored 过滤器。",
-                            "whatsnew_2": "<b>集中管理</b> — 模型总占用、按文件夹统计和交互式图表。",
-                            "whatsnew_3": "<b>测试与聊天</b> — 自动检测引擎、Web 界面、实时日志和停止/卸载。",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — 原生 DeepSeek 智能体，两种启动模式，无需外部 CLI。",
-                            "whatsnew_5": "<b>扩展</b> — 自动配置 Continue.dev 和 Roo Code。",
-                            "whatsnew_6": "<b>自动更新</b> — 完整性校验、事务式应用和回滚。",
-                            "whatsnew_cta": "阅读完整发行说明"
-                  },
-                  "ar": {
-                            "whatsnew_badge": "V0.5.0 — متاح الآن",
-                            "whatsnew_title": "الجديد في الإصدار 0.5.0",
-                            "whatsnew_subtitle": "أكبر تحديث حتى الآن — يركز على سهولة الاستخدام والشفافية والاستقلالية.",
-                            "whatsnew_1": "<b>مركز النماذج</b> — بحث واضح في أي حجم نافذة، مع مرشحات Abliterated و Uncensored.",
-                            "whatsnew_2": "<b>المركزية</b> — إجمالي مساحة النماذج، ولكل مجلد، مع رسم بياني تفاعلي.",
-                            "whatsnew_3": "<b>اختبار ودردشة</b> — كشف المحركات تلقائيًا، واجهة ويب، سجلات مباشرة، وإيقاف/تفريغ.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — وكيل DeepSeek أصلي بوضعين، بدون أداة سطر أوامر خارجية.",
-                            "whatsnew_5": "<b>الإضافات</b> — إعداد تلقائي لـ Continue.dev و Roo Code.",
-                            "whatsnew_6": "<b>التحديثات التلقائية</b> — التحقق من السلامة والتطبيق المعاملاتي والتراجع.",
-                            "whatsnew_cta": "قراءة ملاحظات الإصدار الكاملة"
-                  },
-                  "ko": {
-                            "whatsnew_badge": "V0.5.0 — 사용 가능",
-                            "whatsnew_title": "v0.5.0의 새로운 기능",
-                            "whatsnew_subtitle": "지금까지 가장 큰 업데이트 — 사용성, 가시성, 자율성에 초점을 맞췄습니다.",
-                            "whatsnew_1": "<b>모델 허브</b> — 어떤 창 크기에서도 읽기 쉬운 검색과 Abliterated·Uncensored 필터.",
-                            "whatsnew_2": "<b>중앙화</b> — 모델 전체 용량, 폴더별 용량, 대화형 차트.",
-                            "whatsnew_3": "<b>테스트 &amp; 채팅</b> — 엔진 자동 감지, 웹 UI, 실시간 로그, 중지/언로드.",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — 두 가지 모드의 네이티브 DeepSeek 에이전트, 외부 CLI 불필요.",
-                            "whatsnew_5": "<b>확장</b> — Continue.dev 및 Roo Code 자동 구성.",
-                            "whatsnew_6": "<b>자동 업데이트</b> — 무결성 검사, 트랜잭션 적용 및 롤백.",
-                            "whatsnew_cta": "전체 릴리스 노트 읽기"
-                  },
-                  "ja": {
-                            "whatsnew_badge": "V0.5.0 — 公開中",
-                            "whatsnew_title": "v0.5.0 の新機能",
-                            "whatsnew_subtitle": "これまでで最大のアップデート — 使いやすさ、可視性、自律性に焦点を当てました。",
-                            "whatsnew_1": "<b>モデルハブ</b> — どのウィンドウ幅でも読みやすい検索と Abliterated / Uncensored フィルター。",
-                            "whatsnew_2": "<b>一元管理</b> — モデル全体の容量、フォルダー別容量、インタラクティブなグラフ。",
-                            "whatsnew_3": "<b>テスト &amp; チャット</b> — エンジン自動検出、Web UI、ライブログ、停止/アンロード。",
-                            "whatsnew_4": "<b>Centraliza Coder</b> — 2 つのモードで動くネイティブ DeepSeek エージェント。外部 CLI 不要。",
-                            "whatsnew_5": "<b>拡張機能</b> — Continue.dev と Roo Code の自動設定。",
-                            "whatsnew_6": "<b>自動アップデート</b> — 整合性チェック、トランザクション適用、ロールバック。",
-                            "whatsnew_cta": "リリースノートを読む"
-                  }
-        };
-        Object.keys(v050).forEach((lang) => {
+        // v0.6.0 — destaques do lançamento (bloco separado para facilitar manutenção)
+        const v060 = {
+  "en": {
+    "whatsnew_badge": "V0.6.0 — Now available",
+    "whatsnew_title": "What's new in v0.6.0",
+    "whatsnew_subtitle": "ComfyUI workflow import, automatic Hugging Face discovery and a fully organized model library.",
+    "whatsnew_1": "<b>ComfyUI Workflow Import</b> — drop the template .md and download every model into the right ComfyUI folder.",
+    "whatsnew_2": "<b>Automatic HF Discovery</b> — finds files across Hugging Face repositories, including ones not listed in the document.",
+    "whatsnew_3": "<b>Model Library</b> — sort and filter each section by date added, size, function and format.",
+    "whatsnew_4": "<b>Reliable Downloads</b> — progress, speed, cancel, resume and retry from the import history.",
+    "whatsnew_5": "<b>Zero Redundancy</b> — smart hardlinks keep sharing files across engines without duplication.",
+    "whatsnew_6": "<b>Native Agent &amp; Updates</b> — DeepSeek agent, editor integrations and transactional auto-updates.",
+    "whatsnew_cta": "Read the full release notes"
+  },
+  "pt": {
+    "whatsnew_badge": "V0.6.0 — Já disponível",
+    "whatsnew_title": "Novidades da v0.6.0",
+    "whatsnew_subtitle": "Importação de workflows ComfyUI, descoberta automática no Hugging Face e uma biblioteca de modelos totalmente organizada.",
+    "whatsnew_1": "<b>Importar Workflow ComfyUI</b> — arraste o .md do template e transfira todos os modelos para a pasta correta do ComfyUI.",
+    "whatsnew_2": "<b>Descoberta automática no HF</b> — encontra ficheiros em repositórios do Hugging Face, incluindo os não listados no documento.",
+    "whatsnew_3": "<b>Biblioteca de Modelos</b> — ordene e filtre cada secção por data de inclusão, tamanho, funcionalidade e formato.",
+    "whatsnew_4": "<b>Downloads fiáveis</b> — progresso, velocidade, cancelar, retomar e repetir a partir do histórico.",
+    "whatsnew_5": "<b>Zero redundância</b> — hardlinks inteligentes partilham ficheiros entre motores sem duplicação.",
+    "whatsnew_6": "<b>Agente nativo e atualizações</b> — agente DeepSeek, integrações de editores e atualizações automáticas transacionais.",
+    "whatsnew_cta": "Ler as notas de versão completas"
+  },
+  "es": {
+    "whatsnew_badge": "V0.6.0 — Ya disponible",
+    "whatsnew_title": "Novedades de la v0.6.0",
+    "whatsnew_subtitle": "Importación de workflows ComfyUI, descubrimiento automático en Hugging Face y una biblioteca de modelos totalmente organizada.",
+    "whatsnew_1": "<b>Importar workflow ComfyUI</b> — arrastra el .md de la plantilla y descarga todos los modelos en la carpeta correcta de ComfyUI.",
+    "whatsnew_2": "<b>Descubrimiento automático en HF</b> — encuentra archivos en repositorios de Hugging Face, incluidos los no listados en el documento.",
+    "whatsnew_3": "<b>Biblioteca de Modelos</b> — ordena y filtra cada sección por fecha de inclusión, tamaño, función y formato.",
+    "whatsnew_4": "<b>Descargas fiables</b> — progreso, velocidad, cancelar, reanudar y reintentar desde el historial.",
+    "whatsnew_5": "<b>Cero redundancia</b> — los enlaces inteligentes comparten archivos entre motores sin duplicación.",
+    "whatsnew_6": "<b>Agente nativo y actualizaciones</b> — agente DeepSeek, integraciones de editores y actualizaciones automáticas transaccionales.",
+    "whatsnew_cta": "Leer las notas de la versión"
+  },
+  "fr": {
+    "whatsnew_badge": "V0.6.0 — Disponible",
+    "whatsnew_title": "Nouveautés de la v0.6.0",
+    "whatsnew_subtitle": "Import de workflows ComfyUI, découverte automatique sur Hugging Face et bibliothèque de modèles entièrement organisée.",
+    "whatsnew_1": "<b>Importer un workflow ComfyUI</b> — déposez le .md du modèle et téléchargez tous les modèles dans le bon dossier ComfyUI.",
+    "whatsnew_2": "<b>Découverte automatique HF</b> — trouve les fichiers dans les dépôts Hugging Face, y compris ceux non listés dans le document.",
+    "whatsnew_3": "<b>Bibliothèque de modèles</b> — triez et filtrez chaque section par date d'ajout, taille, fonction et format.",
+    "whatsnew_4": "<b>Téléchargements fiables</b> — progression, vitesse, annulation, reprise et nouvelle tentative depuis l'historique.",
+    "whatsnew_5": "<b>Zéro redondance</b> — les liens intelligents partagent les fichiers entre moteurs sans duplication.",
+    "whatsnew_6": "<b>Agent natif et mises à jour</b> — agent DeepSeek, intégrations d'éditeurs et mises à jour automatiques transactionnelles.",
+    "whatsnew_cta": "Lire les notes de version"
+  },
+  "de": {
+    "whatsnew_badge": "V0.6.0 — Jetzt verfügbar",
+    "whatsnew_title": "Neu in v0.6.0",
+    "whatsnew_subtitle": "ComfyUI-Workflow-Import, automatische Hugging-Face-Erkennung und eine vollständig organisierte Modellbibliothek.",
+    "whatsnew_1": "<b>ComfyUI-Workflow importieren</b> — legen Sie die .md-Datei ab und laden Sie alle Modelle in den richtigen ComfyUI-Ordner.",
+    "whatsnew_2": "<b>Automatische HF-Erkennung</b> — findet Dateien in Hugging-Face-Repositories, auch in nicht im Dokument aufgeführten.",
+    "whatsnew_3": "<b>Modellbibliothek</b> — sortieren und filtern Sie jeden Bereich nach Datum, Größe, Funktion und Format.",
+    "whatsnew_4": "<b>Zuverlässige Downloads</b> — Fortschritt, Geschwindigkeit, Abbrechen, Fortsetzen und Wiederholen aus dem Verlauf.",
+    "whatsnew_5": "<b>Null Redundanz</b> — intelligente Hardlinks teilen Dateien zwischen Engines ohne Duplizierung.",
+    "whatsnew_6": "<b>Nativer Agent &amp; Updates</b> — DeepSeek-Agent, Editor-Integrationen und transaktionale Auto-Updates.",
+    "whatsnew_cta": "Vollständige Release Notes lesen"
+  },
+  "it": {
+    "whatsnew_badge": "V0.6.0 — Disponibile",
+    "whatsnew_title": "Novità della v0.6.0",
+    "whatsnew_subtitle": "Importazione di workflow ComfyUI, scoperta automatica su Hugging Face e una libreria di modelli completamente organizzata.",
+    "whatsnew_1": "<b>Importa workflow ComfyUI</b> — trascina il .md del template e scarica tutti i modelli nella cartella ComfyUI corretta.",
+    "whatsnew_2": "<b>Scoperta automatica HF</b> — trova i file nei repository Hugging Face, inclusi quelli non elencati nel documento.",
+    "whatsnew_3": "<b>Libreria di modelli</b> — ordina e filtra ogni sezione per data di aggiunta, dimensione, funzione e formato.",
+    "whatsnew_4": "<b>Download affidabili</b> — progresso, velocità, annullamento, ripresa e nuovo tentativo dalla cronologia.",
+    "whatsnew_5": "<b>Zero ridondanza</b> — i collegamenti intelligenti condividono i file tra motori senza duplicazione.",
+    "whatsnew_6": "<b>Agente nativo e aggiornamenti</b> — agente DeepSeek, integrazioni editor e aggiornamenti automatici transazionali.",
+    "whatsnew_cta": "Leggi le note di rilascio"
+  },
+  "zh": {
+    "whatsnew_badge": "V0.6.0 — 现已可用",
+    "whatsnew_title": "v0.6.0 新功能",
+    "whatsnew_subtitle": "ComfyUI workflow 导入、Hugging Face 自动发现和完全整理的模型库。",
+    "whatsnew_1": "<b>导入 ComfyUI Workflow</b> — 拖入模板 .md，将所有模型下载到正确的 ComfyUI 文件夹。",
+    "whatsnew_2": "<b>HF 自动发现</b> — 在 Hugging Face 仓库中查找文件，包括文档中未列出的仓库。",
+    "whatsnew_3": "<b>模型库整理</b> — 按添加日期、大小、功能和格式对每个分区排序和筛选。",
+    "whatsnew_4": "<b>可靠下载</b> — 进度、速度、取消、续传，并可从历史记录重试。",
+    "whatsnew_5": "<b>零冗余</b> — 智能硬链接在引擎之间共享文件，避免重复。",
+    "whatsnew_6": "<b>原生智能体与更新</b> — DeepSeek 智能体、编辑器集成和事务式自动更新。",
+    "whatsnew_cta": "阅读完整发行说明"
+  },
+  "ar": {
+    "whatsnew_badge": "V0.6.0 — متاح الآن",
+    "whatsnew_title": "الجديد في الإصدار 0.6.0",
+    "whatsnew_subtitle": "استيراد workflow ComfyUI، واكتشاف تلقائي على Hugging Face، ومكتبة نماذج منظمة بالكامل.",
+    "whatsnew_1": "<b>استيراد workflow ComfyUI</b> — أفلت ملف .md الخاص بالقالب وحمّل كل النماذج إلى مجلد ComfyUI الصحيح.",
+    "whatsnew_2": "<b>اكتشاف تلقائي على HF</b> — يعثر على الملفات في مستودعات Hugging Face، بما فيها غير المذكورة في المستند.",
+    "whatsnew_3": "<b>مكتبة النماذج</b> — رتّب وصفِّ كل قسم حسب تاريخ الإضافة والحجم والوظيفة والتنسيق.",
+    "whatsnew_4": "<b>تنزيلات موثوقة</b> — التقدم والسرعة والإلغاء والاستئناف وإعادة المحاولة من السجل.",
+    "whatsnew_5": "<b>صفر تكرار</b> — تشارك الروابط الذكية الملفات بين المحركات دون تكرار.",
+    "whatsnew_6": "<b>وكيل أصلي وتحديثات</b> — وكيل DeepSeek وتكامل المحررات وتحديثات تلقائية معاملاتية.",
+    "whatsnew_cta": "قراءة ملاحظات الإصدار الكاملة"
+  },
+  "ko": {
+    "whatsnew_badge": "V0.6.0 — 사용 가능",
+    "whatsnew_title": "v0.6.0의 새로운 기능",
+    "whatsnew_subtitle": "ComfyUI workflow 가져오기, Hugging Face 자동 검색, 완전히 정리된 모델 라이브러리.",
+    "whatsnew_1": "<b>ComfyUI Workflow 가져오기</b> — 템플릿 .md를 놓으면 모든 모델을 올바른 ComfyUI 폴더로 다운로드합니다.",
+    "whatsnew_2": "<b>HF 자동 검색</b> — 문서에 없는 저장소를 포함해 Hugging Face 저장소에서 파일을 찾습니다.",
+    "whatsnew_3": "<b>모델 라이브러리</b> — 추가 날짜, 크기, 기능, 형식으로 각 섹션을 정렬하고 필터링합니다.",
+    "whatsnew_4": "<b>안정적인 다운로드</b> — 진행률, 속도, 취소, 이어받기, 기록에서 재시도.",
+    "whatsnew_5": "<b>중복 제로</b> — 스마트 하드링크가 엔진 간에 파일을 공유하여 중복을 방지합니다.",
+    "whatsnew_6": "<b>네이티브 에이전트 및 업데이트</b> — DeepSeek 에이전트, 편집기 통합, 트랜잭션 자동 업데이트.",
+    "whatsnew_cta": "전체 릴리스 노트 읽기"
+  },
+  "ja": {
+    "whatsnew_badge": "V0.6.0 — 公開中",
+    "whatsnew_title": "v0.6.0 の新機能",
+    "whatsnew_subtitle": "ComfyUI workflow のインポート、Hugging Face の自動検出、整理されたモデルライブラリ。",
+    "whatsnew_1": "<b>ComfyUI Workflow インポート</b> — テンプレートの .md をドロップすると、すべてのモデルを正しい ComfyUI フォルダーへダウンロードします。",
+    "whatsnew_2": "<b>HF 自動検出</b> — ドキュメントに記載のないリポジトリも含め、Hugging Face でファイルを検索します。",
+    "whatsnew_3": "<b>モデルライブラリ</b> — 追加日、サイズ、機能、形式で各セクションを並べ替え・絞り込み。",
+    "whatsnew_4": "<b>信頼できるダウンロード</b> — 進捗、速度、キャンセル、再開、履歴からの再試行。",
+    "whatsnew_5": "<b>冗長性ゼロ</b> — スマートハードリンクがエンジン間でファイルを共有し、重複を防ぎます。",
+    "whatsnew_6": "<b>ネイティブエージェントと更新</b> — DeepSeek エージェント、エディタ連携、トランザクション自動更新。",
+    "whatsnew_cta": "リリースノートを読む"
+  }
+};
+        Object.keys(v060).forEach((lang) => {
             if (!translations[lang]) translations[lang] = {};
-            Object.assign(translations[lang], v050[lang]);
+            Object.assign(translations[lang], v060[lang]);
         });
 
 
         function setLang(lang, isManual = false) {
             const t = translations[lang] || translations['en'];
+            document.documentElement.lang = lang;
             
             // Apply RTL for Arabic
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -858,6 +938,9 @@
             // Only save to localStorage if the user manually picked it
             if (isManual) {
                 localStorage.setItem('lang_selection', lang);
+                const url = new URL(window.location.href);
+                url.searchParams.set('lang', lang);
+                window.history.replaceState(null, '', url);
             }
             
             // Sync the dropdown value
@@ -867,6 +950,10 @@
 
         // Advanced Auto-detection
         function detectLanguage() {
+            // Priority 0: shareable ?lang= URL
+            const urlLang = new URLSearchParams(window.location.search).get('lang');
+            if (urlLang && translations[urlLang]) return urlLang;
+
             // Priority 1: Manual selection from previous session
             const manual = localStorage.getItem('lang_selection');
             if (manual && translations[manual]) return manual;
