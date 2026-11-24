@@ -1,7 +1,7 @@
 # 🛠️ Centraliza.ai — Guia de Desenvolvimento
 
 > Padrões, convenções e workflows para desenvolver no Centraliza.ai.
-> Última atualização: 2026-05-02 | Versão: 3.2.0
+> Última atualização: 2026-11-24 | Versão: 0.5.0
 
 ---
 
@@ -97,9 +97,19 @@ genéricos ou amadores.
 | `ExploreStore.tsx`   | `/explore`    | Catálogo HuggingFace + download manager |
 | `Centralization.tsx` | `/centralize` | Gestão de hardlinks + disk analysis     |
 | `HardwareLab.tsx`    | `/hardware`   | Telemetria GPU/CPU/VRAM em tempo real   |
-| `ModelTester.tsx`    | `/test`       | Chat proxy para testar modelos locais   |
+| `ModelTester.tsx`    | `/test`       | Chat + deteção de motores, UI web, logs |
 | `Settings.tsx`       | `/settings`   | Configuração de diretórios e detecção   |
-| `Extensions.tsx`     | `/extensions` | Placeholder para SDK de extensões       |
+| `Coder.tsx`          | `/coder`      | Agente DeepSeek (2 modos) + auto-update |
+| `Extensions.tsx`     | `/extensions` | Integrações automáticas Continue/Roo    |
+
+### Módulos do Backend (`backend/`, desde v0.5.0)
+| Arquivo                | Função                                                |
+|------------------------|-------------------------------------------------------|
+| `flavor.js`            | Etiquetagem Abliterated/Uncensored (nome, tags)        |
+| `storage.js`           | Espaço total, por localização e poupado por hardlinks  |
+| `engines.js`           | Deteção/arranque/paragem (unload) de motores           |
+| `extensions.js`        | Config automática Continue.dev / Roo Code + smoke test |
+| `updater.js`           | Auto-atualização transacional com rollback             |
 
 ### Componentes Reutilizáveis (`src/components/`)
 | Arquivo               | Função                                        |
@@ -108,6 +118,7 @@ genéricos ou amadores.
 | `DeleteModal.tsx`      | Modal de confirmação de exclusão               |
 | `LaunchModal.tsx`      | Modal de configuração de launch                |
 | `DiskUsageGraph.tsx`   | Gráfico Recharts de uso de disco               |
+| `StorageLocationChart.tsx` | Donut de espaço por localização (clicável) |
 | `HelpTooltip.tsx`      | Tooltip contextual de ajuda                    |
 | `Toast.tsx`            | Sistema de notificações toast                  |
 
@@ -161,8 +172,8 @@ const { t } = useApp();
 ```
 
 ### Adicionando Traduções
-1. Abra `src/i18n/index.ts`
-2. Adicione a chave em **todos** os idiomas
+1. Abra `src/i18n/index.ts` e adicione a chave ao objeto `en` (é a fonte do tipo `Translations`) e ao `ptBR`
+2. Para as restantes línguas, adicione a tradução em `src/i18n/v050.ts` (aplicada por `Object.assign` no arranque)
 3. Use nomes descritivos: `{pagina}_{elemento}`
 
 ### RTL (Árabe)
@@ -248,8 +259,8 @@ O Express serve automaticamente `dist/` como estático na porta 4000.
 1. Atualizar versão em `package.json` (root e frontend)
 2. `npm run build` no frontend
 3. Testar via `node server.js`
-4. Criar zip com: server.js, config.json, frontend/dist/,
-   package.json, data/, setup.bat, start_app.bat, picker.ps1
+4. Criar zip com: server.js, backend/, frontend/dist/, frontend/src/,
+   package.json, data/hf_models.json, documentation/, setup.bat, start_app.bat, picker.ps1
 
 ### Comando Global
 Após `setup.bat`, o usuário pode iniciar de qualquer terminal:
@@ -277,13 +288,18 @@ Todos os logs vão para `server.log` na raiz do projeto com timestamps ISO.
 
 ## 9. Roadmap Técnico
 
-### v3.x (Atual)
+### v0.5.0 (Atual)
 - [x] Motor de centralização via hardlinks
 - [x] Download manager com WebSockets
 - [x] Telemetria de hardware
 - [x] i18n com 11 idiomas
-- [ ] Redesign premium da interface
-- [ ] Extensions SDK
+- [x] Redesign premium da interface
+- [x] Hub com subcategorias Abliterated/Uncensored
+- [x] Espaço total e por localização na Centralização
+- [x] Deteção de motores, UI web e logs em tempo real
+- [x] Agente DeepSeek nativo em dois modos
+- [x] Integrações automáticas Continue.dev / Roo Code
+- [x] Auto-atualização da aplicação
 
 ### v4.x (Futuro)
 - [ ] LoRA e Embeddings Manager
