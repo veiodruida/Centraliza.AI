@@ -43,7 +43,7 @@ The entire dashboard is now **proof against window resizes and screen resolution
 - **Model Hub reordered**: the search/filters/sort toolbar only sits in a single row from `2xl` up; below that it stacks with `flex-wrap` (the 1280px filter-bar overflow is gone).
 - **Chat (ModelTester)**: narrower sidebar at `lg` and an overflow-free chat header at 1024px; model names get a `title` tooltip when truncated.
 - **Resilient headers, cards, buttons and modals**: section headers wrap, badges ellipsize, `.btn-premium` no longer enforces a rigid `min-width`, the delete modal is width-limited with scroll, and help tooltips never leave the viewport.
-- **Automated regression testing** with Playwright lives in `scripts/` (`resp-scan`, `resp-verify`, `resp-resize`, `resp-debug`, `final-shots`).
+- **Automated regression testing** with Playwright lives in `scripts/` (`resp-scan`, `resp-verify`).
 
 ---
 
@@ -94,7 +94,7 @@ After installing, launch the app any of these equivalent ways:
 | `.\start.bat` | Single launcher: starts the server and opens the dashboard |
 | `.\start_app.bat` | Compatibility alias for `start.bat` |
 | `.\create-shortcut.ps1` | (Re)creates the "Centraliza.ai" desktop shortcut |
-| `npm test` | Runs the test suite (server + estimation engine) |
+| `npm test` | Runs the server test suite (`cd frontend && npm test` for the UI suite) |
 
 ---
 
@@ -184,8 +184,7 @@ Centraliza.AI/
 ├── centraliza_hero.png        # Hero image
 ├── data/
 │   ├── hf_models.json         # Local Hugging Face catalog
-│   ├── models.json            # Detected models index
-│   └── dsh/                   # Isolated profile patch for the DeepSeek agent
+│   └── dsh/                   # Isolated profile patch for the DeepSeek agent (generated)
 ├── frontend/                  # React + Vite + TypeScript dashboard
 │   └── src/
 │       ├── App.tsx            # Router + Dashboard + Sidebar
@@ -193,11 +192,12 @@ Centraliza.AI/
 │       ├── components/        # Impact Panel, DiskUsageGraph, StorageLocationChart, DownloadTracker…
 │       ├── context/           # AppContext (global state + i18n)
 │       └── i18n/              # Translations (11 languages + RTL, v050.ts for the new keys)
+├── scripts/                   # QA helpers (resp-scan, resp-verify, verify-v050)
+├── index.html                 # Landing page source (GitHub Pages)
 ├── documentation/
 │   ├── ARCHITECTURE.md        # System architecture reference
 │   ├── CENTRALIZA_CODER_SPEC.md
 │   └── DEVELOPMENT_GUIDE.md   # Development guide
-└── screenshots/               # UI screenshots
 ```
 
 ---
@@ -210,7 +210,7 @@ npm test
 
 - **17 server tests** — GGUF parser, endpoints, Abliterated/Uncensored tagging, storage summary, engine detection, logs, Coder status, update status and extension readiness.
 - **13 frontend tests** — estimation engine, component smoke test and i18n completeness (all 11 languages, placeholders preserved).
-- **Responsiveness suite (Playwright)** — `scripts/resp-scan.mjs` / `resp-verify.mjs` / `resp-resize.mjs`: 9 pages × 13 viewports plus live resize cycles, asserting zero horizontal overflow, zero clipped numbers and zero clipped text without a tooltip.
+- **Responsiveness suite (Playwright)** — `scripts/resp-scan.mjs` / `resp-verify.mjs`: 9 pages × 13 viewports, asserting zero horizontal overflow, zero clipped numbers and zero clipped text without a tooltip.
 - **v0.5.0 functional checks** — `scripts/verify-v050.mjs`: new controls on the 5 changed modules, Hub search measurements at 2560 px and 360 px overflow checks.
 
 ---
@@ -220,8 +220,7 @@ npm test
 - [Architecture](documentation/ARCHITECTURE.md) — technical reference, API surface, caching and operational rules
 - [Development Guide](documentation/DEVELOPMENT_GUIDE.md) — contributor guide
 - [Release Notes v0.5.0](RELEASE_NOTES_v0.5.0.md) — hub, centralization, engine control, native agent and extensions
-- [Release Notes v0.4.1](RELEASE_NOTES_v0.4.1.md) — what's new in the responsive release
-- [Release Notes v0.4.0](RELEASE_NOTES_v0.4.0.md) — what's new in the hardware-aware release
+- [Release Notes v0.5.0 (EN)](RELEASE_NOTES_v0.5.0_EN.md) — English version
 
 ---
 

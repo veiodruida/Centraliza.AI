@@ -1,28 +1,17 @@
 node_modules/
-.DS_Store
+frontend/node_modules/
+frontend/dist/
 dist/
 .env
 config.json
-frontend/node_modules/
-frontend/dist/
-*.log
-*.zip
-
-# Handoff & Releases
-AI_HANDOFF.md
-CentralizaIA_v2_Release.zip
-llmfit_reference/
-node_modules
-
-# Stores locais (pnpm) e dados da máquina
-.pnpm-store/
 data/dsh/
-pnpm-lock.yaml
-frontend/pnpm-lock.yaml
-# Auto-update working dirs (v0.5.0)
 .updates/
-
-# Ambiente local / artefactos de QA (v0.5.0)
 .venv*/
 .gh-pages/
-screenshots/v050/
+screenshots/
+.pnpm-store/
+pnpm-lock.yaml
+frontend/pnpm-lock.yaml
+*.log
+*.zip
+.DS_Store
