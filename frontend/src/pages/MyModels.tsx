@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { io } from 'socket.io-client';
-import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink, GripVertical } from 'lucide-react';
+import { Search, RefreshCw, FileText, Play, Terminal, Box, ArrowLeft, Zap, ChevronDown, Edit3, Trash2, FolderOpen, HardDrive, Info, ExternalLink, GripVertical, Upload, ArrowUp, ArrowDown, SlidersHorizontal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PAGE_VARIANTS = {
@@ -11,7 +11,9 @@ const PAGE_VARIANTS = {
 import HelpTooltip from '../components/HelpTooltip';
 import { useToast } from '../components/Toast';
 import DeleteModal, { type ModelItem } from '../components/DeleteModal';
+import WorkflowImporter from '../components/WorkflowImporter';
 import { useApp } from '../context/AppContext';
+import type { Translations } from '../i18n';
 
 interface Model {
   name: string;
@@ -26,7 +28,45 @@ interface Model {
   extension?: string;
   description?: string;
   centralPath?: string;
+  addedAt?: number;
+  modifiedAt?: number;
+  functionCategory?: string;
+  comfyCategory?: string;
+  quant?: string;
+  params?: string;
 }
+
+type SortKey = 'addedAt' | 'size' | 'name' | 'function' | 'extension';
+type SortDir = 'asc' | 'desc';
+
+interface SectionPref {
+  sortKey: SortKey;
+  sortDir: SortDir;
+  functionFilter: string;
+}
+
+const DEFAULT_SECTION_PREF: SectionPref = { sortKey: 'addedAt', sortDir: 'desc', functionFilter: 'all' };
+
+const FUNCTION_LABEL_KEYS: Record<string, keyof Translations> = {
+  llm: 'models_fn_llm',
+  coding: 'models_fn_coding',
+  reasoning: 'models_fn_reasoning',
+  vision: 'models_fn_vision',
+  embedding: 'models_fn_embedding',
+  image: 'models_fn_image',
+  video: 'models_fn_video',
+  audio: 'models_fn_audio',
+  upscale: 'models_fn_upscale',
+  lora: 'models_fn_lora',
+  vae: 'models_fn_vae',
+  controlnet: 'models_fn_controlnet',
+  text_encoder: 'models_fn_text_encoder',
+  diffusion_model: 'models_fn_diffusion_model',
+  clip_vision: 'models_fn_clip_vision',
+  style: 'models_fn_style',
+  ipadapter: 'models_fn_ipadapter',
+  other: 'models_fn_other'
+};
 
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0 },
@@ -61,6 +101,8 @@ export default function MyModels() {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; models: ModelItem[]; initialAction?: 'delete' | 'decentralize' | 'centralize' | null }>({ isOpen: false, models: [], initialAction: null });
+  const [sectionPrefs, setSectionPrefs] = useState<Record<string, SectionPref>>({});
+  const [importerOpen, setImporterOpen] = useState(false);
   const { showToast } = useToast();
 
   const fetchModels = async () => {
@@ -97,6 +139,9 @@ export default function MyModels() {
       if (Array.isArray(data.sectionOrder) && data.sectionOrder.length) setSectionOrder(data.sectionOrder);
       if (data.expandedSections && typeof data.expandedSections === 'object') {
         setExpandedSections(prev => ({ ...prev, ...data.expandedSections }));
+      }
+      if (data.modelViewPrefs && typeof data.modelViewPrefs === 'object') {
+        setSectionPrefs(data.modelViewPrefs);
       }
     });
     return () => { socket.disconnect(); };
@@ -212,6 +257,51 @@ export default function MyModels() {
   };
 
   const formatSize = (bytes: number) => (bytes / (1024 ** 3)).toFixed(2) + ' GB';
+
+  const functionLabel = (category?: string) => t(FUNCTION_LABEL_KEYS[category || 'other'] || 'models_fn_other');
+
+  const formatAddedAt = (timestamp?: number) => {
+    if (!timestamp) return '—';
+    try {
+      return new Date(timestamp).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch {
+      return '—';
+    }
+  };
+
+  const getSectionPref = (source: string): SectionPref => ({ ...DEFAULT_SECTION_PREF, ...(sectionPrefs[source] || {}) });
+
+  const updateSectionPref = (source: string, patch: Partial<SectionPref>) => {
+    setSectionPrefs((prev) => {
+      const next = { ...prev, [source]: { ...(prev[source] || DEFAULT_SECTION_PREF), ...patch } };
+      persistConfig({ modelViewPrefs: next });
+      return next;
+    });
+  };
+
+  // Aplica filtro funcional + ordenação escolhidos para a secção. As
+  // preferências são gravadas no servidor (config.json) por secção.
+  const applySectionPref = (items: Model[], pref: SectionPref): Model[] => {
+    const filtered = pref.functionFilter === 'all'
+      ? items
+      : items.filter((model) => (model.functionCategory || 'other') === pref.functionFilter);
+    const direction = pref.sortDir === 'asc' ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      switch (pref.sortKey) {
+        case 'size':
+          return (a.size - b.size) * direction;
+        case 'name':
+          return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) * direction;
+        case 'function':
+          return functionLabel(a.functionCategory).localeCompare(functionLabel(b.functionCategory)) * direction;
+        case 'extension':
+          return String(a.extension || '').localeCompare(String(b.extension || '')) * direction;
+        case 'addedAt':
+        default:
+          return ((a.addedAt || a.modifiedAt || 0) - (b.addedAt || b.modifiedAt || 0)) * direction;
+      }
+    });
+  };
 
   if (viewingModel) {
     return (
@@ -329,6 +419,14 @@ export default function MyModels() {
           </p>
         </div>
         <div className="flex gap-5 flex-wrap">
+          <button
+            onClick={() => setImporterOpen(true)}
+            title={t('models_importWorkflowHint')}
+            className="order-first md:order-none inline-flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-500 text-white px-5 md:px-6 py-3 md:py-5 rounded-2xl border border-blue-500/30 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+          >
+            <Upload size={22} />
+            <span className="text-[11px] md:text-xs font-black uppercase tracking-widest">{t('models_importWorkflow')}</span>
+          </button>
           <div className="relative group flex-1 md:flex-none">
              <Search size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-blue-500 transition-colors" />
              <input 
@@ -373,7 +471,12 @@ export default function MyModels() {
         ) : (
           <div className="space-y-12">
             {visibleSources.map((source, index) => {
-              const items = groupedModels[source] || [];
+              const allItems = groupedModels[source] || [];
+              const pref = getSectionPref(source);
+              const items = applySectionPref(allItems, pref);
+              const sectionBytes = items.reduce((sum, model) => sum + model.size, 0);
+              const functionCategories = Array.from(new Set(allItems.map((model) => model.functionCategory || 'other')))
+                .sort((a, b) => functionLabel(a).localeCompare(functionLabel(b)));
               const isExpanded = expandedSections[source] !== false;
               const isDragTarget = dragOverIndex === index && dragIndex !== null && dragIndex !== index;
               return (
@@ -397,7 +500,10 @@ export default function MyModels() {
                            <h3 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase break-words min-w-0">{source}</h3>
                            <div className="flex items-center gap-3 mt-1">
                               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                              <p className="text-xs text-[var(--text-muted)] font-black uppercase tracking-widest break-words">{items.length} MODELS DETECTED</p>
+                              <p className="text-xs text-[var(--text-muted)] font-black uppercase tracking-widest break-words">
+                                {items.length}{pref.functionFilter !== 'all' ? ` / ${allItems.length}` : ''} {t('models_modelsDetected')}
+                              </p>
+                              <span className="text-[10px] font-black text-blue-500/80 tracking-wider shrink-0">{formatSize(sectionBytes)}</span>
                            </div>
                         </div>
                      </div>
@@ -418,6 +524,41 @@ export default function MyModels() {
                         </div>
                      </div>
                   </header>
+
+                  {/* Barra de organização por secção: ordenação, direção e filtro funcional */}
+                  <div className="px-4 sm:px-6 md:px-8 lg:px-12 pb-4 sm:pb-6 flex flex-wrap items-center gap-2 sm:gap-3">
+                     <span className="flex items-center gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] mr-auto">
+                        <SlidersHorizontal size={13} className="text-blue-500" /> {t('models_sortBy')}
+                     </span>
+                     <select
+                       value={pref.sortKey}
+                       onChange={(event) => updateSectionPref(source, { sortKey: event.target.value as SortKey })}
+                       className="bg-[var(--bg-input)] border border-[var(--border)] rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-600/20 cursor-pointer"
+                     >
+                       <option value="addedAt">{t('models_sortAdded')}</option>
+                       <option value="size">{t('models_sortSize')}</option>
+                       <option value="name">{t('models_sortName')}</option>
+                       <option value="function">{t('models_sortFunction')}</option>
+                       <option value="extension">{t('models_sortFormat')}</option>
+                     </select>
+                     <button
+                       onClick={() => updateSectionPref(source, { sortDir: pref.sortDir === 'asc' ? 'desc' : 'asc' })}
+                       title={pref.sortDir === 'asc' ? t('models_sortAsc') : t('models_sortDesc')}
+                       className="w-9 h-9 rounded-xl border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-secondary)] hover:text-blue-500 hover:border-blue-500/40 flex items-center justify-center transition-colors"
+                     >
+                       {pref.sortDir === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+                     </button>
+                     <select
+                       value={pref.functionFilter}
+                       onChange={(event) => updateSectionPref(source, { functionFilter: event.target.value })}
+                       className="bg-[var(--bg-input)] border border-[var(--border)] rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-600/20 cursor-pointer max-w-[14rem]"
+                     >
+                       <option value="all">{t('models_allFunctions')}</option>
+                       {functionCategories.map((category) => (
+                         <option key={category} value={category}>{functionLabel(category)}</option>
+                       ))}
+                     </select>
+                  </div>
 
                   <AnimatePresence>
                     {isExpanded && (
@@ -454,10 +595,28 @@ export default function MyModels() {
                                  </div>
                                  
                                  <h4 className="text-xl md:text-2xl font-black text-[var(--text-primary)] mb-3 tracking-tighter uppercase break-all">{m.name}</h4>
-                                 
-                                 <div className="flex flex-col gap-1 mb-8 ">
+
+                                 <div className="flex flex-wrap items-center gap-2 mb-4">
+                                    <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest">
+                                       {functionLabel(m.functionCategory)}
+                                    </span>
+                                    {m.quant && (
+                                      <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[9px] font-black uppercase tracking-widest">{m.quant}</span>
+                                    )}
+                                    {m.params && (
+                                      <span className="px-3 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-muted)] text-[9px] font-black uppercase tracking-widest">{m.params}</span>
+                                    )}
+                                 </div>
+
+                                 <div className="flex flex-col gap-1 mb-4 ">
                                     <span className="text-sm font-black uppercase tracking-widest text-blue-500">Source Path</span>
                                     <p className="text-sm md:text-base font-mono break-all font-bold text-[var(--text-primary)] leading-relaxed">{m.path}</p>
+                                 </div>
+
+                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-6">
+                                    <span>{t('models_added')}: {formatAddedAt(m.addedAt || m.modifiedAt)}</span>
+                                    <span className="opacity-40">·</span>
+                                    <span>{m.comfyCategory || m.extension || 'GGUF'}</span>
                                  </div>
                                  
                                  <div className="flex justify-between items-end mt-auto gap-4 flex-wrap min-w-0">
@@ -492,6 +651,12 @@ export default function MyModels() {
           </div>
         )}
       </AnimatePresence>
+
+      <WorkflowImporter
+        isOpen={importerOpen}
+        onClose={() => setImporterOpen(false)}
+        onImported={fetchModels}
+      />
 
       <DeleteModal 
         isOpen={deleteModalData.isOpen}

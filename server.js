@@ -14,6 +14,8 @@ const { summarizeModels } = require('./backend/storage');
 const { createEngineManager } = require('./backend/engines');
 const { createExtensions } = require('./backend/extensions');
 const { createUpdater } = require('./backend/updater');
+const { classifyModel } = require('./backend/catalog');
+const { createWorkflowService, WORKFLOW_TEMPLATE } = require('./backend/workflow');
 
 // --- LOGGING SYSTEM ---
 const LOG_FILE = path.join(__dirname, 'server.log');
@@ -206,6 +208,13 @@ let config = {
     comfyPort: 8188,
     // Modelo por defeito do agente DeepSeek (Modo A — "Iniciar Motor").
     coderAgentModel: null,
+    // Importação de workflows ComfyUI via Markdown (v0.6.0):
+    // pasta de modelos explícita (null = detetar automaticamente), token HF
+    // para repos gated/privados e nº de downloads simultâneos.
+    comfyModelsDir: null,
+    hfToken: null,
+    workflowConcurrency: 2,
+    workflowAutoDiscover: true,
     // Auto-atualização da aplicação (RF-034).
     updates: { enabled: true, manifestUrl: '', githubRepo: '', intervalHours: 24, autoApply: true }
 };
@@ -223,6 +232,15 @@ if (typeof config.showServerLogs !== 'boolean') config.showServerLogs = false;
 if (!config.ollamaPort) config.ollamaPort = 11434;
 if (!config.lmStudioPort) config.lmStudioPort = 1234;
 if (!config.comfyPort) config.comfyPort = 8188;
+// Importação de workflows (v0.6.0): valores seguros para configs antigas.
+if (typeof config.workflowAutoDiscover !== 'boolean') config.workflowAutoDiscover = true;
+{
+    const concurrency = parseInt(config.workflowConcurrency, 10);
+    config.workflowConcurrency = Number.isFinite(concurrency) && concurrency > 0
+        ? Math.min(4, concurrency)
+        : 2;
+}
+if (config.comfyModelsDir && !fs.existsSync(config.comfyModelsDir)) config.comfyModelsDir = null;
 if (!fs.existsSync(config.centralDir)) fs.mkdirSync(config.centralDir, { recursive: true });
 function saveConfig() { 
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2)); 
@@ -310,6 +328,8 @@ async function scanDirectory(dir, modelsList, ollamaMap) {
                                 name: displayModelName,
                                 path: fullPath,
                                 size: actualStat.size,
+                                addedAt: Math.round(actualStat.birthtimeMs || actualStat.mtimeMs || 0),
+                                modifiedAt: Math.round(actualStat.mtimeMs || 0),
                                 inode: actualStat.ino,   // used for hardlink dedup
                                 isSymlink: isCentralized,
                                 targetPath: isCentralized ? expectedDestPath : null,
@@ -1091,6 +1111,14 @@ async function getModelsList() {
 
         // Subcategorias Abliterated/Uncensored (RF-002/RF-003)
         tagModel(m);
+
+        // Classificação funcional usada pelos filtros/ordenação de "Os Meus Modelos".
+        const classification = classifyModel(m);
+        m.functionCategory = classification.category;
+        m.comfyCategory = classification.comfyCategory;
+        m.comfyFolder = classification.comfyFolder;
+        m.quant = classification.quant;
+        m.params = classification.params;
 
         deduped.push(m);
     }
@@ -2778,6 +2806,149 @@ app.get('/api/storage/summary', async (req, res) => {
         logger.error('[Storage] Falha ao resumir o espaço dos modelos', e);
         res.status(500).json({ error: String(e && e.message || e) });
     }
+});
+
+// --- IMPORTAÇÃO DE WORKFLOWS COMFYUI (MARKDOWN → DOWNLOADS HF) — v0.6.0 ---
+// O serviço é criado à primeira utilização para poder usar o `ioRef` já ligado
+// ao Socket.io, sem depender da ordem de inicialização do servidor HTTP.
+let workflowService = null;
+
+function getWorkflowService() {
+    if (!workflowService) {
+        workflowService = createWorkflowService({
+            config,
+            logger,
+            dataDir: path.join(__dirname, 'data'),
+            checkDiskSpace,
+            notify: (event, payload) => {
+                if (ioRef) { try { ioRef.emit(event, payload); } catch (e) { /* socket indisponível */ } }
+            },
+            onModelsUpdated: () => {
+                cache.clear();
+                if (ioRef) { try { ioRef.emit('models-updated'); } catch (e) { /* ignora */ } }
+            }
+        });
+    }
+    return workflowService;
+}
+
+function sendWorkflowError(res, error) {
+    const status = error && error.statusCode ? error.statusCode : 500;
+    if (status >= 500) logger.error('[Workflow] Erro', error);
+    res.status(status).json({ error: String((error && error.message) || error) });
+}
+
+app.get('/api/workflows/config', (req, res) => {
+    try {
+        res.json(getWorkflowService().configInfo());
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.post('/api/workflows/config', (req, res) => {
+    try {
+        const body = req.body || {};
+        if (Object.prototype.hasOwnProperty.call(body, 'comfyModelsDir')) {
+            const dir = String(body.comfyModelsDir || '').trim();
+            if (dir) {
+                if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+                    return res.status(400).json({ error: 'A pasta indicada não existe ou não é uma pasta.' });
+                }
+                config.comfyModelsDir = path.resolve(dir);
+            } else {
+                config.comfyModelsDir = null;
+            }
+        }
+        if (Object.prototype.hasOwnProperty.call(body, 'hfToken')) {
+            const token = String(body.hfToken || '').trim();
+            config.hfToken = token ? token.slice(0, 300) : null;
+        }
+        if (Object.prototype.hasOwnProperty.call(body, 'workflowConcurrency')) {
+            const n = parseInt(body.workflowConcurrency, 10);
+            if (!Number.isFinite(n) || n < 1 || n > 4) {
+                return res.status(400).json({ error: 'O número de downloads simultâneos tem de estar entre 1 e 4.' });
+            }
+            config.workflowConcurrency = n;
+        }
+        if (Object.prototype.hasOwnProperty.call(body, 'workflowAutoDiscover')) {
+            config.workflowAutoDiscover = !!body.workflowAutoDiscover;
+        }
+        saveConfig();
+        res.json({ success: true, config: getWorkflowService().configInfo() });
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.get('/api/workflows/template', (req, res) => {
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="centraliza-workflow-exemplo.md"');
+    res.send(WORKFLOW_TEMPLATE);
+});
+
+app.get('/api/workflows', (req, res) => {
+    try {
+        const service = getWorkflowService();
+        res.json({ jobs: service.list(), config: service.configInfo() });
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.post('/api/workflows/inspect', async (req, res) => {
+    try {
+        const body = req.body || {};
+        const markdown = String(body.markdown || '');
+        if (markdown.trim().length < 10) {
+            return res.status(400).json({ error: 'O conteúdo do Markdown está vazio.' });
+        }
+        if (Buffer.byteLength(markdown, 'utf8') > 2 * 1024 * 1024) {
+            return res.status(413).json({ error: 'O ficheiro Markdown excede o limite de 2 MB.' });
+        }
+        const token = typeof body.token === 'string' ? body.token.trim() : '';
+        if (token) {
+            config.hfToken = token.slice(0, 300);
+            saveConfig();
+        }
+        const draft = await getWorkflowService().inspect({
+            markdown,
+            fileName: String(body.fileName || '').slice(0, 200) || null,
+            token: config.hfToken || null
+        });
+        res.json(draft);
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.post('/api/workflows/start', async (req, res) => {
+    try {
+        const body = req.body || {};
+        if (!body.jobId) return res.status(400).json({ error: 'Importação inválida (jobId em falta).' });
+        if (typeof body.token === 'string' && body.token.trim()) {
+            config.hfToken = body.token.trim().slice(0, 300);
+            saveConfig();
+        }
+        const job = await getWorkflowService().start({
+            jobId: body.jobId,
+            entries: Array.isArray(body.entries) ? body.entries : [],
+            token: config.hfToken || null
+        });
+        res.json(job);
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.get('/api/workflows/:id', (req, res) => {
+    try {
+        const job = getWorkflowService().get(req.params.id);
+        if (!job) return res.status(404).json({ error: 'Importação não encontrada.' });
+        res.json(job);
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.post('/api/workflows/:id/cancel', (req, res) => {
+    try {
+        res.json(getWorkflowService().cancel(req.params.id));
+    } catch (e) { sendWorkflowError(res, e); }
+});
+
+app.post('/api/workflows/:id/retry', async (req, res) => {
+    try {
+        res.json(await getWorkflowService().retry(req.params.id));
+    } catch (e) { sendWorkflowError(res, e); }
 });
 
 app.post('/api/open-folder', (req, res) => {

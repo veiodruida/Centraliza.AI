@@ -5,6 +5,8 @@ dist/
 .env
 config.json
 data/dsh/
+data/workflow-jobs.json
+data/workflow-jobs.json.tmp
 .updates/
 .venv*/
 .gh-pages/

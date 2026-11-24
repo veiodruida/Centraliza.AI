@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 // `.pnpm-store/` ou worktrees (`/.gh-pages/`).
 export default defineConfig({
   test: {
-    include: ['server.test.js'],
+    include: ['server.test.js', 'backend/**/*.test.js'],
     environment: 'node'
   }
 });
