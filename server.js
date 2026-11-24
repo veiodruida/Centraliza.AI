@@ -5,7 +5,7 @@ const os = require('os');
 const http = require('http');
 const { Server } = require('socket.io');
 const { promisify } = require('util');
-const { exec, spawn } = require('child_process');
+const { exec, execFile, spawn } = require('child_process');
 const checkDiskSpace = require('check-disk-space').default;
 
 // --- MÓDULOS v0.5.0 (hub, armazenamento, motores, extensões, atualizações) ---
@@ -16,6 +16,23 @@ const { createExtensions } = require('./backend/extensions');
 const { createUpdater } = require('./backend/updater');
 const { classifyModel } = require('./backend/catalog');
 const { createWorkflowService, WORKFLOW_TEMPLATE } = require('./backend/workflow');
+const {
+    IS_WIN,
+    IS_MAC,
+    defaultCentralDir,
+    defaultScanDirectories,
+    defaultComfyDir,
+    defaultLlamaCppBinary,
+    killProcess,
+    killProcessByName,
+    pidOnPort,
+    openPath,
+    openUrl,
+    openTerminal,
+    comfyPython,
+    comfyLaunchScripts,
+    whichCommand
+} = require('./backend/platform');
 
 // --- LOGGING SYSTEM ---
 const LOG_FILE = path.join(__dirname, 'server.log');
@@ -168,18 +185,11 @@ app.get('/api/logs/stream', (req, res) => {
 });
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');
-const DEFAULT_CENTRAL_DIR = 'C:\\AI_Models';
+const DEFAULT_CENTRAL_DIR = defaultCentralDir();
 let config = {
     centralDir: DEFAULT_CENTRAL_DIR,
-    scanDirectories: [
-        path.join(os.homedir(), '.cache', 'lm-studio', 'models'),
-        path.join(os.homedir(), 'AppData', 'Roaming', 'StabilityMatrix', 'Models'),
-        path.join(os.homedir(), '.ollama', 'models', 'blobs'),
-        path.join(os.homedir(), 'ComfyUI', 'models', 'checkpoints'),
-        path.join(os.homedir(), 'llama.cpp', 'models'),
-        path.join(os.homedir(), '.cache', 'huggingface', 'hub'),
-    ],
-    comfyDir: 'C:\\ComfyUI_windows_portable',
+    scanDirectories: defaultScanDirectories(),
+    comfyDir: defaultComfyDir(),
     // Ordem padrão das secções na página Modelos. O utilizador pode arrastar
     // as secções na UI para reordenar — a escolha fica gravada em config.json.
     sectionOrder: ['Standalone', 'LM Studio / Hugging Face', 'Ollama', 'ComfyUI'],
@@ -191,9 +201,7 @@ let config = {
     // Executável do llama.cpp (llama-server). Pode ser um caminho absoluto
     // (ex.: C:\Users\...\llama.cpp\build\bin\Release\llama-server.exe) ou
     // apenas o nome "llama-server" para procurar no PATH.
-    llamaCppBinary: (os.platform() === 'win32'
-        ? path.join(os.homedir(), 'llama.cpp', 'build', 'bin', 'Release', 'llama-server.exe')
-        : 'llama-server'),
+    llamaCppBinary: defaultLlamaCppBinary(),
     // Parâmetros adicionais do llama-server. O marcador $physicalCores é
     // substituído automaticamente pelo número de núcleos físicos da máquina.
     llamaCppArgs: '-t $physicalCores --flash-attn auto -ctk q4_0 -ctv q4_0 -b 2048 -ub 1024 --host 0.0.0.0 --port 8080 --alias qwen',
@@ -239,6 +247,44 @@ if (typeof config.workflowAutoDiscover !== 'boolean') config.workflowAutoDiscove
     config.workflowConcurrency = Number.isFinite(concurrency) && concurrency > 0
         ? Math.min(4, concurrency)
         : 2;
+}
+// Migração v0.6.1: uma config.json criada no Windows não deve arrastar
+// caminhos "C:\..." para Linux/macOS (e vice-versa). Mantém apenas caminhos
+// compatíveis com a plataforma atual.
+if (!IS_WIN) {
+    const windowsPath = value => /^[A-Za-z]:[\\/]/.test(String(value || ''));
+    if (!config.centralDir || windowsPath(config.centralDir)) config.centralDir = defaultCentralDir();
+    if (!config.comfyDir || windowsPath(config.comfyDir)) config.comfyDir = defaultComfyDir();
+    if (!config.llamaCppBinary || windowsPath(config.llamaCppBinary)) config.llamaCppBinary = defaultLlamaCppBinary();
+    config.scanDirectories = (Array.isArray(config.scanDirectories) ? config.scanDirectories : [])
+        .filter(dir => dir && !windowsPath(dir));
+    if (config.scanDirectories.length === 0) config.scanDirectories = defaultScanDirectories();
+    if (config.activeRouterModel && windowsPath(config.activeRouterModel)) config.activeRouterModel = null;
+    if (config.coderAgentModel && windowsPath(config.coderAgentModel)) config.coderAgentModel = null;
+}
+// Se a pasta do ComfyUI configurada já não existir, tenta encontrá-la a partir
+// das pastas de varrimento (ex.: ~/Documents/ComfyUI/models).
+function findComfyRootFromScan() {
+    const candidates = [config.comfyDir, ...(Array.isArray(config.scanDirectories) ? config.scanDirectories : [])];
+    for (const candidate of candidates) {
+        if (!candidate) continue;
+        let current = path.resolve(candidate);
+        for (let i = 0; i < 4; i++) {
+            if (fs.existsSync(path.join(current, 'main.py')) ||
+                fs.existsSync(path.join(current, 'run_nvidia_gpu.bat')) ||
+                fs.existsSync(path.join(current, 'run_nvidia_gpu.sh'))) {
+                return current;
+            }
+            const parent = path.dirname(current);
+            if (parent === current) break;
+            current = parent;
+        }
+    }
+    return null;
+}
+if (!config.comfyDir || !fs.existsSync(config.comfyDir)) {
+    const detectedComfy = findComfyRootFromScan();
+    if (detectedComfy) config.comfyDir = detectedComfy;
 }
 if (config.comfyModelsDir && !fs.existsSync(config.comfyModelsDir)) config.comfyModelsDir = null;
 if (!fs.existsSync(config.centralDir)) fs.mkdirSync(config.centralDir, { recursive: true });
@@ -367,36 +413,41 @@ app.get('/api/active-model', (req, res) => {
 
 app.post('/api/auto-detect', (req, res) => {
     const common = [
-        path.join(os.homedir(), '.cache', 'lm-studio', 'models'),
-        path.join(os.homedir(), 'ComfyUI', 'models'),
-        path.join(os.homedir(), 'llama.cpp', 'models'),
-        path.join(os.homedir(), '.ollama', 'models'),
-        path.join(os.homedir(), '.cache', 'huggingface', 'hub')
+        ...defaultScanDirectories(),
+        path.join(os.homedir(), 'ComfyUI'),
+        path.join(os.homedir(), 'Documents', 'ComfyUI'),
+        path.join(os.homedir(), 'llama.cpp'),
+        '/opt/ComfyUI',
+        '/usr/local/ComfyUI',
+        '/Applications/ComfyUI.app/Contents/Resources/ComfyUI'
     ];
-    
-    // Add common portable roots
-    ['C', 'D', 'E', 'F'].forEach(drive => {
-        const p = `${drive}:\\ComfyUI_windows_portable`;
-        if (fs.existsSync(p)) common.push(p);
-    });
+
+    // Instalações portáveis do ComfyUI (Windows: unidades C..F; Unix: /opt).
+    if (IS_WIN) {
+        ['C', 'D', 'E', 'F'].forEach(drive => common.push(`${drive}:\\ComfyUI_windows_portable`));
+    }
+    if (IS_MAC) {
+        common.push(path.join(os.homedir(), 'Library', 'Application Support', 'ComfyUI'));
+    }
 
     let added = 0;
-    common.forEach(p => { 
-        if (fs.existsSync(p)) {
-            // Search for ComfyUI root by climbing up
-            let current = p;
-            for (let i = 0; i < 4; i++) {
-                if (fs.existsSync(path.join(current, 'run_nvidia_gpu.bat')) || fs.existsSync(path.join(current, 'main.py'))) {
-                    config.comfyDir = current;
-                    break;
-                }
-                current = path.dirname(current);
+    common.forEach(p => {
+        if (!p || !fs.existsSync(p)) return;
+        // Procura a raiz do ComfyUI subindo até encontrar main.py.
+        let current = p;
+        for (let i = 0; i < 4; i++) {
+            if (fs.existsSync(path.join(current, 'run_nvidia_gpu.bat')) || fs.existsSync(path.join(current, 'run_nvidia_gpu.sh')) || fs.existsSync(path.join(current, 'main.py'))) {
+                config.comfyDir = current;
+                break;
             }
+            const parent = path.dirname(current);
+            if (parent === current) break;
+            current = parent;
+        }
 
-            if (!config.scanDirectories.includes(p)) { 
-                config.scanDirectories.push(p); 
-                added++; 
-            } 
+        if (!config.scanDirectories.includes(p)) {
+            config.scanDirectories.push(p);
+            added++;
         }
     });
     if (added > 0) saveConfig();
@@ -445,15 +496,34 @@ async function pickFolderNative(initialPath, description) {
             return { path: picked || null };
         }
         if (platform === 'darwin') {
-            const startPath = initialPath ? `default location "${initialPath.replace(/\\/g, '/')}"` : '';
-            const command = `osascript -e 'tell application "System Events" to activate' -e 'set theFolder to choose folder with prompt "${description}" ${startPath}' -e 'POSIX path of theFolder'`;
-            const { stdout } = await promisify(exec)(command);
+            const safeDescription = String(description || 'Select a folder').replace(/"/g, '\\"');
+            const safePath = String(initialPath || '').replace(/\\/g, '/').replace(/"/g, '\\"');
+            const startPath = safePath ? ` default location POSIX file "${safePath}"` : '';
+            const script = `tell application "System Events" to activate\nset theFolder to choose folder with prompt "${safeDescription}"${startPath}\nPOSIX path of theFolder`;
+            const { stdout } = await promisify(execFile)('osascript', ['-e', script]);
             return { path: String(stdout || '').trim() || null };
         }
-        const startPath = initialPath ? `--filename="${initialPath}/"` : '';
-        const command = `zenity --file-selection --directory --title="${description}" ${startPath}`;
-        const { stdout } = await promisify(exec)(command);
-        return { path: String(stdout || '').trim() || null };
+
+        // Linux: zenity (GNOME), kdialog (KDE) or yad. The first installed wins.
+        const greenlet = async (bin, args) => {
+            const { stdout } = await promisify(execFile)(bin, args);
+            return String(stdout || '').trim() || null;
+        };
+        if (await whichCommand('zenity')) {
+            const args = ['--file-selection', '--directory', `--title=${description || 'Select a folder'}`];
+            if (initialPath) args.push(`--filename=${String(initialPath).replace(/\/?$/, '/')}`);
+            return { path: await greenlet('zenity', args) };
+        }
+        if (await whichCommand('kdialog')) {
+            const args = ['--getexistingdirectory', String(initialPath || os.homedir()), '--title', String(description || 'Select a folder')];
+            return { path: await greenlet('kdialog', args) };
+        }
+        if (await whichCommand('yad')) {
+            const args = ['--file', '--directory', `--title=${description || 'Select a folder'}`];
+            if (initialPath) args.push(`--filename=${initialPath}`);
+            return { path: await greenlet('yad', args) };
+        }
+        return { error: 'No native folder picker found. Install zenity (GNOME) or kdialog (KDE), or type the path manually.' };
     } catch (err) {
         return { error: err && err.message ? err.message : String(err) };
     }
@@ -837,24 +907,46 @@ app.get('/api/system-info', async (req, res) => {
                         const parts = stdout.trim().split(',');
                         return resolve({ ram: parseInt(parts[0]) * 1024 * 1024, name: parts[1]?.trim() });
                     }
-                    tryPowerShell();
+                    tryFallback();
                 });
-            } catch (e) { tryPowerShell(); }
+            } catch (e) { tryFallback(); }
         };
-        const tryPowerShell = () => {
-            try {
-                exec(`powershell -command "Get-CimInstance Win32_VideoController | Select-Object Name, @{Name='VRAM';Expression={[math]::Round($_.AdapterRAM / 1)}} | ForEach-Object { $_.Name + '|' + $_.VRAM }"`, (err2, stdout2) => {
-                    let best = { ram: 0, name: 'Unknown' };
-                    if (!err2) {
-                        stdout2.trim().split('\n').forEach(l => {
-                            const [n, r] = l.trim().split('|');
-                            const ram = Math.abs(parseFloat(r));
-                            if (ram > best.ram) best = { ram, name: n };
-                        });
-                    }
-                    resolve(best);
+        const tryFallback = () => {
+            if (IS_WIN) {
+                try {
+                    exec(`powershell -command "Get-CimInstance Win32_VideoController | Select-Object Name, @{Name='VRAM';Expression={[math]::Round($_.AdapterRAM / 1)}} | ForEach-Object { $_.Name + '|' + $_.VRAM }"`, (err2, stdout2) => {
+                        let best = { ram: 0, name: 'Unknown' };
+                        if (!err2) {
+                            stdout2.trim().split('\n').forEach(l => {
+                                const [n, r] = l.trim().split('|');
+                                const ram = Math.abs(parseFloat(r));
+                                if (ram > best.ram) best = { ram, name: n };
+                            });
+                        }
+                        resolve(best);
+                    });
+                } catch (e) { resolve({ ram: 0, name: 'Unknown' }); }
+                return;
+            }
+            if (IS_MAC) {
+                exec('system_profiler SPDisplaysDataType -json', { timeout: 8000 }, (err, stdout) => {
+                    if (err || !stdout) return resolve({ ram: 0, name: 'Unknown' });
+                    try {
+                        const data = JSON.parse(stdout);
+                        const gpu = (data.SPDisplaysDataType || [])[0] || {};
+                        const raw = String(gpu.spdisplays_vram || gpu.spdisplays_vram_shared || '0');
+                        const gb = parseFloat(raw) || 0;
+                        resolve({ ram: /GB/i.test(raw) ? gb * 1024 * 1024 * 1024 : 0, name: gpu._name || gpu.spdisplays_vendor || 'Unknown' });
+                    } catch (e) { resolve({ ram: 0, name: 'Unknown' }); }
                 });
-            } catch (e) { resolve({ ram: 0, name: 'Unknown' }); }
+                return;
+            }
+            // Linux: infer the GPU name from lspci when NVIDIA/AMD tooling is absent.
+            exec("lspci 2>/dev/null | grep -Ei 'vga|3d|display' | head -1", { timeout: 4000 }, (err, stdout) => {
+                if (err || !stdout) return resolve({ ram: 0, name: 'Unknown' });
+                const name = String(stdout).replace(/^.*?:\s*/, '').trim();
+                resolve({ ram: 0, name: name || 'Unknown' });
+            });
         };
         tryNvidiaSmi();
     });
@@ -2014,20 +2106,17 @@ async function buildLlamaArgs(modelPath, ctx, ngl) {
     return [...base, ...extras];
 }
 
-// Encerra o processo ativo do motor (taskkill com PID ou nome da imagem).
+// Encerra o processo ativo do motor (taskkill no Windows; SIGKILL/pkill nos restantes).
 function killActiveLlama(bin) {
     return new Promise(r => {
-        if (os.platform() === 'win32') {
-            const image = (bin && path.basename(bin)) || 'llama-server.exe';
-            const killCmd = activeLlamaProcess && activeLlamaProcess.pid
-                ? `taskkill /F /T /PID ${activeLlamaProcess.pid}`
-                : `taskkill /F /IM ${image}`;
-            exec(killCmd, () => setTimeout(r, 2000));
+        if (activeLlamaProcess && activeLlamaProcess.pid) {
+            killProcess(activeLlamaProcess.pid);
+        } else if (IS_WIN) {
+            killProcessByName(path.basename(bin || 'llama-server.exe'));
         } else {
-            if (activeLlamaProcess && activeLlamaProcess.kill) activeLlamaProcess.kill('SIGKILL');
-            else exec('pkill -9 llama-server', () => {});
-            setTimeout(r, 2000);
+            killProcessByName(path.basename(bin || 'llama-server'));
         }
+        setTimeout(r, 1500);
     });
 }
 
@@ -2401,32 +2490,62 @@ app.post('/api/documents/analyze', async (req, res) => {
     }
 });
 
-app.post('/api/launch', (req, res) => {
-    const { type, modelPath, ollamaTag, params } = req.body;
-    let cmd = '';
-    
-    if (type === 'ollama') {
-        cmd = `ollama run ${ollamaTag}`;
-    } else if (type === 'comfyui') {
-        if (!config.comfyDir) return res.status(400).json({ error: 'ComfyUI path not set.' });
-        cmd = `cd /d "${config.comfyDir}" && python main.py`;
-    } else if (type === 'lm-studio') {
-        cmd = `start lms.exe`;
-    } else if (type === 'llama.cpp') {
-        const threads = params?.threads || 4;
-        const gpuLayers = params?.n_gpu_layers || 0;
-        const ctx = params?.ctx_size || 2048;
-        const prompt = params?.prompt || "You are a helpful AI assistant.";
-        cmd = `llama-cli -m "${modelPath}" -t ${threads} -ngl ${gpuLayers} -c ${ctx} -p "${prompt.replace(/"/g, '\\"')}"`;
-    }
+app.post('/api/launch', async (req, res) => {
+    const { type, modelPath, ollamaTag, params } = req.body || {};
+    const quote = (value) => JSON.stringify(String(value || ''));
+    try {
+        if (type === 'ollama') {
+            if (!ollamaTag) return res.status(400).json({ error: 'Missing Ollama tag.' });
+            const opened = await openTerminal(`ollama run ${quote(ollamaTag)}`);
+            if (!opened.success) return res.status(500).json({ error: opened.error });
+            return res.json({ success: true, message: `Launching ollama (${ollamaTag})...` });
+        }
 
-    if (cmd) {
-        logger.info(`Launching ${type}: ${cmd}`);
-        exec(`start cmd /k "${cmd}"`, (err) => {
-            if (err) return res.status(500).json({ error: 'Failed to launch: ' + err.message });
-            res.json({ success: true, message: `Launching ${type}...` });
-        });
-    } else res.status(400).json({ error: 'Unsupported engine.' });
+        if (type === 'comfyui') {
+            const comfyDir = findComfyRootFromScan() || config.comfyDir;
+            if (!comfyDir || !fs.existsSync(comfyDir)) {
+                return res.status(400).json({ error: 'ComfyUI path not set or not found.' });
+            }
+            const scripts = comfyLaunchScripts(comfyDir);
+            const command = scripts.length
+                ? (IS_WIN ? quote(scripts[0]) : `bash ${quote(scripts[0])}`)
+                : `${quote(comfyPython(comfyDir))} main.py`;
+            const opened = await openTerminal(command, { cwd: comfyDir, title: 'Centraliza.ai — ComfyUI' });
+            if (!opened.success) return res.status(500).json({ error: opened.error });
+            return res.json({ success: true, message: 'Launching ComfyUI...' });
+        }
+
+        if (type === 'lm-studio') {
+            if (IS_MAC) {
+                execFile('open', ['-a', 'LM Studio'], (err) => {
+                    if (err) return res.status(500).json({ error: 'LM Studio app not found. Install it from https://lmstudio.ai' });
+                    res.json({ success: true, message: 'Launching LM Studio...' });
+                });
+                return;
+            }
+            const lms = await whichCommand('lms');
+            if (!lms) return res.status(400).json({ error: 'LM Studio CLI (lms) not found. Install LM Studio and enable its CLI.' });
+            const opened = await openTerminal(`"${lms}"`, { title: 'Centraliza.ai — LM Studio' });
+            if (!opened.success) return res.status(500).json({ error: opened.error });
+            return res.json({ success: true, message: 'Launching LM Studio...' });
+        }
+
+        if (type === 'llama.cpp') {
+            const threads = params?.threads || 4;
+            const gpuLayers = params?.n_gpu_layers || 0;
+            const ctx = params?.ctx_size || 2048;
+            const prompt = params?.prompt || 'You are a helpful AI assistant.';
+            const command = `llama-cli -m ${quote(modelPath)} -t ${threads} -ngl ${gpuLayers} -c ${ctx} -p ${quote(prompt)}`;
+            const opened = await openTerminal(command, { title: 'Centraliza.ai — llama.cpp' });
+            if (!opened.success) return res.status(500).json({ error: opened.error });
+            return res.json({ success: true, message: 'Launching llama.cpp...' });
+        }
+
+        return res.status(400).json({ error: 'Unsupported engine.' });
+    } catch (e) {
+        logger.error('[Launch] Failed', e);
+        res.status(500).json({ error: 'Failed to launch: ' + e.message });
+    }
 });
 
 const activeDownloads = new Map();
@@ -2952,32 +3071,14 @@ app.post('/api/workflows/:id/retry', async (req, res) => {
 });
 
 app.post('/api/open-folder', (req, res) => {
-    const { folderPath } = req.body;
-    if (os.platform() === 'win32') {
-        // Resolve symlinks so Explorer can actually navigate to the real location
-        let resolvedPath = folderPath;
-        try {
-            resolvedPath = fs.realpathSync(folderPath);
-        } catch(e) {
-            // If realpathSync fails (e.g. file deleted), fall back to dirname
-            resolvedPath = path.dirname(folderPath);
-        }
-        const cleanPath = resolvedPath.replace(/\//g, '\\');
-        // If it points to a file, open the parent folder with the file selected
-        let explorerArg;
-        try {
-            const stat = fs.statSync(cleanPath);
-            explorerArg = stat.isDirectory() ? `"${cleanPath}"` : `/select,"${cleanPath}"`;
-        } catch(e) {
-            // File doesn't exist, just open the parent
-            explorerArg = `"${path.dirname(cleanPath)}"`;
-        }
-        exec(`explorer.exe ${explorerArg}`);
-        const targetDir = (() => { try { return fs.statSync(cleanPath).isDirectory() ? cleanPath : path.dirname(cleanPath); } catch(e) { return path.dirname(cleanPath); } })();
-        const psFocus = `powershell.exe -Command "$path = '${targetDir}'; $wshell = New-Object -ComObject WScript.Shell; $explorer = New-Object -ComObject Shell.Application; $window = $explorer.Windows() | Where-Object { try { $_.Document.Folder.Self.Path.ToLower() -eq $path.ToLower() } catch { $false } } | Select-Object -First 1; if ($window) { $wshell.AppActivate($window.HWND) } else { $wshell.AppActivate('Explorador de Arquivos'); $wshell.AppActivate('File Explorer') }"`;
-        setTimeout(() => { exec(psFocus); }, 1000);
-    } else exec(`open -R "${folderPath}"`);
-    res.json({ success: true });
+    const { folderPath } = req.body || {};
+    if (!folderPath) return res.status(400).json({ error: 'Missing folderPath.' });
+    try {
+        openPath(folderPath, { select: true });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // --- CENTRALIZA CODER (AGENTE DEEPSEEK NATIVO) ---
@@ -3348,19 +3449,14 @@ async function stopDshAgent() {
     dshCurrentMode = null;
     dshCurrentBaseUrl = null;
     for (const port of ports) {
-        try {
-            const out = await new Promise((resolve, reject) => exec(`netstat -ano | findstr :${port}`, (err, stdout) => err ? reject(err) : resolve(stdout)));
-            for (const line of out.split(/\r?\n/)) {
-                if (!line.toLowerCase().includes('listen')) continue;
-                const m = line.trim().match(/\s+(\d+)\s*$/);
-                if (m) pids.add(parseInt(m[1], 10));
-            }
-        } catch (e) { /* sem netstat — usa apenas o pid rastreado */ }
+        const pid = await pidOnPort(port);
+        if (pid) pids.add(pid);
     }
     let killed = 0;
     for (const pid of pids) {
         if (!pid || pid <= 0 || pid === process.pid) continue;
-        try { exec(`taskkill /F /T /PID ${pid}`, () => {}); killed++; } catch (e) {}
+        killProcess(pid);
+        killed++;
     }
     return { killed };
 }

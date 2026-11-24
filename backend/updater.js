@@ -189,7 +189,12 @@ function createUpdater(deps) {
       const cmd = `powershell -NoProfile -Command "Expand-Archive -LiteralPath '${zipFile.replace(/'/g, "''")}' -DestinationPath '${destDir.replace(/'/g, "''")}' -Force"`;
       await execAsync(cmd, { timeout: 180000, windowsHide: true });
     } else {
-      await execAsync(`unzip -oq "${zipFile}" -d "${destDir}"`, { timeout: 180000 });
+      try {
+        await execAsync(`unzip -oq "${zipFile}" -d "${destDir}"`, { timeout: 180000 });
+      } catch (e) {
+        // macOS ships bsdtar; some minimal Linux images do not ship unzip.
+        await execAsync(`bsdtar -xf "${zipFile}" -C "${destDir}"`, { timeout: 180000 });
+      }
     }
     // O ZIP pode trazer uma pasta raiz (ex.: centraliza-ai-v0.5.1/).
     let root = destDir;

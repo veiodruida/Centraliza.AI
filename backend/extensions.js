@@ -362,11 +362,19 @@ function createExtensions(deps) {
 
   /** Pastas de dados do VS Code (e variantes) onde vive a globalStorage. */
   function vscodeRoots() {
-    const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
+    const home = os.homedir();
     const candidates = ['Code', 'Code - Insiders', 'VSCodium', 'Cursor', 'Windsurf'];
     const roots = [];
     for (const name of candidates) {
-      const userDir = path.join(appData, name, 'User');
+      let userDir;
+      if (WIN) {
+        const appData = process.env.APPDATA || path.join(home, 'AppData', 'Roaming');
+        userDir = path.join(appData, name, 'User');
+      } else if (os.platform() === 'darwin') {
+        userDir = path.join(home, 'Library', 'Application Support', name, 'User');
+      } else {
+        userDir = path.join(home, '.config', name, 'User');
+      }
       if (safeExists(userDir)) {
         roots.push({
           product: name,

@@ -13,7 +13,7 @@ um dashboard premium. O sistema opera inteiramente local, sem dependências de n
 para funcionalidade core.
 
 ### Proposta de Valor
-- **Zero Desperdício de Disco**: Centralização via NTFS Hardlinks — modelos gigantes
+- **Zero Desperdício de Disco**: Centralização via Hardlinks (NTFS/APFS/ext4) — modelos gigantes
   compartilhados entre apps sem duplicação.
 - **Painel Unificado**: Um único ponto de controle para descobrir, baixar, lançar
   e testar modelos de IA.
@@ -28,11 +28,11 @@ para funcionalidade core.
 
 | Camada       | Tecnologia                                | Responsabilidade                    |
 |--------------|-------------------------------------------|-------------------------------------|
-| **Backend**  | Node.js 18+ + Express (porta 4000)        | API REST, WebSocket, file system    |
+| **Backend**  | Node.js 22.5+ + Express (porta 4000)        | API REST, WebSocket, file system    |
 | **Frontend** | React 19 + Vite + TypeScript              | Dashboard SPA com i18n              |
 | **Styling**  | Tailwind CSS + CSS Variables              | Design system glassmórfico          |
 | **Realtime** | Socket.io                                 | Progresso de downloads, logs, sync  |
-| **Storage**  | NTFS Hardlinks / Symlinks (fallback)      | Centralização sem duplicação        |
+| **Storage**  | Hardlinks / Symlinks (NTFS, APFS, ext4)      | Centralização sem duplicação        |
 | **Icons**    | Lucide React                              | Iconografia consistente             |
 | **Charts**   | Recharts                                  | Gráficos de disco e de localizações |
 | **SQLite**   | `node:sqlite` (Node 22+)                  | Escrita da config do Roo Code       |
@@ -82,7 +82,7 @@ Responsável por lançar e gerenciar inferência.
 
 - **Ollama**: `ollama serve` / `ollama run {tag}` (descarregamento via `keep_alive: 0`)
 - **Llama.cpp**: `llama-server` gerido pela app (args configuráveis, health-check)
-- **ComfyUI**: Detecção automática de root + launch via `run_nvidia_gpu.bat`
+- **ComfyUI**: Detecção automática de root + launch via `run_*.bat` (Windows) ou `main.py` (Linux/macOS)
 - **LM Studio**: `lms server start/stop`
 - **Chat Proxy / Gateway**: `/v1/chat/completions` compatível com OpenAI
   (roteia para o llama.cpp ou Ollama conforme o modelo pedido)
@@ -222,10 +222,10 @@ CentralizaIA/
 ├── backend/                   # Módulos v0.5.0 (flavor, storage, engines, extensions, updater)
 ├── config.json                # Persistência de configuração
 ├── package.json               # Dependências do backend
-├── setup.bat                  # Instalação zero-config
-├── start_app.bat              # Launch script
+├── setup.bat / setup.sh       # Installers Windows / Linux
+├── start.bat / start.sh       # Lançadores Windows / Linux-macOS
 ├── central.bat                # Atalho global
-├── picker.ps1                 # Picker nativo de pastas (PowerShell -sta)
+├── picker.ps1                 # Picker nativo de pastas (Windows)
 ├── data/
 │   ├── hf_models.json         # Catálogo local do Hugging Face
 │   └── dsh/                   # Patch de perfil isolado do agente DeepSeek

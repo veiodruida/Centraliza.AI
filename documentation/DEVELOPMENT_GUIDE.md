@@ -1,29 +1,37 @@
 # 🛠️ Centraliza.ai — Guia de Desenvolvimento
 
 > Padrões, convenções e workflows para desenvolver no Centraliza.ai.
-> Última atualização: 2026-11-24 | Versão: 0.5.0
+> Última atualização: 2026-11-24 | Versão: 0.6.1
 
 ---
 
 ## 1. Setup do Ambiente
 
 ### Pré-requisitos
-- Node.js ≥ 18
-- npm ≥ 9
-- Ollama instalado (para funcionalidades de download/chat)
+- Node.js ≥ 22.5 (o setup instala automaticamente se faltar)
+- npm ≥ 10
+- Windows 10/11, Linux ou macOS
+- Ollama instalado (opcional, para funcionalidades de download/chat)
 - GPU NVIDIA (opcional, para telemetria de VRAM via `nvidia-smi`)
 
 ### Instalação
 ```bash
-# Clone e instale tudo com um comando
+# Windows
 setup.bat
+
+# Linux
+bash setup.sh
+
+# macOS
+bash setup-macos.sh
 ```
 
-O `setup.bat` faz:
-1. `npm install` na raiz (backend)
-2. `npm install` no `frontend/`
-3. `npm run build` no `frontend/` (gera `dist/`)
-4. Adiciona o diretório ao PATH do usuário (comando `central`)
+Os instaladores fazem:
+1. Instalam Node.js 22 LTS (winget/Chocolatey/portable no Windows; tarball oficial em Linux/macOS)
+2. `npm install` na raiz (backend)
+3. `npm install` no `frontend/`
+4. `npm run build` no `frontend/` (gera `dist/`)
+5. Registam o comando `central` e criam atalhos para o sistema
 
 ### Desenvolvimento Local
 ```bash

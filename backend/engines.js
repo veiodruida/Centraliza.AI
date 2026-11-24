@@ -23,6 +23,35 @@ const execAsync = promisify(exec);
 
 const WIN = os.platform() === 'win32';
 
+const {
+  IS_WIN,
+  IS_MAC,
+  pidOnPort,
+  killProcess,
+  killProcessByName,
+  comfyPython,
+  comfyLaunchScripts
+} = require('./platform');
+
+/** Candidate paths for the LM Studio CLI (`lms`). */
+function lmStudioCliCandidates() {
+  const home = os.homedir();
+  if (IS_WIN) {
+    return [
+      path.join(process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local'), 'Programs', 'LM Studio', 'lms.exe'),
+      path.join(process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local'), 'LM-Studio', 'lms.exe'),
+      path.join(home, '.lmstudio', 'lms.exe')
+    ];
+  }
+  return [
+    path.join(home, '.lmstudio', 'bin', 'lms'),
+    path.join(home, '.cache', 'lm-studio', 'bin', 'lms'),
+    path.join(home, '.local', 'bin', 'lms'),
+    '/usr/local/bin/lms',
+    '/opt/homebrew/bin/lms'
+  ];
+}
+
 /** Corre um comando com timeout e devolve stdout (string) ou null. */
 async function run(cmd, timeout = 2500) {
   try {
@@ -96,6 +125,27 @@ function createEngineManager(deps) {
   function comfyPort() {
     const p = parseInt(cfg().comfyPort, 10);
     return Number.isFinite(p) && p > 0 ? p : 8188;
+  }
+
+  /** Locate a ComfyUI root from the configured folder or the scanned folders. */
+  function resolveComfyDir() {
+    const config = cfg();
+    const candidates = [config.comfyDir, ...(Array.isArray(config.scanDirectories) ? config.scanDirectories : [])];
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      let current = path.resolve(candidate);
+      for (let i = 0; i < 4; i++) {
+        if (fs.existsSync(path.join(current, 'main.py')) ||
+            fs.existsSync(path.join(current, 'run_nvidia_gpu.bat')) ||
+            fs.existsSync(path.join(current, 'run_nvidia_gpu.sh'))) {
+          return current;
+        }
+        const parent = path.dirname(current);
+        if (parent === current) break;
+        current = parent;
+      }
+    }
+    return config.comfyDir && fs.existsSync(config.comfyDir) ? config.comfyDir : '';
   }
 
   function lmStudioPort() {
@@ -193,11 +243,7 @@ function createEngineManager(deps) {
 
   async function detectLmStudio() {
     const port = lmStudioPort();
-    const candidates = [
-      path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'Programs', 'LM Studio', 'lms.exe'),
-      path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'LM-Studio', 'lms.exe'),
-      path.join(os.homedir(), '.lmstudio', 'lms.exe')
-    ];
+    const candidates = lmStudioCliCandidates();
     const existsOnDisk = candidates.find(p => { try { return fs.existsSync(p); } catch (e) { return false; } });
     const [bin, models] = await Promise.all([
       which('lms'),
@@ -229,7 +275,7 @@ function createEngineManager(deps) {
 
   async function detectComfyUI() {
     const port = comfyPort();
-    const comfyDir = cfg().comfyDir || '';
+    const comfyDir = resolveComfyDir();
     const mainPy = comfyDir ? path.join(comfyDir, 'main.py') : '';
     const hasDir = !!(comfyDir && fs.existsSync(comfyDir));
     const installed = !!(mainPy && fs.existsSync(mainPy)) || hasDir;
@@ -305,11 +351,15 @@ function createEngineManager(deps) {
     if (id === 'lmstudio') {
       const port = lmStudioPort();
       if (await portOpen(port)) return { success: true, message: 'O servidor do LM Studio já está a correr.', port };
-      const lms = (await which('lms')) || [
-        path.join(process.env.LOCALAPPDATA || '', 'Programs', 'LM Studio', 'lms.exe'),
-        path.join(process.env.LOCALAPPDATA || '', 'LM-Studio', 'lms.exe')
-      ].find(p => p && fs.existsSync(p));
-      if (!lms) return { success: false, error: 'LM Studio (lms.exe) não encontrado.' };
+      const lms = (await which('lms')) || lmStudioCliCandidates().find(p => p && fs.existsSync(p));
+      if (!lms && IS_MAC) {
+        logger.info('[Engines] A abrir a aplicação LM Studio...');
+        spawn('open', ['-a', 'LM Studio'], { detached: true, stdio: 'ignore' }).unref();
+        const up = await waitFor(() => portOpen(port, '127.0.0.1', 500), 20000);
+        if (up) return { success: true, message: 'LM Studio iniciado.', port };
+        return { success: false, error: 'LM Studio não respondeu. Abra a aplicação e ative o servidor local.' };
+      }
+      if (!lms) return { success: false, error: 'LM Studio CLI (lms) não encontrado. Instale o LM Studio e ative o CLI nas definições.' };
       logger.info('[Engines] A iniciar servidor do LM Studio...');
       spawn(lms, ['server', 'start'], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
       const up = await waitFor(() => portOpen(port, '127.0.0.1', 500), 20000);
@@ -320,17 +370,22 @@ function createEngineManager(deps) {
     if (id === 'comfyui') {
       const port = comfyPort();
       if (await portOpen(port)) return { success: true, message: 'O ComfyUI já está a correr.', port };
-      const dir = config.comfyDir;
+      const dir = resolveComfyDir();
       if (!dir || !fs.existsSync(dir)) return { success: false, error: 'Pasta do ComfyUI não configurada. Defina-a nas Configurações.' };
-      const bat = ['run_nvidia_gpu.bat', 'run_cpu.bat', 'run.bat'].map(f => path.join(dir, f)).find(p => fs.existsSync(p));
+      const scripts = comfyLaunchScripts(dir);
       logger.info(`[Engines] A iniciar ComfyUI em ${dir}...`);
-      if (bat) {
-        spawn('cmd.exe', ['/c', 'start', '""', '/D', dir, bat], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+      if (scripts.length) {
+        if (IS_WIN) {
+          spawn('cmd.exe', ['/c', 'start', '""', '/D', dir, scripts[0]], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+        } else {
+          spawn('bash', [scripts[0]], { cwd: dir, detached: true, stdio: 'ignore' }).unref();
+        }
       } else {
-        spawn(WIN ? 'python.exe' : 'python3', ['main.py'], { cwd: dir, detached: true, stdio: 'ignore', windowsHide: true }).unref();
+        const python = comfyPython(dir);
+        spawn(python, ['main.py'], { cwd: dir, detached: true, stdio: 'ignore', windowsHide: true }).unref();
       }
-      const up = await waitFor(() => portOpen(port, '127.0.0.1', 600), 45000);
-      if (!up) return { success: false, error: 'O ComfyUI não respondeu a tempo. Verifique a instalação.' };
+      const up = await waitFor(() => portOpen(port, '127.0.0.1', 600), 60000);
+      if (!up) return { success: false, error: 'O ComfyUI não respondeu a tempo. Verifique a instalação e as dependências Python.' };
       return { success: true, message: 'ComfyUI iniciado.', port };
     }
 
@@ -370,19 +425,6 @@ function createEngineManager(deps) {
     return unloaded;
   }
 
-  /** Descobre o PID à escuta numa porta (Windows: netstat). */
-  async function pidOnPort(port) {
-    if (!WIN) return null;
-    const out = await run(`netstat -ano | findstr :${port}`, 2500);
-    if (!out) return null;
-    for (const line of out.split(/\r?\n/)) {
-      if (!/listen/i.test(line)) continue;
-      const m = line.trim().match(/\s+(\d+)\s*$/);
-      if (m) return parseInt(m[1], 10);
-    }
-    return null;
-  }
-
   /** Para um motor: primeiro unload gracioso, depois termina os processos. */
   async function stop(id, opts = {}) {
     const unloadOnly = !!opts.unloadOnly;
@@ -391,11 +433,22 @@ function createEngineManager(deps) {
     if (id === 'ollama') {
       report.unloaded = await unloadOllamaModels();
       if (!unloadOnly) {
-        for (const image of ['ollama app.exe', 'ollama.exe']) {
-          try {
-            await execAsync(`taskkill /F /IM "${image}"`, { windowsHide: true, timeout: 5000 });
-            report.killed.push(image);
-          } catch (e) { /* não estava a correr */ }
+        if (IS_WIN) {
+          for (const image of ['ollama app.exe', 'ollama.exe']) {
+            try {
+              await execAsync(`taskkill /F /IM "${image}"`, { windowsHide: true, timeout: 5000 });
+              report.killed.push(image);
+            } catch (e) { /* não estava a correr */ }
+          }
+        } else {
+          const pid = await pidOnPort(ollamaPort());
+          if (pid) {
+            killProcess(pid);
+            report.killed.push(`PID ${pid}`);
+          } else {
+            killProcessByName('ollama');
+            report.killed.push('ollama');
+          }
         }
       }
       await new Promise(r => setTimeout(r, 800));
@@ -410,11 +463,15 @@ function createEngineManager(deps) {
     }
 
     if (id === 'lmstudio') {
-      const lms = (await which('lms')) || [
-        path.join(process.env.LOCALAPPDATA || '', 'Programs', 'LM Studio', 'lms.exe')
-      ].find(p => p && fs.existsSync(p));
+      const lms = (await which('lms')) || lmStudioCliCandidates().find(p => p && fs.existsSync(p));
       if (!lms) {
-        report.errors.push('LM Studio (lms.exe) não encontrado.');
+        const pid = await pidOnPort(lmStudioPort());
+        if (pid && !unloadOnly) {
+          killProcess(pid);
+          report.killed.push(`PID ${pid}`);
+        } else {
+          report.errors.push('LM Studio CLI (lms) não encontrado.');
+        }
         report.running = await portOpen(lmStudioPort(), '127.0.0.1', 600);
         return report;
       }
@@ -440,12 +497,8 @@ function createEngineManager(deps) {
         report.running = true;
         return report;
       }
-      try {
-        await execAsync(`taskkill /F /T /PID ${pid}`, { windowsHide: true, timeout: 8000 });
-        report.killed.push(`PID ${pid}`);
-      } catch (e) {
-        report.errors.push(String(e && e.message || e));
-      }
+      killProcess(pid);
+      report.killed.push(`PID ${pid}`);
       await new Promise(r => setTimeout(r, 800));
       report.running = await portOpen(port, '127.0.0.1', 600);
       return report;

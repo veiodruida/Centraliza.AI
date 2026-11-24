@@ -10,7 +10,7 @@
 
 ## ✨ Key Features
 
-- **Smart Link Technology** — Share models across different engines (LM Studio ↔ Ollama, ComfyUI, Llama.cpp) using NTFS hardlinks (with symlink fallback). No more duplicated files: save **hundreds of GBs** of disk space.
+- **Smart Link Technology** — Share models across different engines (LM Studio ↔ Ollama, ComfyUI, Llama.cpp) using hardlinks (NTFS, APFS, ext4) with symlink fallback. No more duplicated files: save **hundreds of GBs** of disk space.
 - **ComfyUI Workflow Import** — Import a workflow's `.md` **Model Links** and automatically download every required model from Hugging Face into the correct ComfyUI folder — with live progress, resume and optional HF token for gated repos.
 - **One-Click Launch** — Start Ollama, Llama.cpp, ComfyUI or LM Studio environments directly from one unified dashboard.
 - **Hardware Intelligence** — Real-time VRAM/GPU telemetry, hardware-specific model recommendations, and an **Impact Panel** that estimates speed and memory *before* you load a model.
@@ -18,6 +18,7 @@
 - **Large Context Support** — Context windows up to **1M tokens** (limited to what the model actually supports), respected end-to-end by the gateway's VRAM Shield.
 - **Document Analysis** — Map-Reduce analysis for large documents with intelligent context summarization and VRAM-aware compaction.
 - **Privacy First** — Everything runs locally. No cloud dependencies for core functionality.
+- **Windows, Linux and macOS** — native installers for all three platforms, with automatic Node.js bootstrap and platform-aware folder pickers, launchers and engine management.
 
 ---
 
@@ -70,41 +71,96 @@ image, LoRA, VAE, ControlNet, text encoder, …). Preferences are saved in
 
 ---
 
-## 🛠️ Installation & Setup
+## 🖥️ Cross-Platform Setup (v0.6.1)
+
+Centraliza.ai now installs and runs on **Windows, Linux and macOS**. The setup
+scripts install a supported **Node.js** (when missing), all npm dependencies and
+the production frontend build, so a new user does not need to install anything
+manually.
 
 ### Requirements
 
-- **Node.js** (18+ recommended)
-- **Windows** (10/11) — the project uses `.bat` launchers, PowerShell pickers and `nvidia-smi` telemetry
-- At least one AI engine installed: [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), [ComfyUI](https://github.com/comfyanonymous/ComfyUI), or [Llama.cpp](https://github.com/ggml-org/llama.cpp)
+- **Windows 10/11**, a modern **Linux** distribution, or **macOS 12+**
+- At least one AI engine (optional): [Ollama](https://ollama.com),
+  [LM Studio](https://lmstudio.ai),
+  [ComfyUI](https://github.com/comfyanonymous/ComfyUI) or
+  [Llama.cpp](https://github.com/ggml-org/llama.cpp)
+- Internet access during setup (to download Node.js and npm packages)
 
-### 1. Automated Setup
+Node.js 22.5+ is required by the app (the Roo Code integration uses
+`node:sqlite`). The installers download and use a portable Node.js build without
+requiring administrator rights.
 
-Run the setup script to install everything in one go:
+### Windows
 
 ```bat
-.\setup.bat
+setup.bat
 ```
 
-`setup.bat` handles the full installation:
+The installer tries **winget**, then **Chocolatey**, and finally downloads the
+official **Node.js 22 LTS portable ZIP** into
+`%LOCALAPPDATA%\CentralizaAI\node`. It then installs dependencies, builds the
+frontend, adds the `central` command to the user PATH and creates the Desktop
+shortcut.
 
-1. Verifies Node.js;
-2. Installs root and frontend dependencies;
-3. Builds the frontend (`dist/`);
-4. Adds the `central` command to the user PATH;
-5. Creates a **"Centraliza.ai" desktop shortcut** (pointing to `start.bat`).
+Start it with the **Centraliza.ai** desktop shortcut, `start.bat`, or `central`
+in a new terminal.
 
-### 2. Quick Start
+### Linux
 
-After installing, launch the app any of these equivalent ways:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
 
-- The **"Centraliza.ai"** desktop shortcut;
-- The `central` command (after reopening your terminal);
-- `.\start.bat` from the project root.
+or simply:
 
-`start.bat` is the single launcher: it kills any previous instance on port 4000, opens the dashboard in your browser, and starts the server (close the server window to stop the app).
+```bash
+bash setup.sh
+```
 
-> 💡 Tip: the server port can be overridden with the `PORT` environment variable, e.g. `PORT=4001 node server.js`.
+If Node.js is missing or older than 22.5, `setup.sh` downloads the portable
+Node.js 22 LTS tarball into `${XDG_DATA_HOME:-~/.local/share}/centraliza-ai/node`.
+It also installs the `central` launcher in `~/.local/bin` and a
+**Centraliza.ai** application-menu entry.
+
+Start it with:
+
+```bash
+./start.sh
+central
+```
+
+### macOS
+
+Double-click **`setup.command`** in Finder, or run:
+
+```bash
+bash setup-macos.sh
+```
+
+`setup-macos.sh` uses the shared cross-platform installer. Node.js is installed
+into `~/Library/Application Support/Centraliza.ai/node` when needed; the
+`central` command is created in `~/.local/bin` and a double-clickable
+**`~/Desktop/Centraliza.ai.command`** is added.
+
+Start it with `./start.sh`, `central`, or the Desktop `.command` file.
+
+> **Note:** setup never installs AI engines or models automatically. It only
+> prepares the application runtime; engines are detected by the dashboard.
+
+### Verify the installation
+
+```bash
+# Windows
+setup.bat --check
+
+# Linux / macOS
+./setup.sh --check
+```
+
+The check verifies Node.js, npm, dependencies and the frontend build without
+changing anything.
 
 ---
 
@@ -112,12 +168,28 @@ After installing, launch the app any of these equivalent ways:
 
 | Command | Action |
 | :--- | :--- |
-| `central` | Launches the Centraliza.ai dashboard (equivalent to `start.bat`) |
-| `.\setup.bat` | Installs dependencies, builds, configures PATH and creates the desktop shortcut |
-| `.\start.bat` | Single launcher: starts the server and opens the dashboard |
-| `.\start_app.bat` | Compatibility alias for `start.bat` |
-| `.\create-shortcut.ps1` | (Re)creates the "Centraliza.ai" desktop shortcut |
-| `npm test` | Runs the server test suite (`cd frontend && npm test` for the UI suite) |
+| `central` | Launches the Centraliza.ai dashboard (Windows `start.bat`, Linux/macOS `start.sh`) |
+| `setup.bat` / `bash setup.sh` / `bash setup-macos.sh` | Installs Node.js, dependencies, build and shortcuts for Windows / Linux / macOS |
+| `setup.bat --check` / `./setup.sh --check` | Verifies the installation without changing anything |
+| `start.bat` / `./start.sh` / `./start.command` | Starts the server and opens the dashboard |
+| `.\start_app.bat` | Compatibility alias for `start.bat` on Windows |
+| `.\create-shortcut.ps1` | (Re)creates the Windows "Centraliza.ai" desktop shortcut |
+| `npm test` | Runs the backend suite (`cd frontend && npm test` for the UI suite) |
+
+---
+
+## 🧰 v0.6.1 — Cross-Platform Installers & Runtime
+
+- **Node.js is installed automatically** on Windows, Linux and macOS. New users no longer need to install Node.js before running setup.
+- **Windows installer hardened**: tries winget, Chocolatey and finally the official portable Node.js 22 LTS ZIP in `%LOCALAPPDATA%\CentralizaAI\node`; refreshes PATH, installs dependencies, builds and creates the shortcut.
+- **New Linux installer** (`setup.sh`) with a portable Node.js 22 LTS fallback, `central` launcher in `~/.local/bin` and an application-menu entry.
+- **New macOS installer** (`setup-macos.sh` / double-click `setup.command`) with a portable Node.js build, `central` launcher and a Desktop `.command` shortcut.
+- **Cross-platform runtime**: platform-aware default folders, native folder pickers (PowerShell, AppleScript, zenity/kdialog), folder/URL opening, terminal launch, engine detection/start/stop and VS Code storage paths.
+- **Linux/macOS engine control**: ComfyUI starts with `main.py` or `run_*.sh`, LM Studio uses `lms`/`open -a`, Ollama/ComfyUI stop through `lsof`/`fuser` instead of `taskkill`.
+- **Graceful GPU telemetry** on macOS (`system_profiler`) and Linux (`lspci` fallback when NVIDIA tooling is unavailable).
+- **Installation verification**: `setup.bat --check` and `./setup.sh --check`.
+
+See [Release Notes v0.6.1](RELEASE_NOTES_v0.6.1.md) for the full list.
 
 ---
 
@@ -150,15 +222,15 @@ See [Release Notes v0.5.0](RELEASE_NOTES_v0.5.0.md) for the full list.
 
 ## 🏗️ Architecture
 
-Three-layer design plus the v0.5.0/v0.6.0 modules, all served from a single process on **port 4000**:
+Three-layer design plus the v0.5.0/v0.6.x modules, all served from a single process on **port 4000**:
 
 | Layer | Role |
 | :--- | :--- |
 | **Scan Engine** | Recursively scans configured directories (`.gguf`, `.safetensors`, `.ckpt`, `.bin`, `.pt`, `.pth`), resolves Ollama manifest hashes into readable names, and returns a normalized model list. |
-| **Centralization Engine** | Creates NTFS **hardlinks** (`fs.link`) with symlink fallback (`fs.symlink`), validating via inode or `size + mtime` comparison. Destination: `{centralDir}/Centraliza.ai/{modelBaseName}/{fileName}`. |
-| **Orchestration Engine** | Launches and manages inference: `ollama run`, `llama-cli`/`llama-server` with configurable args (threads, GPU layers, context), ComfyUI via `run_nvidia_gpu.bat`, LM Studio via `lms.exe`, plus a transparent chat proxy to `localhost:11434/api/generate`. |
+| **Centralization Engine** | Creates hardlinks (`fs.link`) with symlink fallback (`fs.symlink`), validating via inode or `size + mtime` comparison. Destination: `{centralDir}/Centraliza.ai/{modelBaseName}/{fileName}`. |
+| **Orchestration Engine** | Launches and manages inference on Windows, Linux and macOS: `ollama run`, `llama-cli`/`llama-server` with configurable args (threads, GPU layers, context), ComfyUI (`run_*.bat` or `main.py`), LM Studio (`lms`/app), plus a transparent chat proxy to `localhost:11434/api/generate`. |
 | **v0.5.0 modules** (`backend/`) | `flavor.js` (Abliterated/Uncensored tagging), `storage.js` (space by location), `engines.js` (detect/start/stop), `extensions.js` (Continue/Roo automation), `updater.js` (transactional self-update). |
-| **v0.6.0 modules** (`backend/`) | `workflow.js` (ComfyUI Markdown parser, Hugging Face resolution, download queue) and `catalog.js` (functional model classification for the My Models filters). |
+| **v0.6.x modules** (`backend/`) | `workflow.js` (ComfyUI Markdown parser, Hugging Face resolution, download queue), `catalog.js` (functional model classification) and `platform.js` (cross-platform paths, process control, pickers/launchers). |
 
 ### Tech Stack
 
@@ -168,7 +240,7 @@ Three-layer design plus the v0.5.0/v0.6.0 modules, all served from a single proc
 | **Frontend** | React 19 + Vite + TypeScript |
 | **Styling** | Tailwind CSS + CSS variables (glassmorphic design system) |
 | **Realtime** | Socket.io (download progress, server logs, update notices, UI sync) |
-| **Storage** | NTFS hardlinks / symlinks (fallback) |
+| **Storage** | Hardlinks / symlinks (NTFS, APFS, ext4) |
 | **Charts** | Recharts (disk usage + space by location) |
 | **i18n** | Custom reactive engine — 11 languages + RTL (Arabic) |
 
@@ -216,13 +288,18 @@ See [documentation/ARCHITECTURE.md](documentation/ARCHITECTURE.md) for the full 
 ```
 Centraliza.AI/
 ├── server.js                  # Express + Socket.io backend (port 4000)
-├── backend/                   # v0.5.0/v0.6.0 modules (flavor, storage, engines, extensions, updater, workflow, catalog)
+├── backend/                   # v0.5.0/v0.6.x modules (flavor, storage, engines, extensions, updater, workflow, catalog, platform)
 ├── config.json                # Configuration persistence (gitignored)
 ├── package.json               # Backend dependencies
-├── setup.bat                  # Zero-config installer
-├── start.bat / start_app.bat  # Launchers
-├── central.bat                # Global `central` command
-├── picker.ps1                 # Native folder picker (PowerShell -sta)
+├── setup.bat                  # Windows installer (auto-installs Node.js)
+├── setup.sh                   # Linux installer (portable Node.js fallback)
+├── setup-macos.sh             # macOS installer wrapper
+├── setup.command              # macOS double-clickable installer
+├── start.bat                  # Windows launcher
+├── start.sh                   # Linux/macOS launcher
+├── start.command              # macOS double-clickable launcher
+├── central.bat                # Windows global `central` command
+├── picker.ps1                 # Windows native folder picker
 ├── centraliza_hero.png        # Hero image
 ├── data/
 │   ├── hf_models.json         # Local Hugging Face catalog
@@ -234,7 +311,7 @@ Centraliza.AI/
 │       ├── components/        # Impact Panel, DiskUsageGraph, StorageLocationChart, DownloadTracker…
 │       ├── context/           # AppContext (global state + i18n)
 │       └── i18n/              # Translations (11 languages + RTL, v050.ts for the new keys)
-├── scripts/                   # QA helpers (resp-scan, resp-verify, verify-v050)
+├── scripts/                   # QA helpers (resp-scan, resp-verify) and install-node.ps1
 ├── index.html                 # Landing page source (GitHub Pages)
 ├── documentation/
 │   ├── ARCHITECTURE.md        # System architecture reference
@@ -253,6 +330,7 @@ npm test
 
 - **17 server tests** — GGUF parser, endpoints, Abliterated/Uncensored tagging, storage summary, engine detection, logs, Coder status, update status and extension readiness.
 - **13 workflow tests** — Markdown parsing (including optional models, sizes and the ignored storage tree), Markdown tables and direct links, ComfyUI folder detection, path traversal protection, Hugging Face resolution with mocked repositories and real downloads from a local HTTP server with `Range` resume.
+- **7 platform tests** — platform defaults, scan folders, ComfyUI/llama paths, `which`, shell quoting and Node.js discovery.
 - **13 frontend tests** — estimation engine, component smoke test and i18n completeness (all 11 languages, placeholders preserved).
 - **Responsiveness suite (Playwright)** — `scripts/resp-scan.mjs` / `resp-verify.mjs`: 9 pages × 13 viewports, asserting zero horizontal overflow, zero clipped numbers and zero clipped text without a tooltip.
 - **v0.5.0 functional checks** — `scripts/verify-v050.mjs`: new controls on the 5 changed modules, Hub search measurements at 2560 px and 360 px overflow checks.
@@ -263,6 +341,7 @@ npm test
 
 - [Architecture](documentation/ARCHITECTURE.md) — technical reference, API surface, caching and operational rules
 - [Development Guide](documentation/DEVELOPMENT_GUIDE.md) — contributor guide
+- [Release Notes v0.6.1](RELEASE_NOTES_v0.6.1.md) — cross-platform installers, automatic Node.js and runtime fixes
 - [Release Notes v0.6.0](RELEASE_NOTES_v0.6.0.md) — ComfyUI workflow import and model library
 - [ComfyUI Workflow Import & Model Library](documentation/WORKFLOW_IMPORT.md) — Markdown format, API and configuration
 - [Release Notes v0.5.0](RELEASE_NOTES_v0.5.0.md) — hub, centralization, engine control, native agent and extensions

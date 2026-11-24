@@ -1,15 +1,25 @@
 {
     "name": "centraliza.ai",
-    "version": "0.6.0",
-    "description": "",
+    "version": "0.6.1",
+    "description": "Local AI orchestrator for LM Studio, Ollama, llama.cpp and ComfyUI, with ComfyUI workflow import and zero-duplication model management.",
     "main": "index.js",
     "scripts": {
         "test": "vitest run"
     },
-    "keywords": [],
+    "keywords": [
+        "local-ai",
+        "ollama",
+        "lm-studio",
+        "comfyui",
+        "llama-cpp",
+        "huggingface"
+    ],
     "author": "",
     "license": "ISC",
     "type": "commonjs",
+    "engines": {
+        "node": ">=22.5.0"
+    },
     "dependencies": {
         "check-disk-space": "^3.4.0",
         "express": "^5.2.1",
