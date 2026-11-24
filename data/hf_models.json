@@ -5182,7 +5182,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 455783,
-    "hf_likes": 1240,
+    "hf_likes": 1239,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5229,7 +5229,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 8019028,
-    "hf_likes": 7061,
+    "hf_likes": 7063,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5312,7 +5312,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 5161983,
-    "hf_likes": 806,
+    "hf_likes": 809,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5352,7 +5352,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 3761136,
-    "hf_likes": 675,
+    "hf_likes": 676,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5520,7 +5520,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 2148301,
-    "hf_likes": 2072,
+    "hf_likes": 2075,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5572,7 +5572,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 512183,
-    "hf_likes": 1645,
+    "hf_likes": 1648,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5623,7 +5623,7 @@
     "pipeline_tag": "text-to-speech",
     "architecture": "",
     "hf_downloads": 9890552,
-    "hf_likes": 342,
+    "hf_likes": 343,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5669,7 +5669,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 4526259,
-    "hf_likes": 2569,
+    "hf_likes": 2576,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5943,7 +5943,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 1506943,
-    "hf_likes": 2609,
+    "hf_likes": 2610,
     "release_date": null,
     "gguf_sources": [
       {
@@ -5996,7 +5996,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 2065411,
-    "hf_likes": 1148,
+    "hf_likes": 1149,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6039,7 +6039,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 1241702,
-    "hf_likes": 931,
+    "hf_likes": 934,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6461,7 +6461,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 1848907,
-    "hf_likes": 1844,
+    "hf_likes": 1845,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6844,7 +6844,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 623824,
-    "hf_likes": 1738,
+    "hf_likes": 1741,
     "release_date": null,
     "gguf_sources": [
       {
@@ -6898,7 +6898,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 2280374,
-    "hf_likes": 2125,
+    "hf_likes": 2126,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7165,7 +7165,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 1173113,
-    "hf_likes": 113,
+    "hf_likes": 115,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7363,7 +7363,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 3803170,
-    "hf_likes": 1962,
+    "hf_likes": 1964,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7591,7 +7591,7 @@
     "pipeline_tag": "any-to-any",
     "architecture": "",
     "hf_downloads": 391138,
-    "hf_likes": 114,
+    "hf_likes": 115,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7722,7 +7722,7 @@
     "pipeline_tag": "any-to-any",
     "architecture": "",
     "hf_downloads": 1190849,
-    "hf_likes": 418,
+    "hf_likes": 419,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7822,7 +7822,7 @@
     "pipeline_tag": "text-to-speech",
     "architecture": "",
     "hf_downloads": 1632404,
-    "hf_likes": 74,
+    "hf_likes": 75,
     "release_date": null,
     "gguf_sources": [
       {
@@ -7925,7 +7925,7 @@
     "pipeline_tag": "automatic-speech-recognition",
     "architecture": "",
     "hf_downloads": 567434,
-    "hf_likes": 1298,
+    "hf_likes": 1299,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8424,7 +8424,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 157040,
-    "hf_likes": 341,
+    "hf_likes": 342,
     "release_date": null,
     "gguf_sources": [
       {
@@ -8777,7 +8777,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 888467,
-    "hf_likes": 366,
+    "hf_likes": 367,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9157,7 +9157,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 599037,
-    "hf_likes": 921,
+    "hf_likes": 922,
     "release_date": null,
     "gguf_sources": [
       {
@@ -9202,7 +9202,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 147435,
-    "hf_likes": 2980,
+    "hf_likes": 2982,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10105,7 +10105,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 477746,
-    "hf_likes": 168,
+    "hf_likes": 169,
     "release_date": null,
     "gguf_sources": [
       {
@@ -10518,7 +10518,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 1317680,
-    "hf_likes": 2845,
+    "hf_likes": 2846,
     "release_date": null,
     "gguf_sources": [
       {
@@ -11647,7 +11647,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 360314,
-    "hf_likes": 242,
+    "hf_likes": 244,
     "release_date": null,
     "gguf_sources": [
       {
@@ -13294,7 +13294,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 752835,
-    "hf_likes": 233,
+    "hf_likes": 234,
     "release_date": null,
     "gguf_sources": [
       {
@@ -13526,7 +13526,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 1851836,
-    "hf_likes": 4296,
+    "hf_likes": 4304,
     "release_date": null,
     "gguf_sources": [
       {
@@ -14949,7 +14949,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 2329057,
-    "hf_likes": 121,
+    "hf_likes": 122,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15271,7 +15271,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 122031,
-    "hf_likes": 2002,
+    "hf_likes": 2010,
     "release_date": null,
     "gguf_sources": [
       {
@@ -15562,7 +15562,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 357772,
-    "hf_likes": 448,
+    "hf_likes": 449,
     "release_date": null,
     "gguf_sources": [
       {
@@ -16240,7 +16240,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 2256878,
-    "hf_likes": 369,
+    "hf_likes": 371,
     "release_date": null,
     "gguf_sources": [
       {
@@ -17082,7 +17082,7 @@
     "pipeline_tag": "image-to-image",
     "architecture": "",
     "hf_downloads": 515345,
-    "hf_likes": 245,
+    "hf_likes": 246,
     "release_date": null,
     "gguf_sources": [
       {
@@ -18248,7 +18248,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 410012,
-    "hf_likes": 901,
+    "hf_likes": 903,
     "release_date": null,
     "gguf_sources": [
       {
@@ -18481,7 +18481,7 @@
     "pipeline_tag": "image-to-video",
     "architecture": "",
     "hf_downloads": 554770,
-    "hf_likes": 594,
+    "hf_likes": 595,
     "release_date": null,
     "gguf_sources": [
       {
@@ -19293,7 +19293,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 268533,
-    "hf_likes": 53,
+    "hf_likes": 54,
     "release_date": null,
     "gguf_sources": [
       {
@@ -22680,7 +22680,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 551207,
-    "hf_likes": 1585,
+    "hf_likes": 1588,
     "release_date": null,
     "gguf_sources": [
       {
@@ -30370,7 +30370,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 1278717,
-    "hf_likes": 3106,
+    "hf_likes": 3107,
     "hf_library": "llama.cpp",
     "hf_tags": [
       "llama.cpp",
@@ -32532,7 +32532,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 2143560,
-    "hf_likes": 225,
+    "hf_likes": 226,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -32650,7 +32650,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 1324240,
-    "hf_likes": 297,
+    "hf_likes": 298,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -33078,7 +33078,7 @@
     "pipeline_tag": "text-to-image",
     "architecture": "",
     "hf_downloads": 176900,
-    "hf_likes": 830,
+    "hf_likes": 831,
     "hf_library": "diffusers",
     "hf_tags": [
       "diffusers",
@@ -33265,7 +33265,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 208397,
-    "hf_likes": 222,
+    "hf_likes": 223,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -33313,7 +33313,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 992362,
-    "hf_likes": 416,
+    "hf_likes": 417,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -33601,7 +33601,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 939564,
-    "hf_likes": 684,
+    "hf_likes": 685,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -33652,7 +33652,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 875807,
-    "hf_likes": 80,
+    "hf_likes": 81,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -34023,7 +34023,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 843573,
-    "hf_likes": 104,
+    "hf_likes": 105,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -34532,7 +34532,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 4457126,
-    "hf_likes": 138,
+    "hf_likes": 140,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -34636,7 +34636,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 1604741,
-    "hf_likes": 294,
+    "hf_likes": 295,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -34899,7 +34899,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 327843,
-    "hf_likes": 86,
+    "hf_likes": 87,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -35187,7 +35187,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 3970424,
-    "hf_likes": 1179,
+    "hf_likes": 1183,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -36642,7 +36642,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 2446342,
-    "hf_likes": 262,
+    "hf_likes": 263,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -36729,7 +36729,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 2000454,
-    "hf_likes": 199,
+    "hf_likes": 200,
     "hf_library": "llama.cpp",
     "hf_tags": [
       "llama.cpp",
@@ -36825,7 +36825,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 1913407,
-    "hf_likes": 1184,
+    "hf_likes": 1212,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -37182,7 +37182,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 1314730,
-    "hf_likes": 117,
+    "hf_likes": 119,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -37385,7 +37385,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 1161897,
-    "hf_likes": 287,
+    "hf_likes": 292,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -37921,7 +37921,7 @@
     "pipeline_tag": "image-text-to-video",
     "architecture": "",
     "hf_downloads": 914452,
-    "hf_likes": 356,
+    "hf_likes": 357,
     "hf_library": "minimax-h3",
     "hf_tags": [
       "minimax-h3",
@@ -37974,7 +37974,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 902269,
-    "hf_likes": 40,
+    "hf_likes": 41,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -38755,7 +38755,7 @@
     "pipeline_tag": "text-to-image",
     "architecture": "",
     "hf_downloads": 717069,
-    "hf_likes": 22,
+    "hf_likes": 23,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -38800,7 +38800,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 712596,
-    "hf_likes": 72,
+    "hf_likes": 76,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -38945,7 +38945,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 642424,
-    "hf_likes": 131,
+    "hf_likes": 132,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -39148,7 +39148,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 601728,
-    "hf_likes": 53,
+    "hf_likes": 54,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -39202,7 +39202,7 @@
     "pipeline_tag": "text-to-image",
     "architecture": "",
     "hf_downloads": 600310,
-    "hf_likes": 893,
+    "hf_likes": 894,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -39309,7 +39309,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 573775,
-    "hf_likes": 700,
+    "hf_likes": 713,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -39355,7 +39355,7 @@
     "pipeline_tag": "any-to-any",
     "architecture": "",
     "hf_downloads": 566642,
-    "hf_likes": 202,
+    "hf_likes": 203,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -39468,7 +39468,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 562174,
-    "hf_likes": 251,
+    "hf_likes": 252,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -39690,7 +39690,7 @@
     "pipeline_tag": "image-to-image",
     "architecture": "",
     "hf_downloads": 475328,
-    "hf_likes": 55,
+    "hf_likes": 56,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -39734,7 +39734,7 @@
     "pipeline_tag": "text-to-image",
     "architecture": "",
     "hf_downloads": 474726,
-    "hf_likes": 869,
+    "hf_likes": 878,
     "hf_library": "diffusers",
     "hf_tags": [
       "diffusers",
@@ -40288,7 +40288,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 376075,
-    "hf_likes": 177,
+    "hf_likes": 178,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -40665,7 +40665,7 @@
     "pipeline_tag": "text-to-image",
     "architecture": "",
     "hf_downloads": 322213,
-    "hf_likes": 39,
+    "hf_likes": 40,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -40850,7 +40850,7 @@
     "pipeline_tag": "video-to-video",
     "architecture": "",
     "hf_downloads": 309173,
-    "hf_likes": 519,
+    "hf_likes": 521,
     "hf_library": "minimax-h3",
     "hf_tags": [
       "minimax-h3",
@@ -41068,7 +41068,7 @@
     "pipeline_tag": "text-to-image",
     "architecture": "",
     "hf_downloads": 269736,
-    "hf_likes": 5984,
+    "hf_likes": 5985,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -41635,7 +41635,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 220575,
-    "hf_likes": 401,
+    "hf_likes": 400,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -41677,7 +41677,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 213977,
-    "hf_likes": 235,
+    "hf_likes": 236,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -42037,7 +42037,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 196409,
-    "hf_likes": 1494,
+    "hf_likes": 1496,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -42400,7 +42400,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 190946,
-    "hf_likes": 152,
+    "hf_likes": 153,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -42539,7 +42539,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 189884,
-    "hf_likes": 354,
+    "hf_likes": 355,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -42588,7 +42588,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 188186,
-    "hf_likes": 152,
+    "hf_likes": 153,
     "hf_library": "edge0",
     "hf_tags": [
       "edge0",
@@ -43737,7 +43737,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 154977,
-    "hf_likes": 277,
+    "hf_likes": 279,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -43836,7 +43836,7 @@
     "pipeline_tag": "any-to-any",
     "architecture": "",
     "hf_downloads": 152897,
-    "hf_likes": 337,
+    "hf_likes": 338,
     "hf_library": "transformers",
     "hf_tags": [
       "transformers",
@@ -44177,7 +44177,7 @@
     "pipeline_tag": "text-generation",
     "architecture": "",
     "hf_downloads": 145800,
-    "hf_likes": 288,
+    "hf_likes": 289,
     "hf_library": "gguf",
     "hf_tags": [
       "gguf",
@@ -44926,7 +44926,7 @@
     "pipeline_tag": "image-text-to-text",
     "architecture": "",
     "hf_downloads": 130629,
-    "hf_likes": 108,
+    "hf_likes": 118,
     "hf_library": null,
     "hf_tags": [
       "gguf",
@@ -46495,7 +46495,7 @@
     "pipeline_tag": "feature-extraction",
     "architecture": "",
     "hf_downloads": 110572,
-    "hf_likes": 61,
+    "hf_likes": 62,
     "hf_library": null,
     "hf_tags": [
       "gguf",
